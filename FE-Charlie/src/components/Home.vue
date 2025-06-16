@@ -7,8 +7,7 @@
                     <span class="gradient-text">Hey, I'm Charlie</span>
                 </h1>
                 <p class="hero-subtitle">
-                    一名全栈开发者、算法探索者，热爱将想法变成代码，把技术融入现实。
-                    现就读于同济大学，致力于用代码重构秩序，用产品连接人心。
+                    {{ charlie.description }}
                 </p>
                 <div class="hero-buttons">
                     <el-button type="primary" size="large" class="cta-button">
@@ -49,15 +48,15 @@
                 <h2>我的专长</h2>
             </div>
             <el-row :gutter="24" class="features-grid">
-                <el-col :xs="24" :sm="12" :md="8" v-for="(feature, index) in features" :key="index">
+                <el-col :xs="24" :sm="12" :md="8" v-for="(talent, index) in talents" :key="index">
                     <el-card class="feature-card" shadow="hover">
                         <div class="feature-icon">
                             <el-icon :size="40">
-                                <component :is="feature.icon" />
+                                <component :is="talent.icon" />
                             </el-icon>
                         </div>
-                        <h3>{{ feature.title }}</h3>
-                        <p>{{ feature.description }}</p>
+                        <h3>{{ talent.title }}</h3>
+                        <p>{{ talent.description }}</p>
                     </el-card>
                 </el-col>
             </el-row>
@@ -68,10 +67,10 @@
                 <h2>我的成就</h2>
             </div>
             <el-row class="stats-section" :gutter="24">
-                <el-col :xs="12" :sm="6" v-for="(stat, index) in stats" :key="index">
+                <el-col :xs="12" :sm="6" v-for="(achievement, index) in achievements" :key="index">
                     <div class="stat-item">
-                        <div class="stat-number">{{ stat.number }}</div>
-                        <div class="stat-label">{{ stat.label }}</div>
+                        <div class="stat-number">{{ achievement.number }}</div>
+                        <div class="stat-label">{{ achievement.label }}</div>
                     </div>
                 </el-col>
             </el-row>
@@ -94,16 +93,16 @@
                 <h2>碎碎念</h2>
             </div>
             <div class="thoughts-container">
-                <el-card v-for="(thought, index) in thoughts" :key="index" class="thought-card" shadow="hover">
+                <el-card v-for="(bubble, index) in bubbles" :key="index" class="thought-card" shadow="hover">
                     <div class="thought-header">
                         <div class="thought-date">
                             <el-icon>
                                 <Calendar />
                             </el-icon>
-                            <span>{{ thought.date }}</span>
+                            <span>{{ bubble.date }}</span>
                         </div>
                         <div class="thought-tags">
-                            <el-tag v-for="(tag, tagIndex) in thought.tags" :key="tagIndex" size="small" effect="dark"
+                            <el-tag v-for="(tag, tagIndex) in bubble.tags" :key="tagIndex" size="small" effect="dark"
                                 class="thought-tag">
                                 {{ tag }}
                             </el-tag>
@@ -113,7 +112,7 @@
                         <el-icon class="quote-icon">
                             <ChatDotRound />
                         </el-icon>
-                        <p>{{ thought.content }}</p>
+                        <p>{{ bubble.content }}</p>
                     </div>
                 </el-card>
             </div>
@@ -125,14 +124,14 @@
             </div>
             <blockquote
                 style="font-style: italic; color: rgba(255,255,255,0.8); max-width: 600px; margin: auto; font-size: 1.2rem;">
-                “在技术的森林里，我不只是探路者，更是造路人。”
+                {{ charlie.motto }}
             </blockquote>
         </section>
     </el-main>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
+<script setup>
+import { ref, onMounted } from 'vue'
 import {
     Star,
     Message,
@@ -143,7 +142,32 @@ import {
     Collection
 } from '@element-plus/icons-vue'
 
-const features = ref([
+import { request } from '@/api/request'
+import { LANG } from '@/main';
+
+onMounted(async () => {
+    await get_charlie(LANG);
+})
+
+const charlie = ref({});
+const get_charlie = async (lang) => {
+    try {
+        const res = await request.post('/api/get_charlie', {
+            lang
+        });
+        if (res.status !== 200) {
+            ElMessage(res.message)
+            console.log(res.message)
+            return;
+        }
+        charlie.value = res.data.charlie;
+    } catch (error) {
+        ElMessage(error)
+        console.log(error)
+    }
+}
+
+const talents = ref([
     {
         icon: Monitor,
         title: '全栈开发',
@@ -171,7 +195,7 @@ const features = ref([
     }
 ])
 
-const stats = ref([
+const achievements = ref([
     { number: '15+', label: '完整项目实战' },
     { number: '3', label: '创业/联合创始经历' },
     { number: '100%', label: '项目上线成功率' },
@@ -203,7 +227,7 @@ const growthTimeline = ref([
 ])
 
 // 碎碎念数据
-const thoughts = ref([
+const bubbles = ref([
     {
         date: "2024-05-15",
         content: "完成了一个复杂的算法优化，将处理时间缩短了40%，很有成就感！",
