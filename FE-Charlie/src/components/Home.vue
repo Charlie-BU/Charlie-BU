@@ -10,13 +10,13 @@
                     {{ charlie.description }}
                 </p>
                 <div class="hero-buttons">
-                    <el-button type="primary" size="large" class="cta-button">
+                    <el-button type="primary" size="large" class="cta-button" @click="goto_github">
                         <el-icon class="button-icon">
                             <Star />
                         </el-icon>
                         {{ t('viewProjects') }}
                     </el-button>
-                    <el-button size="large" class="secondary-button">
+                    <el-button size="large" class="secondary-button" @click="email_me">
                         <el-icon class="button-icon">
                             <Message />
                         </el-icon>
@@ -136,6 +136,7 @@ import {
     Star,
     Message
 } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus';
 import Cookies from 'js-cookie';
 
 import { request } from '../api/request'
@@ -281,6 +282,22 @@ const get_bubbles = async (lang) => {
         ElMessage(error)
         console.log(error)
     }
+}
+
+const goto_github = () => {
+    if (!charlie?.value?.github) {
+        ElMessage("Github暂无法访问")
+        return;
+    }
+    window.open(charlie.value.github, '_blank')
+}
+
+const email_me = () => {
+    if (!charlie?.value?.email) {
+        ElMessage("请稍后再试")
+        return;
+    }
+    window.location.href = `mailto:${charlie.value.email}`
 }
 </script>
 
