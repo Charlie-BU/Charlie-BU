@@ -2,7 +2,7 @@
     <el-footer class="footer">
         <div class="footer-content">
             <p>Copyright © 2025 - Present <span style="font-style: italic; font-weight: bold;">Charlie. BU</span>
-                用心创造每一个像素.</p>
+                {{ t('footnote') }}</p>
             <div class="social-links">
                 <el-button circle class="social-btn">
                     <el-icon>
@@ -24,12 +24,27 @@
     </el-footer>
 </template>
 
-<script setup lang="ts">
+<script setup>
+import { reactive } from 'vue'
 import {
     Platform,
     ChatDotRound,
     Link
 } from '@element-plus/icons-vue'
+
+const LANG = localStorage.getItem("LANG") || "Chinese";
+const translations = reactive({
+    Chinese: {
+        footnote: '用心创造每一个像素.'
+    },
+    English: {
+        footnote: 'Create every pixel with heart.'
+    }
+})
+// 翻译函数
+const t = (key) => {
+    return translations[LANG][key] || key
+}
 </script>
 
 <style scoped>

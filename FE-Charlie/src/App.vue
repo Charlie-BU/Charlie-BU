@@ -10,17 +10,24 @@
         <NavBar />
 
         <!-- 主要内容区域 -->
-        <Home />
+        <router-view />
 
         <!-- 底部 -->
         <Footer />
     </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import NavBar from './components/NavBar.vue'
-import Home from './components/Home.vue'
 import Footer from './components/Footer.vue'
+import { onMounted } from 'vue'
+
+onMounted(() => {
+    const LANG = localStorage.getItem("LANG");
+    if (LANG !== "Chinese" && LANG !== "English") {
+        localStorage.setItem("LANG", "Chinese");
+    }
+})
 </script>
 
 <style scoped>
