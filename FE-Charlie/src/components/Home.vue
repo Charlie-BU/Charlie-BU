@@ -14,13 +14,13 @@
                         <el-icon class="button-icon">
                             <Star />
                         </el-icon>
-                        查看我的项目
+                        {{ t('viewProjects') }}
                     </el-button>
                     <el-button size="large" class="secondary-button">
                         <el-icon class="button-icon">
                             <Message />
                         </el-icon>
-                        与我交流
+                        {{ t('contactMe') }}
                     </el-button>
                 </div>
             </div>
@@ -45,7 +45,7 @@
 
         <section class="features-section">
             <div class="section-title">
-                <h2>我的专长</h2>
+                <h2>{{ t('myTalents') }}</h2>
             </div>
             <el-row :gutter="24" class="features-grid">
                 <el-col :xs="24" :sm="12" :md="8" v-for="(talent, index) in talents" :key="index">
@@ -64,7 +64,7 @@
 
         <section style="margin-top: 120px;">
             <div class="section-title">
-                <h2>我的成就</h2>
+                <h2>{{ t('myAchievements') }}</h2>
             </div>
             <el-row class="stats-section" :gutter="24">
                 <el-col :xs="12" :sm="6" v-for="(achievement, index) in achievements" :key="index">
@@ -78,10 +78,10 @@
 
         <section style="margin-top: 120px;">
             <div class="section-title">
-                <h2>成长轨迹</h2>
+                <h2>{{ t('growthPath') }}</h2>
             </div>
             <el-timeline style="max-width: 600px; margin: auto;">
-                <el-timeline-item v-for="(item, index) in growthTimeline" :key="index" :timestamp="item.timestamp"
+                <el-timeline-item v-for="(item, index) in growthTimelines" :key="index" :timestamp="item.timestamp"
                     placement="top">
                     {{ item.content }}
                 </el-timeline-item>
@@ -90,7 +90,7 @@
 
         <section style="margin-top: 120px;">
             <div class="section-title">
-                <h2>碎碎念</h2>
+                <h2>{{ t('thoughts') }}</h2>
             </div>
             <div class="thoughts-container">
                 <el-card v-for="(bubble, index) in bubbles" :key="index" class="thought-card" shadow="hover">
@@ -120,7 +120,7 @@
 
         <section style="margin-top: 120px; text-align: center;">
             <div class="section-title">
-                <h2>一句话自我定义</h2>
+                <h2>{{ t('selfDefinition') }}</h2>
             </div>
             <blockquote
                 style="font-style: italic; color: rgba(255,255,255,0.8); max-width: 600px; margin: auto; font-size: 1.2rem;">
@@ -131,24 +131,64 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import {
     Star,
-    Message,
-    Monitor,
-    MagicStick,
-    Trophy,
-    Cpu,
-    Collection
+    Message
 } from '@element-plus/icons-vue'
+import Cookies from 'js-cookie';
 
-import { request } from '@/api/request'
-import { LANG } from '@/main';
+import { request } from '../api/request'
+
+const LANG = localStorage.getItem("LANG") || "Chinese";
+const translations = reactive({
+    Chinese: {
+        viewProjects: '查看我的项目',
+        contactMe: '与我交流',
+        myTalents: '我的专长',
+        myAchievements: '我的成就',
+        growthPath: '成长轨迹',
+        thoughts: '碎碎念',
+        selfDefinition: '一句话自我定义'
+    },
+    English: {
+        viewProjects: 'View My Projects',
+        contactMe: 'Contact Me',
+        myTalents: 'My Talents',
+        myAchievements: 'My Achievements',
+        growthPath: 'Growth Path',
+        thoughts: 'Thoughts',
+        selfDefinition: 'Self Definition'
+    }
+})
+// 翻译函数
+const t = (key) => {
+    return translations[LANG][key] || key
+}
 
 onMounted(async () => {
-    await get_charlie(LANG);
+    await Promise.all([get_charlie(LANG), get_talents(LANG), get_achievements(LANG), get_growthTimeline(LANG), get_bubbles(LANG)]);
+    if (Cookies.get('sessionid')) {
+        await check_sessionid();
+    }
 })
 
+const admin_id = ref(false);
+const check_sessionid = async () => {
+    try {
+        const res = await request.post('/api/check_sessionid', {
+            sessionid: Cookies.get('sessionid')
+        });
+        if (res.status !== 200) {
+            return;
+        }
+        admin_id.value = res.data.admin_id;
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+// 个人信息
 const charlie = ref({});
 const get_charlie = async (lang) => {
     try {
@@ -167,88 +207,81 @@ const get_charlie = async (lang) => {
     }
 }
 
-const talents = ref([
-    {
-        icon: Monitor,
-        title: '全栈开发',
-        description: '精通 Vue3、TypeScript、Robyn、Flask 等技术栈，构建高性能应用'
-    },
-    {
-        icon: Cpu,
-        title: '算法与工程',
-        description: '探索 AI 算法训练、YOLO 识别、Pose Estimation，兼顾工程落地'
-    },
-    {
-        icon: Collection,
-        title: '系统架构 & DevOps',
-        description: '从单体到前后端分离，主导项目 DevOps 流程和数据库设计'
-    },
-    {
-        icon: MagicStick,
-        title: '技术写作与开源',
-        description: '关注技术影响力，参与开源反馈，撰写实用型开发文章'
-    },
-    {
-        icon: Trophy,
-        title: '团队与创业',
-        description: '曾参与初创公司，主导 CRM 系统开发，践行"以产品为根"的理念'
+// 我的专长
+const talents = ref([])
+const get_talents = async (lang) => {
+    try {
+        const res = await request.post('/api/get_talents', {
+            lang
+        });
+        if (res.status !== 200) {
+            ElMessage(res.message)
+            console.log(res.message)
+            return;
+        }
+        talents.value = res.data.talents;
+    } catch (error) {
+        ElMessage(error)
+        console.log(error)
     }
-])
+}
 
-const achievements = ref([
-    { number: '15+', label: '完整项目实战' },
-    { number: '3', label: '创业/联合创始经历' },
-    { number: '100%', label: '项目上线成功率' },
-    { number: '∞', label: '对代码的热爱' }
-])
-
-// 成长轨迹数据
-const growthTimeline = ref([
-    {
-        timestamp: "2021",
-        content: "初识编程，独立学习 Python 与前端基础"
-    },
-    {
-        timestamp: "2022",
-        content: "大学入学，主攻软件工程，参与第一个校内项目"
-    },
-    {
-        timestamp: "2023",
-        content: "实习 + 参与初创公司，主导 CRM 系统开发"
-    },
-    {
-        timestamp: "2024",
-        content: "学习 AI 算法，担任工作室负责人，扩展项目影响力"
-    },
-    {
-        timestamp: "2025",
-        content: "持续创业实践，探索产品 + 算法 + DevOps 多线发展"
+// 我的成就
+const achievements = ref([])
+const get_achievements = async (lang) => {
+    try {
+        const res = await request.post('/api/get_achievements', {
+            lang
+        });
+        if (res.status !== 200) {
+            ElMessage(res.message)
+            console.log(res.message)
+            return;
+        }
+        achievements.value = res.data.achievements;
+    } catch (error) {
+        ElMessage(error)
+        console.log(error)
     }
-])
+}
 
-// 碎碎念数据
-const bubbles = ref([
-    {
-        date: "2024-05-15",
-        content: "完成了一个复杂的算法优化，将处理时间缩短了40%，很有成就感！",
-        tags: ["技术", "算法"]
-    },
-    {
-        date: "2024-05-10",
-        content: "读完《Clean Code》，代码整洁之道不仅是技术问题，更是一种责任和态度。",
-        tags: ["阅读", "成长"]
-    },
-    {
-        date: "2024-05-05",
-        content: "参加了开源社区的线上讨论，认识了几位志同道合的朋友，期待未来的合作。",
-        tags: ["社区", "交流"]
-    },
-    {
-        date: "2024-04-28",
-        content: "思考：技术是工具，创造价值才是目的。如何让代码更好地服务于人类需求？",
-        tags: ["思考", "价值观"]
+// 成长轨迹
+const growthTimelines = ref([])
+const get_growthTimeline = async (lang) => {
+    try {
+        const res = await request.post('/api/get_growthTimeline', {
+            lang
+        });
+        if (res.status !== 200) {
+            ElMessage(res.message)
+            console.log(res.message)
+            return;
+        }
+        growthTimelines.value = res.data.growthTimelines;
+    } catch (error) {
+        ElMessage(error)
+        console.log(error)
     }
-])
+}
+
+// 碎碎念
+const bubbles = ref([])
+const get_bubbles = async (lang) => {
+    try {
+        const res = await request.post('/api/get_bubbles', {
+            lang
+        });
+        if (res.status !== 200) {
+            ElMessage(res.message)
+            console.log(res.message)
+            return;
+        }
+        bubbles.value = res.data.bubbles;
+    } catch (error) {
+        ElMessage(error)
+        console.log(error)
+    }
+}
 </script>
 
 
@@ -308,6 +341,7 @@ const bubbles = ref([
     margin-bottom: 30px;
     line-height: 1.6;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    font-weight: bold;
 }
 
 .hero-buttons {
