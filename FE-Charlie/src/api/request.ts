@@ -8,13 +8,13 @@ import type {
 import { ElMessage } from "element-plus";
 
 // 本地
-const DEVELOP_URL = "http://localhost:1209";
+// const DEVELOP_URL = "http://localhost:1209";
 // 使用接口反向代理
-const PRODUCTION_URL = "http://124.223.93.75:1209";
+const PRODUCTION_URL = "http://124.223.93.75:90";
 
 const service: AxiosInstance = axios.create({
-    baseURL: DEVELOP_URL,
-    timeout: 20000,
+    baseURL: PRODUCTION_URL,
+    timeout: 50000,
 });
 
 service.interceptors.request.use(
