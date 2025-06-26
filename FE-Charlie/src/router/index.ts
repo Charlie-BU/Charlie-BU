@@ -2,6 +2,35 @@ import { createRouter, createWebHistory } from "vue-router";
 import Home from "../components/Home.vue";
 import Login from "../components/Login.vue";
 import Article from "../components/Article.vue";
+import ArticleEditor from "../components/ArticleEditor.vue";
+import Cookies from "js-cookie";
+import { request } from "../api/request";
+import {
+    type RouteLocationNormalized,
+    type NavigationGuardNext,
+} from "vue-router";
+
+// 管理员权限验证
+const adminAuthGuard = async (
+    // 在参数名前添加下划线表示这个参数是有意不使用的
+    _to: RouteLocationNormalized,
+    _from: RouteLocationNormalized,
+    next: NavigationGuardNext
+) => {
+    try {
+        const res = await request.post("/api/check_sessionid", {
+            sessionid: Cookies.get("sessionid"),
+        });
+        if (res.data.status === 200 && res.data.admin_id) {
+            next();
+        } else {
+            next("/");
+        }
+    } catch (error) {
+        console.error("权限验证失败:", error);
+        next("/");
+    }
+};
 
 const routes = [
     {
@@ -19,11 +48,27 @@ const routes = [
         name: "Articles",
         component: Article,
     },
+    {
+        path: "/article/new",
+        name: "NewArticle",
+        component: ArticleEditor,
+        beforeEnter: adminAuthGuard,
+    },
+    {
+        path: "/article/edit/:id",
+        name: "EditArticle",
+        component: ArticleEditor,
+        beforeEnter: adminAuthGuard,
+    },
 ];
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
+    scrollBehavior() {
+        // 始终滚动到顶部
+        return { top: 0 };
+    },
 });
 
 export default router;

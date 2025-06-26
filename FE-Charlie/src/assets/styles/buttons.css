@@ -1,0 +1,91 @@
+/* 
+<!-- 在任何组件中 -->
+<button class="charlie-btn charlie-btn-primary charlie-btn-medium">主要按钮</button>
+<button class="charlie-btn charlie-btn-success charlie-btn-medium">成功按钮</button>
+<button class="charlie-btn charlie-btn-default charlie-btn-medium">默认按钮</button>
+
+<!-- 与Element Plus结合使用 -->
+<el-button class="charlie-btn charlie-btn-primary">Element按钮</el-button>
+*/
+
+/* 基础按钮样式 */
+.charlie-btn {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.charlie-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* 默认按钮样式 */
+.charlie-btn-default {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.charlie-btn-default:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* Primary按钮样式 */
+.charlie-btn-primary {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: white;
+    border: none;
+}
+
+.charlie-btn-primary:hover {
+    background: linear-gradient(135deg, #9061f9, #7c3aed);
+    box-shadow: 0 6px 12px rgba(109, 40, 217, 0.3);
+}
+
+/* Success按钮样式 */
+.charlie-btn-success {
+    background: linear-gradient(135deg, #10b981, #047857);
+    color: white;
+    border: none;
+}
+
+.charlie-btn-success:hover {
+    background: linear-gradient(135deg, #34d399, #059669);
+    box-shadow: 0 6px 12px rgba(4, 120, 87, 0.3);
+}
+
+/* 按钮大小 */
+.charlie-btn-large {
+    padding: 12px 24px;
+    font-size: 1.1rem;
+}
+
+.charlie-btn-medium {
+    padding: 10px 20px;
+    font-size: 1rem;
+}
+
+.charlie-btn-small {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+/* 禁用状态 */
+.charlie-btn[disabled],
+.charlie-btn.is-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* 加载状态 */
+.charlie-btn.is-loading {
+    opacity: 0.8;
+    pointer-events: none;
+}
