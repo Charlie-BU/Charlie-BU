@@ -11,6 +11,10 @@
                 <el-menu-item index="/daily">{{ t('daily') }}</el-menu-item>
                 <el-menu-item index="/gallery">{{ t('gallery') }}</el-menu-item>
             </el-menu>
+            <!-- 退出登录按钮 -->
+            <el-button v-if="isLoggedIn" class="logout-button" type="danger" size="small" @click="handleLogout">
+                {{ t('logout') }}
+            </el-button>
             <!-- 自定义语言切换按钮 -->
             <div class="language-toggle" @click="toggleLanguage">
                 <span class="toggle-text">{{ LANG === 'Chinese' ? 'English' : '中文' }}</span>
@@ -23,10 +27,14 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import Cookies from 'js-cookie'
+import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const activeIndex = ref('/')
 const LANG = ref(localStorage.getItem("LANG") || "Chinese")
+const isLoggedIn = ref(false)
+
 // 监听路由变化，更新activeIndex
 watch(() => route.path, (newPath) => {
     activeIndex.value = newPath
@@ -39,6 +47,8 @@ const translations = reactive({
         projects: '项目',
         daily: '日常',
         gallery: '图集',
+        logout: '退出登录',
+        logoutSuccess: '已成功退出登录'
     },
     English: {
         home: 'Home',
@@ -46,11 +56,32 @@ const translations = reactive({
         projects: 'Projects',
         daily: 'Daily',
         gallery: 'Gallery',
+        logout: 'Logout',
+        logoutSuccess: 'Successfully logged out'
     }
 })
 // 翻译函数
 const t = (key) => {
     return translations[LANG.value][key] || key
+}
+
+// 检查登录状态
+onMounted(() => {
+    checkLoginStatus()
+})
+
+const checkLoginStatus = () => {
+    const sessionid = Cookies.get('sessionid')
+    isLoggedIn.value = !!sessionid
+}
+
+// 退出登录
+const handleLogout = () => {
+    Cookies.remove('sessionid')
+    isLoggedIn.value = false
+    ElMessage.success(t('logoutSuccess'))
+    // 刷新页面以更新状态
+    window.location.reload()
 }
 
 const toggleLanguage = () => {
@@ -184,5 +215,18 @@ const toggleLanguage = () => {
 
 .toggle-icon {
     font-size: 16px;
+}
+
+/* 退出登录按钮样式 */
+.logout-button {
+    margin-left: 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 </style>

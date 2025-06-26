@@ -15,6 +15,7 @@ const PRODUCTION_URL = "http://124.223.93.75:90";
 const service: AxiosInstance = axios.create({
     baseURL: PRODUCTION_URL,
     timeout: 50000,
+    withCredentials: true, // 自动携带cookies
 });
 
 service.interceptors.request.use(

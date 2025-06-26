@@ -6,8 +6,11 @@
                 <h1 class="hero-title">
                     <span class="gradient-text">Hey, I'm Charlie</span>
                 </h1>
-                <p class="hero-subtitle">
+                <p class="hero-subtitle section-title-container" @mouseenter="handle_mouse_enter('description')"
+                    @mouseleave="handle_mouse_leave('description')">
                     {{ charlie.description }}
+                    <el-button v-if="admin_id && hover_module === 'description'" class="add-button" size="small"
+                        type="primary" icon="EditPen">修改</el-button>
                 </p>
                 <div class="hero-buttons">
                     <el-button type="primary" size="large" class="cta-button" @click="goto_github">
@@ -44,12 +47,16 @@
         </section>
 
         <section class="features-section">
-            <div class="section-title">
+            <div class="section-title section-title-container" @mouseenter="handle_mouse_enter('talents')"
+                @mouseleave="handle_mouse_leave('talents')">
                 <h2>{{ t('myTalents') }}</h2>
+                <el-button v-if="admin_id && hover_module === 'talents'" class="add-button" size="small" type="primary"
+                    icon="Plus">添加</el-button>
             </div>
             <el-row :gutter="24" class="features-grid">
                 <el-col :xs="24" :sm="12" :md="8" v-for="(talent, index) in talents" :key="index">
-                    <el-card class="feature-card" shadow="hover">
+                    <el-card class="feature-card" shadow="hover"
+                        @contextmenu.prevent="(e) => handle_right_click(e, talent, 'talent')">
                         <div class="feature-icon">
                             <el-icon :size="40">
                                 <component :is="talent.icon" />
@@ -63,12 +70,16 @@
         </section>
 
         <section style="margin-top: 120px;">
-            <div class="section-title">
+            <div class="section-title section-title-container" @mouseenter="handle_mouse_enter('achievements')"
+                @mouseleave="handle_mouse_leave('achievements')">
                 <h2>{{ t('myAchievements') }}</h2>
+                <el-button v-if="admin_id && hover_module === 'achievements'" class="add-button" size="small"
+                    type="primary" icon="Plus">添加</el-button>
             </div>
             <el-row class="stats-section" :gutter="24">
                 <el-col :xs="12" :sm="6" v-for="(achievement, index) in achievements" :key="index">
-                    <div class="stat-item">
+                    <div class="stat-item"
+                        @contextmenu.prevent="(e) => handle_right_click(e, achievement, 'achievement')">
                         <div class="stat-number">{{ achievement.number }}</div>
                         <div class="stat-label">{{ achievement.label }}</div>
                     </div>
@@ -77,69 +88,95 @@
         </section>
 
         <section style="margin-top: 120px;">
-            <div class="section-title">
+            <div class="section-title section-title-container" @mouseenter="handle_mouse_enter('growthPath')"
+                @mouseleave="handle_mouse_leave('growthPath')">
                 <h2>{{ t('growthPath') }}</h2>
+                <el-button v-if="admin_id && hover_module === 'growthPath'" class="add-button" size="small"
+                    type="primary" icon="Plus">添加</el-button>
             </div>
             <el-timeline style="max-width: 600px; margin: auto;">
                 <el-timeline-item v-for="(item, index) in growthTimelines" :key="index" :timestamp="item.timestamp"
                     placement="top">
-                    {{ item.content }}
+                    <div class="timeline-content"
+                        @contextmenu.prevent="(e) => handle_right_click(e, item, 'growthTimeline')">
+                        {{ item.content }}
+                    </div>
                 </el-timeline-item>
             </el-timeline>
         </section>
 
         <section style="margin-top: 120px;">
-            <div class="section-title">
+            <div class="section-title section-title-container" @mouseenter="handle_mouse_enter('thoughts')"
+                @mouseleave="handle_mouse_leave('thoughts')">
                 <h2>{{ t('thoughts') }}</h2>
+                <el-button v-if="admin_id && hover_module === 'thoughts'" class="add-button" size="small" type="primary"
+                    icon="Plus">添加</el-button>
             </div>
             <div class="thoughts-container">
                 <el-card v-for="(bubble, index) in bubbles" :key="index" class="thought-card" shadow="hover">
-                    <div class="thought-header">
-                        <div class="thought-date">
-                            <el-icon>
-                                <Calendar />
+                    <div @contextmenu.prevent="(e) => handle_right_click(e, bubble, 'bubble')">
+                        <div class="thought-header">
+                            <div class="thought-date">
+                                <el-icon>
+                                    <Calendar />
+                                </el-icon>
+                                <span>{{ bubble.date }}</span>
+                            </div>
+                            <div class="thought-tags">
+                                <el-tag v-for="(tag, tagIndex) in bubble.tags" :key="tagIndex" size="small"
+                                    effect="dark" class="thought-tag">
+                                    {{ tag }}
+                                </el-tag>
+                            </div>
+                        </div>
+                        <div class="thought-content">
+                            <el-icon class="quote-icon">
+                                <ChatDotRound />
                             </el-icon>
-                            <span>{{ bubble.date }}</span>
+                            <p>{{ bubble.content }}</p>
                         </div>
-                        <div class="thought-tags">
-                            <el-tag v-for="(tag, tagIndex) in bubble.tags" :key="tagIndex" size="small" effect="dark"
-                                class="thought-tag">
-                                {{ tag }}
-                            </el-tag>
-                        </div>
-                    </div>
-                    <div class="thought-content">
-                        <el-icon class="quote-icon">
-                            <ChatDotRound />
-                        </el-icon>
-                        <p>{{ bubble.content }}</p>
                     </div>
                 </el-card>
             </div>
         </section>
 
         <section style="margin-top: 120px; text-align: center;">
-            <div class="section-title">
+            <div class="section-title section-title-container" @mouseenter="handle_mouse_enter('selfDefinition')"
+                @mouseleave="handle_mouse_leave('selfDefinition')">
                 <h2>{{ t('selfDefinition') }}</h2>
+                <el-button v-if="admin_id && hover_module === 'selfDefinition'" class="add-button" size="small"
+                    type="primary" icon="Plus">添加</el-button>
             </div>
             <blockquote
-                style="font-style: italic; color: rgba(255,255,255,0.8); max-width: 600px; margin: auto; font-size: 1.2rem;">
+                style="font-style: italic; color: rgba(255,255,255,0.8); max-width: 600px; margin: auto; font-size: 1.2rem;"
+                @contextmenu.prevent="(e) => handle_right_click(e, charlie.motto, 'motto')">
                 {{ charlie.motto }}
             </blockquote>
         </section>
     </el-main>
+
+    <div v-if="showContextMenu" class="context-menu" :style="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }">
+        <div class="context-menu-item delete-item" @click="handle_delete">
+            <el-icon>
+                <Delete />
+            </el-icon>
+            <span>删除</span>
+        </div>
+    </div>
+
+    <Modal v-model:visible="deleteDialogVisible" type="delete" title="确认删除" content="确定要删除此项吗？"
+        @confirm="confirm_delete" @cancel="cancel_delete" />
+
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
-import {
-    Star,
-    Message
-} from '@element-plus/icons-vue'
+import { ref, onMounted, reactive, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus';
 import Cookies from 'js-cookie';
 
 import { request } from '../api/request'
+import Modal from './Modal.vue'
+
 
 const LANG = localStorage.getItem("LANG") || "Chinese";
 const translations = reactive({
@@ -180,7 +217,7 @@ const check_sessionid = async () => {
         const res = await request.post('/api/check_sessionid', {
             sessionid: Cookies.get('sessionid')
         });
-        if (res.status !== 200) {
+        if (res.data.status !== 200) {
             return;
         }
         admin_id.value = res.data.admin_id;
@@ -196,9 +233,9 @@ const get_charlie = async (lang) => {
         const res = await request.post('/api/get_charlie', {
             lang
         });
-        if (res.status !== 200) {
-            ElMessage(res.message)
-            console.log(res.message)
+        if (res.data.status !== 200) {
+            ElMessage(res.data.message)
+            console.log(res.data.message)
             return;
         }
         charlie.value = res.data.charlie;
@@ -215,9 +252,9 @@ const get_talents = async (lang) => {
         const res = await request.post('/api/get_talents', {
             lang
         });
-        if (res.status !== 200) {
-            ElMessage(res.message)
-            console.log(res.message)
+        if (res.data.status !== 200) {
+            ElMessage(res.data.message)
+            console.log(res.data.message)
             return;
         }
         talents.value = res.data.talents;
@@ -234,9 +271,9 @@ const get_achievements = async (lang) => {
         const res = await request.post('/api/get_achievements', {
             lang
         });
-        if (res.status !== 200) {
-            ElMessage(res.message)
-            console.log(res.message)
+        if (res.data.status !== 200) {
+            ElMessage(res.data.message)
+            console.log(res.data.message)
             return;
         }
         achievements.value = res.data.achievements;
@@ -253,9 +290,9 @@ const get_growthTimeline = async (lang) => {
         const res = await request.post('/api/get_growthTimeline', {
             lang
         });
-        if (res.status !== 200) {
-            ElMessage(res.message)
-            console.log(res.message)
+        if (res.data.status !== 200) {
+            ElMessage(res.data.message)
+            console.log(res.data.message)
             return;
         }
         growthTimelines.value = res.data.growthTimelines;
@@ -272,9 +309,9 @@ const get_bubbles = async (lang) => {
         const res = await request.post('/api/get_bubbles', {
             lang
         });
-        if (res.status !== 200) {
-            ElMessage(res.message)
-            console.log(res.message)
+        if (res.data.status !== 200) {
+            ElMessage(res.data.message)
+            console.log(res.data.message)
             return;
         }
         bubbles.value = res.data.bubbles;
@@ -299,11 +336,100 @@ const email_me = () => {
     }
     window.location.href = `mailto:${charlie.value.email}`
 }
+
+// admin 管理功能
+const hover_module = ref('');
+const handle_mouse_enter = (module) => {
+    if (!admin_id.value) return;
+    hover_module.value = module;
+}
+const handle_mouse_leave = (module) => {
+    if (!admin_id.value) return;
+    hover_module.value = '';
+}
+
+// 右键菜单相关
+const showContextMenu = ref(false);
+const contextMenuX = ref(0);
+const contextMenuY = ref(0);
+const currentItem = ref(null);
+const deleteDialogVisible = ref(false);
+
+// 处理右键点击
+const handle_right_click = (event, item, type) => {
+    if (!admin_id.value) return;
+    event.preventDefault();
+
+    // 保存当前项目信息
+    currentItem.value = {
+        item,
+        type
+    };
+
+    // 设置右键菜单位置
+    contextMenuX.value = event.clientX;
+    contextMenuY.value = event.clientY;
+    showContextMenu.value = true;
+
+    // 添加点击其他地方关闭菜单的事件
+    setTimeout(() => {
+        document.addEventListener('click', close_context_menu);
+    }, 0);
+};
+
+// 关闭右键菜单
+const close_context_menu = () => {
+    showContextMenu.value = false;
+    document.removeEventListener('click', close_context_menu);
+};
+
+// 处理删除按钮点击
+const handle_delete = () => {
+    close_context_menu();
+    deleteDialogVisible.value = true;
+};
+
+// 取消删除
+const cancel_delete = () => {
+    deleteDialogVisible.value = false;
+    currentItem.value = null;
+};
+
+// 确认删除
+const confirm_delete = async () => {
+    if (!currentItem.value) return;
+
+    try {
+
+        const res = await request.post(`/api/delete_${currentItem.value.type}`, {
+            id: currentItem.value.item.id
+        });
+        if (res.data.status !== 200) {
+            ElMessage(res.data.message)
+            console.log(res.data.message)
+            return;
+        }
+        ElMessage.success("删除成功");
+
+        // 根据类型刷新对应的数据
+        if (currentItem.value.type === 'talent') await get_talents(LANG);
+        else if (currentItem.value.type === 'achievement') await get_achievements(LANG);
+        else if (currentItem.value.type === 'growthTimeline') await get_growthTimeline(LANG);
+        else if (currentItem.value.type === 'bubble') await get_bubbles(LANG);
+        else if (currentItem.value.type === 'motto') await get_charlie(LANG);
+
+    } catch (error) {
+        ElMessage.error('删除失败: ' + error.message);
+    }
+};
+
+// 组件卸载前移除事件监听
+onBeforeUnmount(() => {
+    document.removeEventListener('click', close_context_menu);
+});
 </script>
 
-
 <style scoped>
-/* 主要内容 */
 .main-content {
     max-width: 1200px;
     margin: 0 auto;
@@ -353,12 +479,36 @@ const email_me = () => {
 }
 
 .hero-subtitle {
+    position: relative;
     font-size: 1.2rem;
     color: rgba(255, 255, 255, 0.95);
     margin-bottom: 30px;
     line-height: 1.6;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     font-weight: bold;
+    padding-right: 40px;
+    /* 为按钮预留空间 */
+}
+
+.hero-subtitle .add-button {
+    top: 10%;
+    right: -15px;
+    transform: scale(0.8);
+    height: 50px;
+    width: 50px;
+}
+
+.hero-subtitle:hover .add-button {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.hero-subtitle .add-button:hover {
+    transform: scale(1.1);
+}
+
+.hero-subtitle .add-button:active {
+    transform: scale(0.95);
 }
 
 .hero-buttons {
@@ -557,6 +707,8 @@ const email_me = () => {
 .section-title {
     text-align: center;
     margin-bottom: 50px;
+    position: relative;
+    display: inline-block;
 }
 
 .section-title h2 {
@@ -709,9 +861,7 @@ const email_me = () => {
     box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
     transition: all 0.3s ease;
 }
-</style>
 
-<style scoped>
 /* 碎碎念样式 */
 .thoughts-container {
     display: grid;
@@ -787,5 +937,109 @@ const email_me = () => {
     .thoughts-container {
         grid-template-columns: 1fr;
     }
+}
+
+.section-title-container {
+    position: relative;
+    padding-right: 40px;
+}
+
+.add-button {
+    position: absolute;
+    top: -15px;
+    right: -20px;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: scale(0.8);
+    z-index: 10;
+    border-radius: 50%;
+    padding: 8px;
+    height: 50px;
+    width: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #8B5CF6, #EC4899);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.5), 0 8px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.add-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.section-title:hover .add-button {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+
+.add-button:hover::before {
+    opacity: 1;
+}
+
+.section-title-container .add-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6), 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.section-title-container .add-button:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 10px rgba(139, 92, 246, 0.4);
+}
+
+.context-menu {
+    position: fixed;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    padding: 8px 0;
+    min-width: 120px;
+    animation: menu-fade-in 0.2s ease-out;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes menu-fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.context-menu-item {
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.context-menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.delete-item {
+    color: #f56c6c;
+}
+
+.delete-item:hover {
+    background: rgba(245, 108, 108, 0.1);
 }
 </style>

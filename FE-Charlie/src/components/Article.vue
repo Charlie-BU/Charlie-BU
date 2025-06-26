@@ -4,13 +4,24 @@
             <!-- 左侧文章菜单 -->
             <div class="article-sidebar">
                 <div class="sidebar-header">
-                    <h3>{{ t('articleList') }}</h3>
+                    <div class="sidebar-title-row">
+                        <h3>{{ t('articleList') }}</h3>
+                        <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
+                            @click="handleAddArticle" :icon="Plus">
+                            {{ t('addArticle') }}
+                        </el-button>
+                    </div>
                 </div>
                 <el-scrollbar height="calc(100vh - 200px)">
                     <div class="article-menu">
                         <div v-for="(article, index) in articles" :key="index" class="article-menu-item"
                             :class="{ 'active': currentArticleId === article.id }" @click="selectArticle(article.id)">
-                            <div class="article-menu-title">{{ article.title }}</div>
+                            <div class="article-item-header">
+                                <div class="article-menu-title">{{ article.title }}</div>
+                                <el-button v-if="admin_id" class="delete-article-btn" size="small" type="danger"
+                                    @click.stop="handleDeleteArticle(article.id)" :icon="Delete" circle>
+                                </el-button>
+                            </div>
                             <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
                             <div class="article-menu-tags">
                                 <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
@@ -28,7 +39,21 @@
                 <el-empty v-if="!currentArticle" :description="t('selectArticle')"></el-empty>
                 <div v-else class="article-detail">
                     <div class="article-header">
-                        <h1 class="article-title">{{ currentArticle.title }}</h1>
+                        <div class="article-title-row">
+                            <h1 class="article-title">{{ currentArticle.title }}</h1>
+                            <div v-if="admin_id" class="article-actions">
+                                <el-button size="medium" type="primary" @click="handleEditArticle(currentArticle.id)"
+                                    :icon="Edit">
+                                    {{ t('editArticle') }}
+                                </el-button>
+                                <el-button size="medium" type="primary"
+                                    :style="{ background: currentArticle.isReleased ? '' : 'green' }"
+                                    @click="handleDraftOrReleased(currentArticle.id)"
+                                    :icon="currentArticle.isReleased ? 'MessageBox' : 'Promotion'">
+                                    {{ currentArticle.isReleased ? t('setAsDraft') : t('publish') }}
+                                </el-button>
+                            </div>
+                        </div>
                         <div class="article-meta">
                             <div class="article-time">
                                 <div class="time-item">
@@ -64,13 +89,30 @@
             </div>
         </div>
     </el-main>
+
+    <!-- 删除确认弹窗 -->
+    <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteArticle')" :content="t('deleteConfirm')"
+        @confirm="confirmDelete" @cancel="cancelDelete" />
+
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { Calendar, Timer } from '@element-plus/icons-vue'
+import { Calendar, Timer, Plus, Delete, Edit, DocumentAdd } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { request } from '../api/request'
-import MarkdownIt from 'markdown-it' // 导入markdown-it
+import MarkdownIt from 'markdown-it'
+import Cookies from 'js-cookie'
+import Modal from './Modal.vue'
+import { useRouter } from 'vue-router'
+
+// 路由
+const router = useRouter()
+
+onMounted(async () => {
+    await checkAdminPermission()
+    await getArticles()
+})
 
 // 初始化markdown-it
 const markdown = new MarkdownIt()
@@ -82,19 +124,52 @@ const translations = {
         articleList: '文章列表',
         selectArticle: '请选择一篇文章',
         created: '创建时间',
-        updated: '更新时间'
+        updated: '更新时间',
+        addArticle: '新文章',
+        setAsDraft: '设为草稿',
+        publish: '发布',
+        editArticle: '编辑',
+        deleteArticle: '删除文章',
+        deleteConfirm: '确定要删除这篇文章吗？',
+        deleteSuccess: '删除成功',
+        deleteFailed: '删除失败',
     },
     English: {
         articleList: 'Article List',
         selectArticle: 'Please select an article',
         created: 'Created',
-        updated: 'Updated'
+        updated: 'Updated',
+        addArticle: 'New Article',
+        setAsDraft: 'Set as Draft',
+        publish: 'Publish',
+        editArticle: 'Edit',
+        deleteArticle: 'Delete Article',
+        deleteConfirm: 'Are you sure you want to delete this article?',
+        deleteSuccess: 'Delete successful',
+        deleteFailed: 'Delete failed',
     }
 }
 
 // 翻译函数
 const t = (key) => {
     return translations[LANG][key] || key
+}
+
+// 管理员权限
+const admin_id = ref(false)
+
+// 检查管理员权限
+const checkAdminPermission = async () => {
+    try {
+        const res = await request.post('/api/check_sessionid', {
+            sessionid: Cookies.get('sessionid')
+        })
+        if (res.data.status === 200) {
+            admin_id.value = res.data.admin_id
+        }
+    } catch (error) {
+        console.error('检查管理员权限失败:', error)
+    }
 }
 
 // 文章列表
@@ -134,21 +209,97 @@ const getArticles = async () => {
         const res = await request.post('/api/get_articles', {
             lang: LANG
         })
-        if (res.status !== 200) {
-            console.log(res.message)
+        if (res.data.status !== 200) {
+            console.log(res.data.message)
             return
         }
         // 按时间排序（从新到旧）
         articles.value = res.data.articles;
-        selectArticle(articles.value[0].id);
+        if (articles.value.length > 0) {
+            selectArticle(articles.value[0].id);
+        }
     } catch (error) {
         console.error(error)
     }
 }
 
-onMounted(async () => {
-    await getArticles()
-})
+// 删除相关变量
+const deleteDialogVisible = ref(false)
+const currentDeleteArticleId = ref(null)
+
+// 删除文章
+const handleDeleteArticle = (articleId) => {
+    if (!admin_id.value) return
+    currentDeleteArticleId.value = articleId
+    deleteDialogVisible.value = true
+}
+
+// 确认删除
+const confirmDelete = async () => {
+    if (!currentDeleteArticleId.value) return
+    try {
+        // 调用删除API
+        const res = await request.post('/api/delete_article', {
+            id: currentDeleteArticleId.value
+        })
+
+        if (res.data.status === 200) {
+            ElMessage.success(t('deleteSuccess'))
+            // 重新获取文章列表
+            await getArticles()
+        } else {
+            ElMessage.error(res.data.message || t('deleteFailed'))
+        }
+    } catch (error) {
+        ElMessage.error(t('deleteFailed'))
+        console.error('删除文章失败:', error)
+    } finally {
+        currentDeleteArticleId.value = null
+    }
+}
+
+// 取消删除
+const cancelDelete = () => {
+    currentDeleteArticleId.value = null
+}
+
+// 添加文章
+const handleAddArticle = () => {
+    if (!admin_id.value) return
+    router.push('/article/new')
+}
+
+// 编辑文章
+const handleEditArticle = (articleId) => {
+    if (!admin_id.value) return
+    router.push(`/article/edit/${articleId}`)
+}
+
+// 切换文章发布状态（草稿/已发布）
+const handleDraftOrReleased = async (articleId) => {
+    if (!admin_id.value) return
+    try {
+        // 获取当前文章
+        const article = articles.value.find(article => article.id === articleId)
+        if (!article) return
+
+        // 调用更新API，切换isReleased状态
+        const res = await request.post('/api/change_article_status', {
+            id: articleId
+        })
+
+        if (res.data.status === 200) {
+            // 更新成功，刷新文章列表
+            ElMessage.success(article.isReleased ? t('setAsDraft') + "成功" : t('publish') + "成功")
+            await getArticles()
+        } else {
+            ElMessage.error(res.data.message || t('saveFailed'))
+        }
+    } catch (error) {
+        console.error('更新文章状态失败:', error)
+        ElMessage.error(t('saveFailed'))
+    }
+}
 </script>
 
 <style scoped>
@@ -181,12 +332,32 @@ onMounted(async () => {
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+.sidebar-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
 .sidebar-header h3 {
     margin: 0;
     color: #ffffff;
     font-size: 1.3rem;
     font-weight: 600;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.add-article-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+}
+
+.add-article-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .article-menu {
@@ -214,11 +385,42 @@ onMounted(async () => {
     box-shadow: 0 5px 15px rgba(139, 92, 246, 0.2);
 }
 
+.article-item-header {
+    position: relative;
+    margin-bottom: 5px;
+}
+
 .article-menu-title {
     font-weight: 600;
-    margin-bottom: 5px;
     color: #ffffff;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    width: 100%;
+}
+
+.delete-article-btn {
+    position: absolute;
+    /* 绝对定位 */
+    right: 0;
+    /* 靠右对齐 */
+    top: 0;
+    /* 靠顶部对齐 */
+    background: rgba(245, 101, 101, 0.8);
+    border: none;
+    width: 24px;
+    height: 24px;
+    min-height: 24px;
+    padding: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.article-menu-item:hover .delete-article-btn {
+    opacity: 1;
+}
+
+.delete-article-btn:hover {
+    background: rgba(245, 101, 101, 1);
+    transform: scale(1.1);
 }
 
 .article-menu-date {
@@ -257,12 +459,43 @@ onMounted(async () => {
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+.article-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
 .article-title {
+    position: relative;
     font-size: 2.2rem;
     font-weight: 700;
-    margin-bottom: 20px;
+    margin: 0;
     color: #ffffff;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    flex: 1;
+}
+
+.article-actions {
+    position: absolute;
+    display: flex;
+    gap: 10px;
+    right: 30px;
+}
+
+.article-actions .el-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.article-actions .el-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .article-meta {
@@ -392,5 +625,52 @@ onMounted(async () => {
         width: 100%;
         max-height: 300px;
     }
+
+    .sidebar-title-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .article-title-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .article-item-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .delete-article-btn {
+        align-self: flex-end;
+        opacity: 1;
+    }
+}
+
+/* 表单提示样式 */
+.form-tip {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 4px;
+}
+
+/* 表单内的输入框样式覆盖 */
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+:deep(.el-input__inner:focus),
+:deep(.el-textarea__inner:focus) {
+    border-color: #A78BFA;
+    box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
+}
+
+:deep(.el-form-item__label) {
+    color: rgba(255, 255, 255, 0.9);
 }
 </style>
