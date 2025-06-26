@@ -49,6 +49,11 @@ const routes = [
         component: Article,
     },
     {
+        path: "/articles/:id",
+        name: "Article",
+        component: Article,
+    },
+    {
         path: "/article/new",
         name: "NewArticle",
         component: ArticleEditor,

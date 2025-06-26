@@ -97,21 +97,34 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { Calendar, Timer, Plus, Delete, Edit, DocumentAdd } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { request } from '../api/request'
+import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import Cookies from 'js-cookie'
+import { request } from '../api/request'
+import { calcHashForArticleId, getArticleIdFromHash } from '../utils/utils'
 import Modal from './Modal.vue'
-import { useRouter } from 'vue-router'
 
 // 路由
+const route = useRoute()
 const router = useRouter()
 
 onMounted(async () => {
     await checkAdminPermission()
     await getArticles()
+    routeArticle()
+})
+
+
+// 监听路由参数变化
+watch(() => route.params.id, (newId, oldId) => {
+    // 只有当新ID与旧ID不同，且新ID不等于当前选中的文章ID时才处理
+    if (newId && newId !== oldId && newId !== currentArticleId.value && articles.value.length > 0) {
+        routeArticle()
+    }
 })
 
 // 初始化markdown-it
@@ -176,6 +189,38 @@ const checkAdminPermission = async () => {
 const articles = ref([])
 const currentArticleId = ref(null)
 
+
+const routeArticle = () => {
+    const articleHash = route.params.id
+    const articleId = getArticleIdFromHash(articleHash)
+    // 检查文章列表是否为空
+    if (articles.value.length === 0) {
+        return; // 如果没有文章，直接返回
+    }
+
+    // 如果当前已经选中了这篇文章，不做任何操作
+    if (articleId && currentArticleId.value === articleId) {
+        return;
+    }
+
+    if (!articleId) {
+        // 没有指定文章ID，选择第一篇文章，但不更新URL
+        currentArticleId.value = articles.value[0].id
+        return;
+    }
+
+    // 检查指定的文章ID是否存在于文章列表中
+    const articleExists = articles.value.some(article => article.id === articleId)
+    if (articleExists) {
+        currentArticleId.value = articleId
+    } else {
+        // 文章不存在，重定向到文章列表页
+        router.push("/articles")
+        // 直接设置当前文章ID为第一篇文章
+        currentArticleId.value = articles.value[0].id
+    }
+}
+
 // 获取当前选中的文章
 const currentArticle = computed(() => {
     return articles.value.find(article => article.id === currentArticleId.value) || null
@@ -183,7 +228,15 @@ const currentArticle = computed(() => {
 
 // 选择文章
 const selectArticle = (id) => {
+    // 如果当前已经是这篇文章，不做任何操作
+    if (currentArticleId.value === id) return;
     currentArticleId.value = id
+    // 检查当前路由是否已经是这篇文章
+    if (route.params.id !== id) {
+        // 更新URL，但不重新加载页面
+        const articleHash = calcHashForArticleId(id)
+        router.push(`/articles/${articleHash}`)
+    }
 }
 
 // 格式化日期
@@ -215,9 +268,6 @@ const getArticles = async () => {
         }
         // 按时间排序（从新到旧）
         articles.value = res.data.articles;
-        if (articles.value.length > 0) {
-            selectArticle(articles.value[0].id);
-        }
     } catch (error) {
         console.error(error)
     }
@@ -323,8 +373,9 @@ const handleDraftOrReleased = async (articleId) => {
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    height: fit-content;
+    overflow: auto;
+    overflow-y: auto;
+    height: 800px;
 }
 
 .sidebar-header {
@@ -450,7 +501,9 @@ const handleDraftOrReleased = async (articleId) => {
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     padding: 30px;
-    overflow: hidden;
+    max-height: 800px;
+    overflow: auto;
+    overflow-y: auto;
 }
 
 .article-header {
