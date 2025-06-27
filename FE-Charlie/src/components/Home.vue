@@ -13,11 +13,11 @@
                         type="primary" icon="EditPen">修改</el-button>
                 </p>
                 <div class="hero-buttons">
-                    <el-button type="primary" size="large" class="cta-button" @click="goto_github">
+                    <el-button type="primary" size="large" class="cta-button">
                         <el-icon class="button-icon">
                             <Star />
                         </el-icon>
-                        {{ t('viewProjects') }}
+                        {{ t('CV') }}
                     </el-button>
                     <el-button size="large" class="secondary-button" @click="email_me">
                         <el-icon class="button-icon">
@@ -31,6 +31,12 @@
                 <div class="avatar-container">
                     <div class="glass-sphere-glow"></div>
                     <div class="glass-sphere">
+                        <div v-if="LANG === 'English'" class="chat-bubble">
+                            Hi there my No. {{ charlie.visitorNumber }} visitor!
+                        </div>
+                        <div v-else class="chat-bubble">
+                            欢迎我的第 {{ charlie.visitorNumber }} 位参观者！
+                        </div>
                         <div class="glass-sphere-inner">
                             <div class="glass-sphere-reflection"></div>
                             <div class="glass-sphere-reflection secondary"></div>
@@ -55,7 +61,8 @@
             </div>
             <el-row :gutter="24" class="features-grid">
                 <el-col :xs="24" :sm="12" :md="8" v-for="(talent, index) in talents" :key="index">
-                    <el-card class="feature-card" shadow="hover"
+                    <el-card class="feature-card" shadow="hover" @click="goto_page(talent.gotoUrl)"
+                        :style="{ 'cursor': talent.gotoUrl ? 'pointer' : 'default' }"
                         @contextmenu.prevent="(e) => handle_right_click(e, talent, 'talent')">
                         <div class="feature-icon">
                             <el-icon :size="40">
@@ -181,7 +188,7 @@ import Modal from './Modal.vue'
 const LANG = localStorage.getItem("LANG") || "Chinese";
 const translations = reactive({
     Chinese: {
-        viewProjects: '查看我的项目',
+        CV: '我的简历',
         contactMe: '与我交流',
         myTalents: '我的专长',
         myAchievements: '我的成就',
@@ -190,7 +197,7 @@ const translations = reactive({
         selfDefinition: '一句话自我定义'
     },
     English: {
-        viewProjects: 'View My Projects',
+        CV: 'My Resume',
         contactMe: 'Contact Me',
         myTalents: 'My Talents',
         myAchievements: 'My Achievements',
@@ -264,6 +271,13 @@ const get_talents = async (lang) => {
     }
 }
 
+const goto_page = (url) => {
+    if (!url) {
+        return;
+    }
+    window.open(url, '_blank')
+}
+
 // 我的成就
 const achievements = ref([])
 const get_achievements = async (lang) => {
@@ -321,13 +335,6 @@ const get_bubbles = async (lang) => {
     }
 }
 
-const goto_github = () => {
-    if (!charlie?.value?.github) {
-        ElMessage("Github暂无法访问")
-        return;
-    }
-    window.open(charlie.value.github, '_blank')
-}
 
 const email_me = () => {
     if (!charlie?.value?.email) {
@@ -552,7 +559,7 @@ onBeforeUnmount(() => {
 /* 头像区域 */
 .hero-avatar {
     flex: 0 0 auto;
-    margin-left: 40px;
+    margin-right: 100px;
     perspective: 1000px;
 }
 
@@ -591,6 +598,97 @@ onBeforeUnmount(() => {
     }
 }
 
+/* 聊天气泡样式 */
+.chat-bubble {
+    white-space: nowrap;
+    position: absolute;
+    top: -50px;
+    left: 100px;
+    background: linear-gradient(135deg, #8B5CF6, #EC4899);
+    color: white;
+    padding: 12px 16px;
+    /* 增加内边距 */
+    border-radius: 24px;
+    /* 增加圆角 */
+    font-size: 16px;
+    /* 增加字体大小 */
+    font-weight: 700;
+    /* 加粗字体 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    /* 增加最大宽度 */
+    text-align: center;
+    animation: bubble-pop 0.5s ease-out, bubble-float 3s ease-in-out infinite;
+    transform-origin: bottom left;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    /* 添加文字阴影 */
+    letter-spacing: 0.5px;
+    /* 增加字母间距 */
+    /* 添加文字渐变效果 */
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(to right, #fff, #f0f0f0, #fff);
+    animation: text-shine 3s linear infinite, bubble-pop 0.5s ease-out, bubble-float 3s ease-in-out infinite;
+}
+
+/* 添加文字闪光动画 */
+@keyframes text-shine {
+    0% {
+        background-position: 0%;
+    }
+
+    100% {
+        background-position: 200%;
+    }
+}
+
+.chat-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -9px;
+    /* 调整小尾巴位置 */
+    left: 23px;
+    width: 15px;
+    /* 增加小尾巴大小 */
+    height: 15px;
+    background: inherit;
+    transform: rotate(45deg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+
+@keyframes bubble-pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes bubble-float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
 .glass-sphere {
     position: relative;
     width: 220px;
@@ -604,7 +702,8 @@ onBeforeUnmount(() => {
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 0 30px rgba(255, 255, 255, 0.1),
         inset 0 0 20px rgba(255, 255, 255, 0.08);
-    overflow: hidden;
+    overflow: visible;
+    /* 修改为visible以便气泡可以超出边界 */
     transform-style: preserve-3d;
     animation: float 6s ease-in-out infinite;
     z-index: 1;

@@ -1,13 +1,12 @@
 <template>
     <el-header class="header">
         <div class="nav-container">
-            <div class="logo">
+            <div class="logo" @click="router.push('/')">
                 <h2>Charlie's Blog</h2>
             </div>
             <el-menu mode="horizontal" :default-active="activeIndex" class="nav-menu" router>
                 <el-menu-item index="/">{{ t('home') }}</el-menu-item>
                 <el-menu-item index="/articles">{{ t('articles') }}</el-menu-item>
-                <el-menu-item index="/projects">{{ t('projects') }}</el-menu-item>
                 <el-menu-item index="/daily">{{ t('daily') }}</el-menu-item>
                 <el-menu-item index="/gallery">{{ t('gallery') }}</el-menu-item>
             </el-menu>
@@ -26,10 +25,11 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import Cookies from 'js-cookie'
 import { ElMessage } from 'element-plus'
 
+const router = useRouter()
 const route = useRoute()
 const activeIndex = ref('/')
 const LANG = ref(localStorage.getItem("LANG") || "Chinese")
@@ -37,14 +37,17 @@ const isLoggedIn = ref(false)
 
 // 监听路由变化，更新activeIndex
 watch(() => route.path, (newPath) => {
-    activeIndex.value = newPath
+    if (newPath.startsWith('/articles/')) {
+        activeIndex.value = '/articles'
+    } else {
+        activeIndex.value = newPath
+    }
 }, { immediate: true })
 
 const translations = reactive({
     Chinese: {
         home: '首页',
         articles: '文章',
-        projects: '项目',
         daily: '日常',
         gallery: '图集',
         logout: '退出登录',
@@ -53,7 +56,6 @@ const translations = reactive({
     English: {
         home: 'Home',
         articles: 'Articles',
-        projects: 'Projects',
         daily: 'Daily',
         gallery: 'Gallery',
         logout: 'Logout',
@@ -120,6 +122,7 @@ const toggleLanguage = () => {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    cursor: pointer;
 }
 
 .nav-menu {

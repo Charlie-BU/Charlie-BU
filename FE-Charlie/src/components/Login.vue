@@ -41,8 +41,8 @@
                     </div>
                 </div>
                 <div class="decoration-text">
-                    <h3 class="gradient-text">{{ t('secureLogin') }}</h3>
-                    <p>{{ t('secureLoginDesc') }}</p>
+                    <h3 class="gradient-text">{{ t('adminLogin') }}</h3>
+                    <p>{{ t('adminLoginDesc') }}</p>
                 </div>
             </div>
         </div>
@@ -64,12 +64,12 @@ const LANG = localStorage.getItem("LANG") || "Chinese"
 const translations = reactive({
     Chinese: {
         welcomeBack: '欢迎回来',
-        loginSubtitle: '登录您的账户以继续',
+        loginSubtitle: '登录您的账号以继续',
         username: '用户名',
         password: '密码',
         login: '登录',
-        secureLogin: '安全登录',
-        secureLoginDesc: '我们使用先进的加密技术保护您的账户安全',
+        adminLogin: '管理员登录',
+        adminLoginDesc: '登录后对网站信息进行更新',
         usernameRequired: '请输入用户名',
         passwordRequired: '请输入密码',
         loginSuccess: '登录成功',
@@ -81,8 +81,8 @@ const translations = reactive({
         username: 'Username',
         password: 'Password',
         login: 'Login',
-        secureLogin: 'Secure Login',
-        secureLoginDesc: 'We use advanced encryption to protect your account',
+        adminLogin: 'Admin Login',
+        adminLoginDesc: 'Login to update website information',
         usernameRequired: 'Please enter your username',
         passwordRequired: 'Please enter your password',
         loginSuccess: 'Login successful',
