@@ -27,7 +27,7 @@
                     </el-button>
                 </div>
             </div>
-            <div class="hero-avatar">
+            <div class="hero-avatar" :style="{ 'margin-top': isMobileRef ? '100px' : '' }">
                 <div class="avatar-container">
                     <div class="glass-sphere-glow"></div>
                     <div class="glass-sphere">
@@ -182,10 +182,10 @@ import { ElMessage } from 'element-plus';
 import Cookies from 'js-cookie';
 
 import { request } from '../api/request'
-import { getFingerprint } from '../utils/utils';
+import { getFingerprint, isMobile } from '../utils/utils';
 import Modal from './Modal.vue'
 
-
+const isMobileRef = ref(isMobile());
 const LANG = localStorage.getItem("LANG") || "Chinese";
 const translations = reactive({
     Chinese: {
@@ -876,11 +876,16 @@ onBeforeUnmount(() => {
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
+
 
 .stat-item {
     text-align: center;
     padding: 20px;
+    overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .stat-number {
@@ -888,6 +893,7 @@ onBeforeUnmount(() => {
     font-weight: 800;
     color: #8B5CF6;
     margin-bottom: 8px;
+    white-space: nowrap;
 }
 
 .stat-label {
@@ -1044,7 +1050,6 @@ onBeforeUnmount(() => {
 
 .section-title-container {
     position: relative;
-    padding-right: 40px;
 }
 
 .add-button {

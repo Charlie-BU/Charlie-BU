@@ -115,14 +115,14 @@ const router = useRouter()
 onMounted(async () => {
     await checkAdminPermission()
     await getArticles()
-    routeArticle()
+    await routeArticle()
 })
 
 
 // 监听路由参数变化
 watch(() => route.params.id, (newId, oldId) => {
     // 只有当新ID与旧ID不同，且新ID不等于当前选中的文章ID时才处理
-    if (newId && newId !== oldId && newId !== currentArticleId.value && articles.value.length > 0) {
+    if (newId && newId !== oldId && articles.value.length > 0) {
         routeArticle()
     }
 })
@@ -188,9 +188,10 @@ const checkAdminPermission = async () => {
 // 文章列表
 const articles = ref([])
 const currentArticleId = ref(null)
+const currentArticle = ref({})
 
 
-const routeArticle = () => {
+const routeArticle = async () => {
     const articleHash = route.params.id
     const articleId = getArticleIdFromHash(articleHash)
     // 检查文章列表是否为空
@@ -198,36 +199,29 @@ const routeArticle = () => {
         return; // 如果没有文章，直接返回
     }
 
-    // 如果当前已经选中了这篇文章，不做任何操作
-    if (articleId && currentArticleId.value === articleId) {
-        return;
-    }
 
     if (!articleId) {
         // 没有指定文章ID，选择第一篇文章，但不更新URL
         currentArticleId.value = articles.value[0].id
         return;
     }
-
     // 检查指定的文章ID是否存在于文章列表中
     const articleExists = articles.value.some(article => article.id === articleId)
     if (articleExists) {
         currentArticleId.value = articleId
+        await getArticleContent()
     } else {
         // 文章不存在，重定向到文章列表页
         router.push("/articles")
         // 直接设置当前文章ID为第一篇文章
         currentArticleId.value = articles.value[0].id
+        await getArticleContent()
     }
 }
 
-// 获取当前选中的文章
-const currentArticle = computed(() => {
-    return articles.value.find(article => article.id === currentArticleId.value) || null
-})
 
 // 选择文章
-const selectArticle = (id) => {
+const selectArticle = async (id) => {
     // 如果当前已经是这篇文章，不做任何操作
     if (currentArticleId.value === id) return;
     currentArticleId.value = id
@@ -268,6 +262,22 @@ const getArticles = async () => {
         }
         // 按时间排序（从新到旧）
         articles.value = res.data.articles;
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+const getArticleContent = async () => {
+    try {
+        const res = await request.post('/api/get_article_content', {
+            id: currentArticleId.value,
+            lang: LANG
+        })
+        if (res.data.status !== 200) {
+            console.log(res.data.message)
+            return
+        }
+        currentArticle.value = res.data.article;
     } catch (error) {
         console.error(error)
     }

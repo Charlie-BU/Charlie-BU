@@ -244,6 +244,10 @@ const saveAsDraft = async () => {
     // 表单验证
     await formRef.value.validate(async (valid) => {
         if (!valid) return
+        if (articleForm.content === "" && articleForm.content_ENG === "") {
+            ElMessage.warning("请输入文章内容")
+            return
+        }
 
         saving.value = true
         try {
@@ -276,6 +280,10 @@ const publishArticle = async () => {
     // 表单验证
     await formRef.value.validate(async (valid) => {
         if (!valid) return
+        if (articleForm.content === "" && articleForm.content_ENG === "") {
+            ElMessage.warning("请输入文章内容")
+            return
+        }
 
         saving.value = true
         try {

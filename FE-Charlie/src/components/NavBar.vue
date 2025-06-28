@@ -16,7 +16,7 @@
             </el-button>
             <!-- 自定义语言切换按钮 -->
             <div class="language-toggle" @click="toggleLanguage">
-                <span class="toggle-text">{{ LANG === 'Chinese' ? 'English' : '中文' }}</span>
+                <span v-if="!isMobileRef" class="toggle-text">{{ LANG === 'Chinese' ? 'English' : '中文' }}</span>
                 <span class="toggle-icon">🌐</span>
             </div>
         </div>
@@ -29,11 +29,15 @@ import { useRouter, useRoute } from 'vue-router'
 import Cookies from 'js-cookie'
 import { ElMessage } from 'element-plus'
 
+import { isMobile } from '../utils/utils'
+
 const router = useRouter()
 const route = useRoute()
 const activeIndex = ref('/')
 const LANG = ref(localStorage.getItem("LANG") || "Chinese")
 const isLoggedIn = ref(false)
+
+const isMobileRef = ref(isMobile())
 
 // 监听路由变化，更新activeIndex
 watch(() => route.path, (newPath) => {
@@ -166,7 +170,6 @@ const toggleLanguage = () => {
 /* 响应式设计 */
 @media (max-width: 768px) {
     .nav-container {
-        flex-direction: column;
         gap: 20px;
         min-width: auto;
     }
