@@ -27,3 +27,19 @@ export const getArticleIdFromHash = (hash: string) => {
         return -1;
     }
 };
+
+export const getFingerprint = async (): Promise<string> => {
+    // @ts-ignore
+    const fpPromise = import("https://openfpcdn.io/fingerprintjs/v4").then(
+        (FingerprintJS) => FingerprintJS.load()
+    );
+    try {
+        const fp = await fpPromise;
+        const result = await fp.get();
+        const visitorId = result.visitorId;
+        return visitorId;
+    } catch (error) {
+        console.error("获取指纹失败:", error);
+        return "";
+    }
+};

@@ -182,6 +182,7 @@ import { ElMessage } from 'element-plus';
 import Cookies from 'js-cookie';
 
 import { request } from '../api/request'
+import { getFingerprint } from '../utils/utils';
 import Modal from './Modal.vue'
 
 
@@ -237,8 +238,10 @@ const check_sessionid = async () => {
 const charlie = ref({});
 const get_charlie = async (lang) => {
     try {
+        const fingerprint = await getFingerprint();
         const res = await request.post('/api/get_charlie', {
-            lang
+            lang,
+            fingerprint
         });
         if (res.data.status !== 200) {
             ElMessage(res.data.message)
@@ -441,6 +444,7 @@ onBeforeUnmount(() => {
     max-width: 1200px;
     margin: 0 auto;
     padding: 40px 20px;
+    overflow: visible;
 }
 
 /* 英雄区域 */

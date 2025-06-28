@@ -8,7 +8,8 @@ import type {
 import { ElMessage } from "element-plus";
 
 // 本地
-// const DEVELOP_URL = "http://localhost:1209";
+// @ts-ignore
+const DEVELOP_URL = "http://localhost:1209";
 // 使用接口反向代理
 const PRODUCTION_URL = "http://124.223.93.75:90";
 
