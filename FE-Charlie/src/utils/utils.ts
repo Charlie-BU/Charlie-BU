@@ -43,3 +43,8 @@ export const getFingerprint = async (): Promise<string> => {
         return "";
     }
 };
+
+export const isMobile = (): boolean => {
+    const width = window.innerWidth;
+    return width <= 768;
+};
