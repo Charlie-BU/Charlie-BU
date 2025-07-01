@@ -62,8 +62,9 @@
             <el-row :gutter="24" class="features-grid">
                 <el-col :xs="24" :sm="12" :md="8" v-for="(talent, index) in talents" :key="index">
                     <el-card class="feature-card" shadow="hover" @click="goto_page(talent.gotoUrl)"
-                        :style="{ 'cursor': talent.gotoUrl ? 'pointer' : 'default' }"
-                        @contextmenu.prevent="(e) => handle_right_click(e, talent, 'talent')">
+                        :style="{ 'cursor': talent.gotoUrl ? 'pointer' : 'default', '--before-opacity': talent.gotoUrl ? '1' : '0', 'padding': talent.gotoUrl ? '30px 20px 60px 20px' : '30px 20px' }"
+                        @contextmenu.prevent="(e) => handle_right_click(e, talent, 'talent')"
+                        @mouseenter="talent.showDetails = true" @mouseleave="talent.showDetails = false">
                         <div class="feature-icon">
                             <el-icon :size="40">
                                 <component :is="talent.icon" />
@@ -71,6 +72,13 @@
                         </div>
                         <h3>{{ talent.title }}</h3>
                         <p>{{ talent.description }}</p>
+                        <div v-if="talent.gotoUrl" class="view-details"
+                            :style="{ color: talent.showDetails ? '#ffffff' : '#A78BFA' }">
+                            <span :class="{ 'show': talent.showDetails }">{{ t('detail') }}&nbsp;</span>
+                            <el-icon style="vertical-align: middle">
+                                <right />
+                            </el-icon>
+                        </div>
                     </el-card>
                 </el-col>
             </el-row>
@@ -182,7 +190,7 @@ import { ElMessage } from 'element-plus';
 import Cookies from 'js-cookie';
 
 import { request } from '../api/request'
-import { getFingerprint, isMobile } from '../utils/utils';
+import { isMobile } from '../utils/utils';
 import Modal from './Modal.vue'
 
 const isMobileRef = ref(isMobile());
@@ -192,6 +200,7 @@ const translations = reactive({
         CV: '我的简历',
         contactMe: '与我交流',
         myTalents: '我的专长',
+        detail: '查看详情',
         myAchievements: '我的成就',
         growthPath: '成长轨迹',
         thoughts: '碎碎念',
@@ -201,6 +210,7 @@ const translations = reactive({
         CV: 'My Resume',
         contactMe: 'Contact Me',
         myTalents: 'My Talents',
+        detail: 'Detail',
         myAchievements: 'My Achievements',
         growthPath: 'Growth Path',
         thoughts: 'Thoughts',
@@ -238,10 +248,8 @@ const check_sessionid = async () => {
 const charlie = ref({});
 const get_charlie = async (lang) => {
     try {
-        const fingerprint = await getFingerprint();
         const res = await request.post('/api/get_charlie', {
             lang,
-            fingerprint
         });
         if (res.data.status !== 200) {
             ElMessage(res.data.message)
@@ -533,6 +541,7 @@ onBeforeUnmount(() => {
     border: none;
     padding: 12px 24px;
     font-weight: 600;
+    border-radius: 20px;
     transition: all 0.3s ease;
 }
 
@@ -552,6 +561,7 @@ onBeforeUnmount(() => {
     backdrop-filter: blur(10px);
     padding: 12px 24px;
     font-weight: 600;
+    border-radius: 20px;
     transition: all 0.3s ease;
 }
 
@@ -833,10 +843,40 @@ onBeforeUnmount(() => {
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 16px;
     text-align: center;
-    padding: 30px 20px;
     transition: all 0.3s ease;
     height: 100%;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    /* 将边框从2px改为1px，使线条更细 */
+    /* 初始透明边框 */
+    /* 改为高亮的白色 */
+    background: #00FFFF border-box;
+    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    opacity: 0;
+    /* 初始不可见 */
+    transition: opacity 0.3s ease;
+    /* 添加过渡效果 */
+    pointer-events: none;
+    /* 确保不会影响鼠标事件 */
+}
+
+.feature-card:hover::before {
+    opacity: var(--before-opacity);
 }
 
 .feature-card:hover {
@@ -1046,6 +1086,27 @@ onBeforeUnmount(() => {
     .thoughts-container {
         grid-template-columns: 1fr;
     }
+}
+
+/* 查看详情按钮样式 */
+.view-details {
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    align-items: center;
+    justify-content: center;
+    color: #A78BFA;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+
+.view-details span {
+    max-width: 0;
+    overflow: hidden;
+    margin-right: 0;
 }
 
 .section-title-container {

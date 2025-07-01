@@ -22,6 +22,10 @@ html {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    --el-fill-color-blank: transparent;
+    --el-menu-bg-color: transparent;
+    --el-menu-text-color: rgba(255, 255, 255, 0.8);
 }
 
 a {
@@ -76,5 +80,3 @@ button:focus-visible {
     margin: 0 auto;
     text-align: center;
 }
-
-/* 移除浅色主题，保持深色主题一致性 */
