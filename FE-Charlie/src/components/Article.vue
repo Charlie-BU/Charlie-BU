@@ -6,15 +6,20 @@
                 <div class="sidebar-header">
                     <div class="sidebar-title-row">
                         <h3>{{ t('articleList') }}</h3>
-                        <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
+                        <el-button v-if="admin_id" class="add-article-btn"
+                            :style="{ 'margin-right': isMobileRef ? '0' : '-30px' }" size="small" type="primary"
                             @click="handleAddArticle" :icon="Plus">
                             {{ t('addArticle') }}
                         </el-button>
+                        <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
+                            :icon="CollectionTag">
+                            {{ selectedCategory || t('allCategories') }}
+                        </el-button>
                     </div>
                 </div>
-                <el-scrollbar height="calc(100vh - 200px)">
+                <el-scrollbar style="overflow: auto;">
                     <div class="article-menu">
-                        <div v-for="(article, index) in articles" :key="index" class="article-menu-item"
+                        <div v-for="(article, index) in filteredArticles" :key="index" class="article-menu-item"
                             :class="{ 'active': currentArticleId === article.id }" @click="selectArticle(article.id)">
                             <div class="article-item-header">
                                 <div class="article-menu-title">{{ article.title }}</div>
@@ -33,57 +38,90 @@
                     </div>
                 </el-scrollbar>
             </div>
+            <!-- 分类导航菜单 -->
+            <transition name="fade-dropdown">
+                <div class="category-filter" v-show="categoryMenuVisible"
+                    :style="{ 'top': isMobileRef ? '100px' : '60px' }">
+                    <h4 class="category-title">{{ t('categories') }}</h4>
+                    <el-menu class="category-menu" :default-active="selectedCategory" @select="handleCategorySelect">
+                        <div class="category-menu-items">
+                            <el-menu-item index="">
+                                <span>{{ t('allCategories') }}</span>
+                                <el-tag size="small" class="category-count">{{ articles.length
+                                }}</el-tag>
+                            </el-menu-item>
+                            <el-menu-item v-for="category in categories" :key="category" :index="category">
+                                <span>{{ category }}</span>
+                                <el-tag size="small" class="category-count">{{
+                                    getCategoryCount(category)
+                                }}</el-tag>
+                            </el-menu-item>
+                        </div>
+                    </el-menu>
+                </div>
+            </transition>
 
             <!-- 右侧文章内容 -->
             <div class="article-main">
-                <el-empty v-if="!currentArticle" :description="t('selectArticle')"></el-empty>
-                <div v-else class="article-detail">
-                    <div class="article-header">
-                        <div class="article-title-row">
-                            <h1 class="article-title">{{ currentArticle.title }}</h1>
-                            <div v-if="admin_id" class="article-actions">
-                                <el-button size="medium" type="primary" @click="handleEditArticle(currentArticle.id)"
-                                    :icon="Edit">
-                                    {{ t('editArticle') }}
-                                </el-button>
-                                <el-button size="medium" type="primary"
-                                    :style="{ background: currentArticle.isReleased ? '' : 'green' }"
-                                    @click="handleDraftOrReleased(currentArticle.id)"
-                                    :icon="currentArticle.isReleased ? 'MessageBox' : 'Promotion'">
-                                    {{ currentArticle.isReleased ? t('setAsDraft') : t('publish') }}
-                                </el-button>
-                            </div>
-                        </div>
-                        <div class="article-meta">
-                            <div class="article-time">
-                                <div class="time-item">
-                                    <el-icon>
-                                        <Calendar />
-                                    </el-icon>
-                                    <span>{{ t('created') }}: {{ formatTime(currentArticle.timeCreated) }}</span>
-                                </div>
-                                <div class="time-item">
-                                    <el-icon>
-                                        <Timer />
-                                    </el-icon>
-                                    <span>{{ t('updated') }}: {{ formatTime(currentArticle.timeLastUpdated) }}</span>
-                                </div>
-                            </div>
-                            <div class="article-tags">
-                                <el-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" size="small"
-                                    effect="dark" class="article-tag">
-                                    {{ tag }}
-                                </el-tag>
-                            </div>
+                <div class="article-header">
+                    <div class="article-title-row">
+                        <h1 class="article-title">{{ currentArticle.title }}</h1>
+                        <div v-if="admin_id" class="article-actions">
+                            <el-button size="medium" type="primary" @click="handleEditArticle(currentArticle.id)"
+                                :icon="Edit">
+                                {{ t('editArticle') }}
+                            </el-button>
+                            <el-button size="medium" type="primary"
+                                :style="{ background: currentArticle.isReleased ? '' : 'green' }"
+                                @click="handleDraftOrReleased(currentArticle.id)"
+                                :icon="currentArticle.isReleased ? 'MessageBox' : 'Promotion'">
+                                {{ currentArticle.isReleased ? t('setAsDraft') : t('publish') }}
+                            </el-button>
                         </div>
                     </div>
-                    <div class="article-content-body">
-                        <!-- 根据文章类型渲染不同内容 -->
-                        <template v-if="currentArticle.type === 1">
-                            {{ currentArticle.content }}
-                        </template>
-                        <div v-else-if="currentArticle.type === 2" v-html="renderMarkdown(currentArticle.content)">
+                    <div class="article-meta">
+                        <div class="article-time">
+                            <div class="time-item">
+                                <el-icon>
+                                    <Calendar />
+                                </el-icon>
+                                <span>{{ t('created') }}: {{ formatTime(currentArticle.timeCreated) }}</span>
+                            </div>
+                            <div class="time-item">
+                                <el-icon>
+                                    <Clock />
+                                </el-icon>
+                                <span>{{ t('updated') }}: {{ formatTime(currentArticle.timeLastUpdated) }}</span>
+                            </div>
+                            <div class="time-item">
+                                <el-icon>
+                                    <Document />
+                                </el-icon>
+                                <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
+                                    }}</span>
+                            </div>
+                            <div class="time-item">
+                                <el-icon>
+                                    <Timer />
+                                </el-icon>
+                                <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
+                                    }} {{ t('minute') }}</span>
+                            </div>
                         </div>
+                        <div class="article-tags">
+                            <el-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" size="small"
+                                effect="dark" class="article-tag">
+                                {{ tag }}
+                            </el-tag>
+                        </div>
+                    </div>
+                </div>
+                <div class="article-content-body">
+                    <!-- 根据文章类型渲染不同内容 -->
+                    <template v-if="currentArticle.type === 1">
+                        {{ currentArticle.content }}
+                    </template>
+                    <div v-else-if="currentArticle.type === 2" v-html="renderMarkdown(currentArticle.content)">
                     </div>
                 </div>
             </div>
@@ -98,14 +136,14 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import { Calendar, Timer, Plus, Delete, Edit, DocumentAdd } from '@element-plus/icons-vue'
+import { Plus, Delete, Edit, CollectionTag, Clock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import Cookies from 'js-cookie'
 import { request } from '../api/request'
-import { calcHashForArticleId, getArticleIdFromHash } from '../utils/utils'
+import { calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '../utils/utils'
 import Modal from './Modal.vue'
 
 // 路由
@@ -118,6 +156,7 @@ onMounted(async () => {
     await routeArticle()
 })
 
+const isMobileRef = ref(isMobile())
 
 // 监听路由参数变化
 watch(() => route.params.id, (newId, oldId) => {
@@ -138,6 +177,9 @@ const translations = {
         selectArticle: '请选择一篇文章',
         created: '创建时间',
         updated: '更新时间',
+        wordCount: '字数',
+        readingTime: '预计阅读时间',
+        minute: '分钟',
         addArticle: '新文章',
         setAsDraft: '设为草稿',
         publish: '发布',
@@ -146,13 +188,18 @@ const translations = {
         deleteConfirm: '确定要删除这篇文章吗？',
         deleteSuccess: '删除成功',
         deleteFailed: '删除失败',
+        allCategories: '全部',
+        categories: '分类',
     },
     English: {
         articleList: 'Article List',
         selectArticle: 'Please select an article',
         created: 'Created',
         updated: 'Updated',
-        addArticle: 'New Article',
+        wordCount: 'Word Count',
+        readingTime: 'Estimated Reading Time',
+        minute: 'minute(s)',
+        addArticle: 'New',
         setAsDraft: 'Set as Draft',
         publish: 'Publish',
         editArticle: 'Edit',
@@ -160,6 +207,8 @@ const translations = {
         deleteConfirm: 'Are you sure you want to delete this article?',
         deleteSuccess: 'Delete successful',
         deleteFailed: 'Delete failed',
+        allCategories: 'All',
+        categories: 'Categories',
     }
 }
 
@@ -185,6 +234,60 @@ const checkAdminPermission = async () => {
     }
 }
 
+// 分类相关
+// 分类菜单显示控制
+const categoryMenuVisible = ref(false)
+
+// 切换分类菜单显示状态
+const toggleCategoryMenu = () => {
+    categoryMenuVisible.value = !categoryMenuVisible.value
+}
+
+const selectedCategory = ref('')
+
+// 获取所有分类
+const categories = computed(() => {
+    // 从文章中提取所有不重复的标签作为分类
+    const allTags = new Set()
+    articles.value.forEach(article => {
+        if (article.tags && article.tags.length) {
+            article.tags.forEach(tag => allTags.add(tag))
+        }
+    })
+    return Array.from(allTags)
+})
+
+// 获取每个分类的文章数量
+const getCategoryCount = (category) => {
+    return articles.value.filter(article =>
+        article.tags && article.tags.includes(category)
+    ).length
+}
+
+// 过滤后的文章列表
+const filteredArticles = computed(() => {
+    console.log(selectedCategory.value);
+    if (!selectedCategory.value) {
+        return articles.value
+    }
+    return articles.value.filter(article =>
+        article.tags && article.tags.includes(selectedCategory.value)
+    )
+})
+
+// 处理分类选择
+const handleCategorySelect = (index) => {
+    selectedCategory.value = index
+    if (filteredArticles.value.length > 0) {
+        const currentArticleInFiltered = filteredArticles.value.some(article => article.id === currentArticleId.value)
+        // 如果过滤后没有文章，或者当前选中的文章不在过滤结果中，则选择第一篇文章
+        if (!currentArticleInFiltered) {
+            selectArticle(filteredArticles.value[0].id)
+        }
+        categoryMenuVisible.value = false
+    }
+}
+
 // 文章列表
 const articles = ref([])
 const currentArticleId = ref(null)
@@ -195,18 +298,17 @@ const routeArticle = async () => {
     const articleHash = route.params.id
     const articleId = getArticleIdFromHash(articleHash)
     // 检查文章列表是否为空
-    if (articles.value.length === 0) {
+    if (filteredArticles.value.length === 0) {
         return; // 如果没有文章，直接返回
     }
 
-
     if (!articleId) {
         // 没有指定文章ID，选择第一篇文章，但不更新URL
-        currentArticleId.value = articles.value[0].id
+        currentArticleId.value = filteredArticles.value[0].id
         return;
     }
     // 检查指定的文章ID是否存在于文章列表中
-    const articleExists = articles.value.some(article => article.id === articleId)
+    const articleExists = filteredArticles.value.some(article => article.id === articleId)
     if (articleExists) {
         currentArticleId.value = articleId
         await getArticleContent()
@@ -214,7 +316,7 @@ const routeArticle = async () => {
         // 文章不存在，重定向到文章列表页
         router.push("/articles")
         // 直接设置当前文章ID为第一篇文章
-        currentArticleId.value = articles.value[0].id
+        currentArticleId.value = filteredArticles.value[0].id
         await getArticleContent()
     }
 }
@@ -370,6 +472,7 @@ const handleDraftOrReleased = async (articleId) => {
 }
 
 .article-container {
+    position: relative;
     display: flex;
     gap: 30px;
     min-height: calc(100vh - 200px);
@@ -383,14 +486,91 @@ const handleDraftOrReleased = async (articleId) => {
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: auto;
-    overflow-y: auto;
+    overflow: hidden;
     height: 800px;
+    padding-bottom: 80px;
 }
 
 .sidebar-header {
+    position: sticky;
     padding: 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+
+/* 分类过滤器样式 */
+.category-filter {
+    position: absolute;
+    margin-top: 5px;
+    background: rgba(76, 8, 125, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    width: 250px;
+    z-index: 1000;
+    /* 增加z-index确保在其他元素上方 */
+}
+
+/* 添加过渡动画 */
+.fade-dropdown-enter-active,
+.fade-dropdown-leave-active {
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.fade-dropdown-enter-from,
+.fade-dropdown-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.category-menu {
+    background: transparent;
+    border-right: none;
+}
+
+.category-title {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+}
+
+:deep(.el-menu-item) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 40px;
+    line-height: 40px;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0 15px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+:deep(.el-menu-item:hover) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+:deep(.el-menu-item.is-active) {
+    background-color: rgba(139, 92, 246, 0.2);
+    color: #A78BFA;
+}
+
+:deep(.el-menu--horizontal>.el-menu-item.is-active) {
+    border-bottom: none;
+}
+
+:deep(.el-menu-item:focus) {
+    background-color: rgba(139, 92, 246, 0.2);
+}
+
+.category-count {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #A78BFA;
+    margin-left: 8px;
 }
 
 .sidebar-title-row {
@@ -414,6 +594,7 @@ const handleDraftOrReleased = async (articleId) => {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     transition: all 0.3s ease;
+    margin-left: 0;
 }
 
 .add-article-btn:hover {
@@ -447,7 +628,6 @@ const handleDraftOrReleased = async (articleId) => {
 }
 
 .article-item-header {
-    position: relative;
     margin-bottom: 5px;
 }
 
@@ -497,9 +677,9 @@ const handleDraftOrReleased = async (articleId) => {
 }
 
 .article-tag {
-    background: rgba(139, 92, 246, 0.3);
-    border-color: rgba(139, 92, 246, 0.5);
-    color: #A78BFA;
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.6);
+    color: #F59E0B;
 }
 
 /* 右侧内容样式 */

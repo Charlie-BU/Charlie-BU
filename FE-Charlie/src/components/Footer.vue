@@ -26,11 +26,6 @@
 
 <script setup>
 import { reactive } from 'vue'
-import {
-    Platform,
-    ChatDotRound,
-    Link
-} from '@element-plus/icons-vue'
 
 const LANG = localStorage.getItem("LANG") || "Chinese";
 const translations = reactive({

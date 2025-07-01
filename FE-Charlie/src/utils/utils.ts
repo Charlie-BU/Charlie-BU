@@ -28,12 +28,10 @@ export const getArticleIdFromHash = (hash: string) => {
     }
 };
 
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 export const getFingerprint = async (): Promise<string> => {
-    // @ts-ignore
-    const fpPromise = import("https://openfpcdn.io/fingerprintjs/v4").then(
-        (FingerprintJS) => FingerprintJS.load()
-    );
     try {
+        const fpPromise = FingerprintJS.load();
         const fp = await fpPromise;
         const result = await fp.get();
         const visitorId = result.visitorId;
@@ -47,4 +45,27 @@ export const getFingerprint = async (): Promise<string> => {
 export const isMobile = (): boolean => {
     const width = window.innerWidth;
     return width <= 768;
+};
+
+export const countContent = (
+    text: string = ""
+): {
+    chineseCharCount: number;
+    englishWordCount: number;
+    wordCount: number;
+    readingTime: number;
+} => {
+    const chineseChars = text.match(/[\u4e00-\u9fff]/g) || [];
+    const englishWords = text.match(/\b[a-zA-Z]+(?:['-][a-zA-Z]+)?\b/g) || [];
+
+    const chineseReadingTime = chineseChars.length / 400;
+    const englishReadingTime = englishWords.length / 225;
+    const totalMinutes = Math.ceil(chineseReadingTime + englishReadingTime);
+
+    return {
+        chineseCharCount: chineseChars.length,
+        englishWordCount: englishWords.length,
+        wordCount: chineseChars.length + englishWords.length,
+        readingTime: totalMinutes,
+    };
 };

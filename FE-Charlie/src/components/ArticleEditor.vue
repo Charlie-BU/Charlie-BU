@@ -7,18 +7,36 @@
             </div>
 
             <!-- 编辑表单 -->
-            <el-form :model="articleForm" ref="formRef" label-position="top" class="article-form">
-                <!-- <el-form-item :label="t('tags')" prop="tags">
-                    <el-tag v-for="tag in articleForm.tags" :key="tag" closable @close="removeTag(tag)"
-                        class="article-tag" effect="dark">
-                        {{ tag }}
-                    </el-tag>
-                    <el-input v-if="inputTagVisible" ref="tagInputRef" v-model="inputTagValue" class="tag-input"
-                        size="small" @keyup.enter="addTag" @blur="addTag" :placeholder="t('tagPlaceholder')"></el-input>
-                    <el-button v-else class="add-tag-btn" size="small" @click="showTagInput">
-                        + {{ t('addTag') }}
-                    </el-button>
-                </el-form-item> -->
+            <el-form :model="articleForm" ref="formRef" label-position="top" class="article-form" @submit.prevent>
+                <el-form-item v-if="language === 1 || language === 3" :label="t('tags')" prop="tags">
+                    <div>
+                        <el-tag v-for="tag in articleForm.tags" :key="tag" closable @close="removeTag(tag)"
+                            class="article-tag" effect="dark">
+                            {{ tag }}
+                        </el-tag>
+                        <el-input v-if="inputTagVisible" ref="tagInputRef" v-model="inputTagValue" class="tag-input"
+                            size="small" @keydown.enter.prevent="addTag" @keyup.esc="cancelTagInput"
+                            @blur="addTag"></el-input>
+                        <el-button v-else class="add-tag-btn" size="small" @click="showTagInput">
+                            + {{ t('addTag') }}
+                        </el-button>
+                    </div>
+                </el-form-item>
+
+                <el-form-item v-if="language === 2 || language === 3" label="Tags (English)" prop="tag_ENG">
+                    <div>
+                        <el-tag v-for="tag in articleForm.tag_ENG" :key="tag" closable @close="removeTagENG(tag)"
+                            class="article-tag" effect="dark">
+                            {{ tag }}
+                        </el-tag>
+                        <el-input v-if="inputTagENGVisible" ref="tagENGInputRef" v-model="inputTagENGValue"
+                            class="tag-input" size="small" @keydown.enter.prevent="addTagENG"
+                            @keyup.esc="cancelTagENGInput" @blur="addTagENG"></el-input>
+                        <el-button v-else class="add-tag-btn" size="small" @click="showTagENGInput">
+                            + Add Tag
+                        </el-button>
+                    </div>
+                </el-form-item>
 
                 <el-form-item :label="t('type')" prop="type">
                     <el-radio-group v-model="articleForm.type">
@@ -40,9 +58,19 @@
                 <div class="content-preview-container">
                     <!-- 内容编辑区 -->
                     <div class="content-editor">
-                        <el-form :model="articleForm" ref="contentFormRef">
+                        <el-form :model="articleForm" ref="contentFormRef" @submit.prevent>
+
                             <el-form-item prop="content">
-                                <el-input v-model="articleForm.content" type="textarea" :rows="33"
+                                <div v-if="articleForm.type === 2" class="markdown-toolbar">
+                                    <el-tooltip v-for="(item, key) in markdownSign" :key="key"
+                                        :content="item.description" placement="top">
+                                        <el-button @click="insertMarkdown('content', key)" size="small"
+                                            class="markdown-btn">
+                                            {{ item.icon }}
+                                        </el-button>
+                                    </el-tooltip>
+                                </div>
+                                <el-input ref="contentInputRef" v-model="articleForm.content" type="textarea" :rows="33"
                                     :placeholder="t('contentPlaceholder')"></el-input>
                             </el-form-item>
                         </el-form>
@@ -62,10 +90,19 @@
                 <div class="content-preview-container">
                     <!-- 内容编辑区 -->
                     <div class="content-editor">
-                        <el-form :model="articleForm" ref="contentFormRef">
+                        <el-form :model="articleForm" ref="contentFormRef" @submit.prevent>
+                            <div v-if="articleForm.type === 2" class="markdown-toolbar">
+                                <el-tooltip v-for="(item, key) in markdownSign" :key="key" :content="item.description"
+                                    placement="top">
+                                    <el-button @click="insertMarkdown('content_ENG', key)" size="small"
+                                        class="markdown-btn">
+                                        {{ item.icon }}
+                                    </el-button>
+                                </el-tooltip>
+                            </div>
                             <el-form-item prop="content_ENG">
-                                <el-input v-model="articleForm.content_ENG" type="textarea" :rows="33"
-                                    :placeholder="t('contentPlaceholder')"></el-input>
+                                <el-input ref="contentENGInputRef" v-model="articleForm.content_ENG" type="textarea"
+                                    :rows="33" :placeholder="t('contentPlaceholder')"></el-input>
                             </el-form-item>
                         </el-form>
                     </div>
@@ -100,12 +137,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, nextTick, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { request } from '../api/request'
 import MarkdownIt from 'markdown-it'
 import Cookies from 'js-cookie'
+import { markdownSign } from '../utils/markdown'
 
 // 初始化markdown-it
 const markdown = new MarkdownIt()
@@ -133,7 +171,6 @@ const translations = {
         addArticle: '新文章',
         editArticle: '编辑文章',
         tags: '标签',
-        tagPlaceholder: '输入标签并按回车',
         addTag: '添加标签',
         type: '类型',
         language: '语言',
@@ -155,7 +192,6 @@ const translations = {
         addArticle: 'New Article',
         editArticle: 'Edit Article',
         tags: 'Tags',
-        tagPlaceholder: 'Enter tag and press Enter',
         addTag: 'Add Tag',
         type: 'Type',
         language: 'Language',
@@ -180,8 +216,27 @@ const t = (key) => {
     return translations[LANG][key] || key
 }
 
+// Markdown快捷键部分
+const contentInputRef = useTemplateRef("contentInputRef")
+const contentENGInputRef = useTemplateRef("contentENGInputRef")
+
+const insertMarkdown = (field, type) => {
+    const textareaRef = field === 'content_ENG' ? contentENGInputRef : contentInputRef
+    const textarea = textareaRef.value
+    if (!textarea) return
+    // 根据类型插入不同的Markdown标记
+    let insertion = markdownSign[type].sign
+    // 更新文本内容
+    articleForm[field] += insertion
+
+    // 设置光标位置
+    nextTick(() => {
+        textarea.focus()
+    })
+}
+
 // 表单引用
-const formRef = ref(null)
+const formRef = useTemplateRef("formRef")
 
 const language = ref(1)
 
@@ -189,6 +244,7 @@ const language = ref(1)
 const articleForm = reactive({
     id: '',
     tags: [],
+    tag_ENG: [],
     type: 2, // 默认为Markdown
     content: '',
     content_ENG: '',
@@ -198,6 +254,11 @@ const articleForm = reactive({
 const inputTagVisible = ref(false)
 const inputTagValue = ref('')
 const tagInputRef = ref(null)
+
+// 英文标签输入相关
+const inputTagENGVisible = ref(false)
+const inputTagENGValue = ref('')
+const tagENGInputRef = ref(null)
 
 // 保存状态
 const saving = ref(false)
@@ -213,20 +274,119 @@ const showTagInput = () => {
     })
 }
 
-// 添加标签
-const addTag = () => {
-    if (inputTagValue.value) {
-        if (!articleForm.tags.includes(inputTagValue.value)) {
-            articleForm.tags.push(inputTagValue.value)
-        }
-    }
+// 取消标签输入
+const cancelTagInput = () => {
     inputTagVisible.value = false
     inputTagValue.value = ''
+}
+
+// 显示英文标签输入框
+const showTagENGInput = () => {
+    inputTagENGVisible.value = true
+    nextTick(() => {
+        tagENGInputRef.value.focus()
+    })
+}
+
+// 取消英文标签输入
+const cancelTagENGInput = () => {
+    inputTagENGVisible.value = false
+    inputTagENGValue.value = ''
+}
+
+
+// 添加标签
+const addTag = (event) => {
+    // 如果有事件对象，阻止默认行为
+    if (event && event.preventDefault) {
+        event.preventDefault()
+    }
+    const value = inputTagValue.value.trim()
+    if (value) {
+        // 限制标签长度
+        if (value.length > 20) {
+            ElMessage.warning('标签长度不能超过20个字符')
+            inputTagValue.value = value.substring(0, 20)
+            return
+        }
+
+        if (!articleForm.tags.includes(value)) {
+            // 限制标签数量
+            if (articleForm.tags.length >= 4) {
+                ElMessage.warning('最多只能添加4个标签')
+                inputTagVisible.value = false
+                inputTagValue.value = ''
+                return
+            }
+
+            articleForm.tags.push(value)
+            inputTagVisible.value = false
+            inputTagValue.value = ''
+        } else {
+            // 提示用户标签已存在
+            ElMessage.warning('标签已存在')
+            inputTagValue.value = ''
+            nextTick(() => {
+                tagInputRef.value.focus()
+            })
+        }
+    } else {
+        // 空值时关闭输入框
+        inputTagVisible.value = false
+        inputTagValue.value = ''
+    }
+}
+
+// 添加英文标签
+const addTagENG = (event) => {
+    // 如果有事件对象，阻止默认行为
+    if (event && event.preventDefault) {
+        event.preventDefault()
+    }
+    const value = inputTagENGValue.value.trim()
+    if (value) {
+        // 限制标签长度
+        if (value.length > 20) {
+            ElMessage.warning('Tag length cannot exceed 20 characters')
+            inputTagENGValue.value = value.substring(0, 20)
+            return
+        }
+
+        if (!articleForm.tag_ENG.includes(value)) {
+            // 限制标签数量
+            if (articleForm.tag_ENG.length >= 4) {
+                ElMessage.warning('You can only add up to 4 tags')
+                inputTagENGVisible.value = false
+                inputTagENGValue.value = ''
+                return
+            }
+
+            articleForm.tag_ENG.push(value)
+            inputTagENGVisible.value = false
+            inputTagENGValue.value = ''
+        } else {
+            // 提示用户标签已存在
+            ElMessage.warning('Tag already exists')
+            inputTagENGValue.value = ''
+            nextTick(() => {
+                tagENGInputRef.value.focus()
+            })
+        }
+    } else {
+        // 空值时关闭输入框
+        inputTagENGVisible.value = false
+        inputTagENGValue.value = ''
+    }
 }
 
 // 移除标签
 const removeTag = (tag) => {
     articleForm.tags = articleForm.tags.filter(t => t !== tag)
+}
+
+// 移除英文标签
+const removeTagENG = (tag) => {
+    articleForm.tag_ENG = articleForm.tag_ENG.filter(t => t !== tag)
 }
 
 // Markdown渲染函数
@@ -339,6 +499,7 @@ const getArticleDetail = async (id) => {
             const article = res.data.article
             articleForm.id = article.id
             articleForm.tags = article.tags || []
+            articleForm.tag_ENG = article.tag_ENG || []
             articleForm.type = article.type
             articleForm.content = article.content
             articleForm.content_ENG = article.content_ENG
@@ -402,23 +563,33 @@ const getArticleDetail = async (id) => {
 }
 
 .article-tag {
-    margin-right: 8px;
-    margin-bottom: 8px;
-    background: rgba(139, 92, 246, 0.3);
-    border-color: rgba(139, 92, 246, 0.5);
-    color: #A78BFA;
+    margin-right: 10px;
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.6);
+    color: #F59E0B;
 }
 
 .tag-input {
-    width: 100px;
-    margin-right: 8px;
-    vertical-align: bottom;
+    background: rgba(245, 158, 11, 0.2);
+    color: #F59E0B;
+    width: 180px;
+    margin-right: 10px;
+}
+
+.tag-input :deep(.el-input__inner) {
+    color: #F59E0B;
+}
+
+@media (max-width: 768px) {
+    .tag-input {
+        width: 140px;
+    }
 }
 
 .add-tag-btn {
-    background: rgba(139, 92, 246, 0.2);
-    border: 1px dashed rgba(139, 92, 246, 0.5);
-    color: #A78BFA;
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px dashed rgba(245, 158, 11, 0.6);
+    color: #F59E0B;
 }
 
 /* 内容和预览的左右布局容器 */
@@ -437,10 +608,9 @@ const getArticleDetail = async (id) => {
 /* Markdown预览区 */
 .markdown-preview {
     flex: 1;
-    min-height: 490px;
+    height: 916px;
     background: rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    max-height: 800px;
     overflow: auto;
     overflow-y: auto;
     text-align: justify;
@@ -468,6 +638,44 @@ const getArticleDetail = async (id) => {
     color: #ffffff;
     font-size: 1.1rem;
     font-weight: 600;
+}
+
+.markdown-toolbar {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    justify-items: center;
+    /* 水平居中每个格子内的按钮 */
+    align-items: center;
+    /* 垂直居中每个格子内的按钮 */
+}
+
+.markdown-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 16px;
+    margin-left: 0;
+    /* 固定 icon 字体大小 */
+    transition: all 0.2s ease;
+}
+
+
+.markdown-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
 }
 
 .preview-content {

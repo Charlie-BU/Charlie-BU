@@ -29,7 +29,8 @@ import { useRouter, useRoute } from 'vue-router'
 import Cookies from 'js-cookie'
 import { ElMessage } from 'element-plus'
 
-import { isMobile } from '../utils/utils'
+import { request } from '../api/request'
+import { getFingerprint, isMobile } from '../utils/utils'
 
 const router = useRouter()
 const route = useRoute()
@@ -38,6 +39,11 @@ const LANG = ref(localStorage.getItem("LANG") || "Chinese")
 const isLoggedIn = ref(false)
 
 const isMobileRef = ref(isMobile())
+
+onMounted(async () => {
+    checkLoginStatus()
+    await newVisitor()
+})
 
 // 监听路由变化，更新activeIndex
 watch(() => route.path, (newPath) => {
@@ -71,14 +77,24 @@ const t = (key) => {
     return translations[LANG.value][key] || key
 }
 
-// 检查登录状态
-onMounted(() => {
-    checkLoginStatus()
-})
-
 const checkLoginStatus = () => {
     const sessionid = Cookies.get('sessionid')
     isLoggedIn.value = !!sessionid
+}
+
+const newVisitor = async () => {
+    const fingerprint = await getFingerprint();
+    try {
+        const res = await request.post('/api/new_visitor', {
+            fingerprint,
+        });
+        if (res.data.status !== 200) {
+            console.log(res.data.message)
+            return;
+        }
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 // 退出登录
