@@ -13,6 +13,7 @@ const DEVELOP_URL = "http://localhost:1209";
 // 使用接口反向代理
 // @ts-ignore
 const PRODUCTION_URL = "http://124.223.93.75:90";
+// const PRODUCTION_URL = "https://charliebu.cn/api";
 
 const service: AxiosInstance = axios.create({
     baseURL: PRODUCTION_URL,

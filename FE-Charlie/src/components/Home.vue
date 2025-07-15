@@ -13,7 +13,7 @@
                         type="primary" icon="EditPen">修改</el-button>
                 </p>
                 <div class="hero-buttons">
-                    <el-button type="primary" size="large" class="cta-button">
+                    <el-button type="primary" size="large" class="cta-button" @click="download_cv">
                         <el-icon class="button-icon">
                             <Star />
                         </el-icon>
@@ -204,17 +204,19 @@ const translations = reactive({
         myAchievements: '我的成就',
         growthPath: '成长轨迹',
         thoughts: '碎碎念',
-        selfDefinition: '一句话自我定义'
+        selfDefinition: '一句话自我定义',
+        CV_not_finished: '简历信息暂未完善',
     },
     English: {
-        CV: 'My Resume',
+        CV: 'My CV',
         contactMe: 'Contact Me',
         myTalents: 'My Talents',
         detail: 'Detail',
         myAchievements: 'My Achievements',
         growthPath: 'Growth Path',
         thoughts: 'Thoughts',
-        selfDefinition: 'Self Definition'
+        selfDefinition: 'Self Definition',
+        CV_not_finished: 'CV hasn\'t yet been finished',
     }
 })
 // 翻译函数
@@ -346,6 +348,13 @@ const get_bubbles = async (lang) => {
     }
 }
 
+const download_cv = () => {
+    if (!charlie?.value?.resume) {
+        ElMessage(t("CV_not_finished"))
+        return;
+    }
+    window.location.href = charlie.value.resume;
+}
 
 const email_me = () => {
     if (!charlie?.value?.email) {

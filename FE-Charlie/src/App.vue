@@ -1,9 +1,10 @@
 <template>
     <div class="app-container">
         <div class="dynamic-background">
-            <!-- <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-1"></div>
             <div class="gradient-orb orb-2"></div>
-            <div class="gradient-orb orb-3"></div> -->
+            <div class="gradient-orb orb-3"></div>
+            <div class="gradient-orb orb-4"></div>
         </div>
 
         <!-- 顶部导航栏 -->
@@ -49,9 +50,9 @@ onMounted(() => {
     width: 100%;
     height: 100%;
     z-index: -1;
-    background: linear-gradient(-45deg, #4c087d, #7041ce, #3d0069, #671bad);
+    background: linear-gradient(-45deg, #4c087d, #a50495, #3d0069, #671bad, #0071e3, #8225d3, #4A00E0);
     background-size: 400% 400%;
-    animation: gradient 15s ease infinite;
+    animation: gradient 40s ease infinite;
 }
 
 @keyframes gradient {
@@ -71,14 +72,15 @@ onMounted(() => {
 .gradient-orb {
     position: absolute;
     border-radius: 50%;
-    filter: blur(60px);
-    animation: float 6s ease-in-out infinite;
+    filter: blur(70px);
+    animation: float 8s ease-in-out infinite;
+    opacity: 0.8;
 }
 
 .orb-1 {
     width: 300px;
     height: 300px;
-    background: linear-gradient(45deg, #8B5CF6, #A855F7);
+    background: linear-gradient(45deg, #0575E6, #00F260);
     top: 60%;
     left: 5%;
     animation-delay: 0s;
@@ -87,7 +89,7 @@ onMounted(() => {
 .orb-2 {
     width: 200px;
     height: 200px;
-    background: linear-gradient(45deg, #6366F1, #8B5CF6);
+    background: linear-gradient(45deg, #8E2DE2, #4A00E0);
     top: 60%;
     right: 10%;
     animation-delay: 2s;
@@ -96,21 +98,30 @@ onMounted(() => {
 .orb-3 {
     width: 250px;
     height: 250px;
-    background: linear-gradient(45deg, #EC4899, #8B5CF6);
+    background: linear-gradient(45deg, #a50495, #671bad);
     bottom: 60%;
     left: 50%;
     animation-delay: 4s;
+}
+
+.orb-4 {
+    width: 220px;
+    height: 220px;
+    background: linear-gradient(45deg, #00F260, #4A00E0);
+    top: 20%;
+    right: 25%;
+    animation-delay: 1s;
 }
 
 @keyframes float {
 
     0%,
     100% {
-        transform: translateY(0px) rotate(0deg);
+        transform: translateY(0px) rotate(0deg) scale(1);
     }
 
     50% {
-        transform: translateY(-20px) rotate(180deg);
+        transform: translateY(-20px) rotate(180deg) scale(1.05);
     }
 }
 </style>
