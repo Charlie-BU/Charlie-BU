@@ -11,11 +11,20 @@
                 <el-menu-item index="/gallery">{{ t('gallery') }}</el-menu-item>
             </el-menu>
             <!-- 退出登录按钮 -->
-            <el-button v-if="isLoggedIn" class="logout-button" type="danger" size="small" @click="handleLogout">
+            <el-button v-if="isLoggedIn && !isMobileRef" class="logout-button" type="danger" size="small"
+                @click="handleLogout">
                 {{ t('logout') }}
             </el-button>
+            <div v-if="isLoggedIn && isMobileRef" class="language-toggle" @click="handleLogout"
+                style="background: red; margin-left: 20px;">
+                <el-icon>
+                    <SwitchButton />
+                </el-icon>
+            </div>
             <!-- 自定义语言切换按钮 -->
-            <div class="language-toggle" @click="toggleLanguage">
+            <div class="language-toggle" @click="toggleLanguage" :style="{
+                'margin-left': isMobileRef ? '0px' : '20px'
+            }">
                 <span v-if="!isMobileRef" class="toggle-text">{{ LANG === 'Chinese' ? 'English' : '中文' }}</span>
                 <span class="toggle-icon">🌐</span>
             </div>
@@ -213,7 +222,6 @@ const toggleLanguage = () => {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-left: 20px;
     padding: 6px 12px;
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(236, 72, 153, 0.5));
     border-radius: 20px;
