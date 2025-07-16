@@ -3,6 +3,7 @@ import Home from "../components/Home.vue";
 import Login from "../components/Login.vue";
 import Article from "../components/Article.vue";
 import ArticleEditor from "../components/ArticleEditor.vue";
+import Traveling from "../components/Traveling.vue";
 import Cookies from "js-cookie";
 import { request } from "../api/request";
 import {
@@ -64,6 +65,11 @@ const routes = [
         name: "EditArticle",
         component: ArticleEditor,
         beforeEnter: adminAuthGuard,
+    },
+    {
+        path: "/traveling",
+        name: "Traveling",
+        component: Traveling,
     },
 ];
 

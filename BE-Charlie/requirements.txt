@@ -3,3 +3,5 @@ sqlalchemy
 alembic
 python-dateutil
 bcrypt
+requests
+pycountry
