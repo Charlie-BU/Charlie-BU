@@ -3,8 +3,13 @@ import hashlib
 import hmac
 import re
 import time
+from datetime import date
+
+import pycountry
+import requests
 
 from config import LOGIN_SECRET
+from models import Session, PlaceBeenTo
 
 
 def encode(input_string):
@@ -74,3 +79,63 @@ def parse_cookie_string(cookie_string):
         key, value = cookie.strip().split("=", 1)
         cookies[key] = value
     return cookies
+
+
+def normalize_city_name(name):
+    if not name.endswith('市') and name not in ['香港', '澳门', '台湾']:
+        return name + '市'
+    return name
+
+
+def extract_date(visitDate):
+    return date(visitDate['year'], visitDate['month'], visitDate['day'])
+
+
+def insert_new_places(data: dict):
+    session = Session()
+    seen_cities = set()
+    for trip in data.get('userTripList', []):
+        city_raw = trip['destinationName']
+        city = normalize_city_name(city_raw)
+
+        # 去重：有的城市会出现多次
+        if city in seen_cities:
+            continue
+        seen_cities.add(city)
+
+        exists = session.query(PlaceBeenTo).filter_by(city=city).first()
+        if exists:
+            continue
+
+        visit_date = extract_date(trip['visitDate'])
+        # country = get_country_by_city(city_raw)
+        # country_ENG = pycountry.countries.get(name=country).name if pycountry.countries.get(name=country) else "Unknown"
+
+        new_place = PlaceBeenTo(
+            city=city,
+            city_ENG="",
+            dateStart=visit_date
+        )
+        session.add(new_place)
+
+    session.commit()
+    session.close()
+
+
+def get_footprint_from_ctrip():
+    URL = "https://m.ctrip.com/restapi/soa2/14185/getTripList.json"
+    body = {
+        "head": {
+            "auth": "828F72FBB789F6AEF3DD602E8D8C1DB96294D94B665569837B50B93F6B8A7D2D",
+            "extension": []
+        }
+    }
+    try:
+        res = requests.post(URL, json=body)
+        insert_new_places(res.json())
+    except Exception as e:
+        print(e)
+
+
+# if __name__ == '__main__':
+#     get_footprint_from_ctrip()

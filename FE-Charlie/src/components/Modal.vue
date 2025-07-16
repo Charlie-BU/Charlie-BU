@@ -55,10 +55,10 @@
                 </div>
             </div>
             <div class="delete-dialog-actions">
-                <button class="cancel-button" @click="handleCancel">
+                <button v-if="showCancel" class="cancel-button" @click="handleCancel">
                     {{ cancelText || '取消' }}
                 </button>
-                <button class="confirm-button" @click="handleConfirm" :style="{
+                <button v-if="showConfirm" class="confirm-button" @click="handleConfirm" :style="{
                     'background': type === 'delete' ? 'red' : 'green'
                 }">
                     <el-icon class="button-icon" v-if="type === 'delete'">
@@ -99,9 +99,17 @@ const props = defineProps({
         type: String,
         default: ''
     },
+    showCancel: {
+        type: Boolean,
+        default: true
+    },
     confirmText: {
         type: String,
         default: ''
+    },
+    showConfirm: {
+        type: Boolean,
+        default: true
     },
     closeOnEsc: {
         type: Boolean,
@@ -218,7 +226,7 @@ onBeforeUnmount(() => {
     background: linear-gradient(135deg, rgba(76, 8, 125, 0.95), rgba(112, 65, 206, 0.98));
     border-radius: 20px;
     padding: 32px;
-    max-width: 480px;
+    max-width: 550px;
     width: 90%;
     box-shadow: 0 25px 50px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(167, 139, 250, 0.2);
     backdrop-filter: blur(20px);

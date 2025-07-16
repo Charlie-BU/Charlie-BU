@@ -298,6 +298,63 @@ class Article(Base):
         }
         return data
 
+    
+class PlaceBeenTo(Base):
+    __tablename__ = "place_beent_to"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    country = Column(Text)
+    country_ENG = Column(Text)
+    city = Column(Text)
+    city_ENG = Column(Text)
+    description = Column(Text)
+    description_ENG = Column(Text)
+    dateStart = Column(Date)
+    dateEnd = Column(Date)
+
+    def to_json(self):
+        data = {
+            "id": self.id,
+            "country": self.country,
+            "country_ENG": self.country_ENG,
+            "city": self.city,
+            "city_CH": self.city,
+            "description": self.description,
+            "dateStart": self.dateStart,
+            "dateEnd": self.dateEnd,
+        }
+        return data
+    
+    def to_json_ENG(self):
+        data = {
+            "id": self.id,
+            "country": self.country_ENG,
+            "country_ENG": self.country_ENG,
+            "city": self.city_ENG,
+            "city_CH": self.city,
+            "description": self.description_ENG,
+            "dateStart": self.dateStart,
+            "dateEnd": self.dateEnd,
+        }
+        return data
+
+
+class TravelPhoto(Base):
+    __tablename__ = "travel_photo"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    url = Column(Text)
+    travelId = Column(Integer, ForeignKey("place_beent_to.id"))
+    travel = relationship("PlaceBeenTo", backref="photos")
+    isShown = Column(Boolean, default=True)
+
+    def to_json(self):
+        data = {
+            "id": self.id,
+            "url": self.url,
+            "travelId": self.travelId,
+            "isShown": self.isShown,
+        }
+        return data
+
 
 # 创建所有表（被alembic替代）
 if __name__ == "__main__":

@@ -523,3 +523,33 @@ async def delete_article(request):
         "status": 200,
         "message": "success",
     })
+
+
+@apiRouter.post("/travel/getPlacesBeenTo")
+async def getPlacesBeenTo(request):
+    session = Session()
+    data = request.json()
+    lang = data.get("lang", "Chinese")
+    places = session.query(PlaceBeenTo).order_by(PlaceBeenTo.dateStart.desc()).all()
+    places = [place.to_json() if lang == "Chinese" else place.to_json_ENG() for place in places]
+    session.close()
+    return jsonify({
+        "status": 200,
+        "message": "success",
+        "places": places
+    })
+
+
+@apiRouter.post("/travel/getTravelPhotos")
+async def getTravelPhotos(request):
+    session = Session()
+    data = request.json()
+    travelId = data.get("travelId")
+    photos = session.query(TravelPhoto).filter(TravelPhoto.travelId == travelId, TravelPhoto.isShown == True).all()
+    photos = [photo.to_json() for photo in photos]
+    session.close()
+    return jsonify({
+        "status": 200,
+        "message": "success",
+        "photos": photos
+    })
