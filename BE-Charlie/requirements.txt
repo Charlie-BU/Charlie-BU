@@ -5,3 +5,4 @@ python-dateutil
 bcrypt
 requests
 pycountry
+oss2

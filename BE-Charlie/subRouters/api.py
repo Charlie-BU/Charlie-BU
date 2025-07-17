@@ -1,8 +1,5 @@
 import json
-import time
-
 from robyn import SubRouter, jsonify
-from dateutil import parser
 
 from models import *
 import utils
@@ -114,7 +111,7 @@ async def delete_talent(request):
         })
     data = request.json()
     id = data.get("id")
-    talent = session.query(Talent).get(id)
+    talent = session.get(Talent, id)
     if not talent:
         return jsonify({
             "status": 404,
@@ -158,7 +155,7 @@ async def delete_achievement(request):
         })
     data = request.json()
     id = data.get("id")
-    achievement = session.query(Achievement).get(id)
+    achievement = session.get(Achievement, id)
     if not achievement:
         return jsonify({
             "status": 404,
@@ -203,7 +200,7 @@ async def delete_growthTimeline(request):
         })
     data = request.json()
     id = data.get("id")
-    growthTimeline = session.query(GrowthTimeline).get(id)
+    growthTimeline = session.get(GrowthTimeline, id)
     if not growthTimeline:
         return jsonify({
             "status": 404,
@@ -248,7 +245,7 @@ async def delete_bubble(request):
         })
     data = request.json()
     id = data.get("id")
-    bubble = session.query(Bubble).get(id)
+    bubble = session.get(Bubble, id)
     if not bubble:
         return jsonify({
             "status": 404,
@@ -345,7 +342,7 @@ async def change_article_status(request):
         })
     data = request.json()
     id = data.get("id")
-    article = session.query(Article).get(id)
+    article = session.get(Article, id)
     if not article:
         return jsonify({
             "status": 404,
@@ -373,7 +370,7 @@ async def get_article_detail(request):
         })
     data = request.json()
     id = data.get("id")
-    article = session.query(Article).get(id)
+    article = session.get(Article, id)
     if not article:
         return jsonify({
             "status": 404,
@@ -412,7 +409,7 @@ async def update_article(request):
         })
     data = request.json()
     id = data.get("id")
-    article = session.query(Article).get(id)
+    article = session.get(Article, id)
     if not article:
         return jsonify({
             "status": 404,
@@ -510,7 +507,7 @@ async def delete_article(request):
         })
     data = request.json()
     id = data.get("id")
-    article = session.query(Article).get(id)
+    article = session.get(Article, id)
     if not article:
         return jsonify({
             "status": 404,

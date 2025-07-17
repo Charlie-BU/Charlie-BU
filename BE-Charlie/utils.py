@@ -5,11 +5,11 @@ import re
 import time
 from datetime import date
 
-import pycountry
+import oss2
 import requests
 
-from config import LOGIN_SECRET
-from models import Session, PlaceBeenTo
+from config import LOGIN_SECRET, OSS_ACCESS_KEY_ID, OSS_ENDPOINT, OSS_BUCKET_NAME, OSS_ACCESS_KEY_SECRET, PREFIX
+from models import Session, PlaceBeenTo, TravelPhoto
 
 
 def encode(input_string):
@@ -137,5 +137,37 @@ def get_footprint_from_ctrip():
         print(e)
 
 
-# if __name__ == '__main__':
-#     get_footprint_from_ctrip()
+def store_photos_from_oss_by_travelId(travelId: int):
+    session = Session()
+    travel = session.get(PlaceBeenTo, travelId)
+    city = travel.city_ENG
+    pref = f'images/travel/{city.lower().replace(" ", "")}/'
+    AUTH = oss2.Auth(OSS_ACCESS_KEY_ID, OSS_ACCESS_KEY_SECRET)
+    BUCKET = oss2.Bucket(AUTH, OSS_ENDPOINT, OSS_BUCKET_NAME)
+    for obj in oss2.ObjectIterator(BUCKET, prefix=pref):
+        url = PREFIX + obj.key
+        if url.endswith('.jpg') or url.endswith('.png') or url.endswith('.jpeg'):
+            exist_count = session.query(TravelPhoto).filter_by(url=url).count()
+            if exist_count >= 1:
+                continue
+            new_photo = TravelPhoto(url=url, travelId=travelId)
+            session.add(new_photo)
+    session.commit()
+    session.close()
+
+
+def store_all_photos():
+    session = Session()
+    travel_ids = [tid for (tid,) in session.query(PlaceBeenTo.id)]
+    for travel_id in travel_ids:
+        try:
+            store_photos_from_oss_by_travelId(travel_id)
+        except Exception:
+            print(f"Failed to store photos for travel {travel_id}")
+            continue
+    session.close()
+
+
+if __name__ == '__main__':
+    # get_footprint_from_ctrip()
+    store_all_photos()
