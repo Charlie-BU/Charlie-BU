@@ -48,7 +48,7 @@
 ### 🌐 Let's Connect
 
 - 📫 Email: 15947513567@163.com  
-- 🌐 Website: [charliebu.cn](https://charliebu.cn)  
+- 🌐 Website: [https://charliebu.cn](https://charliebu.cn)  
 - 🐙 GitHub: [@Charlie-BU](https://github.com/Charlie-BU)  
 - 📝 CV: [Download PDF](https://charlie-assets.oss-rg-china-mainland.aliyuncs.com/CV-2025.7.pdf)
 
