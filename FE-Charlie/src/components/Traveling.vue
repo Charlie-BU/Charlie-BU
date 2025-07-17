@@ -28,15 +28,16 @@
             <el-row :gutter="24" class="places-grid">
                 <el-col :xs="24" :sm="12" :md="8" v-for="(place, index) in places" :key="index"
                     style="margin-top: 50px;">
-                    <el-card class="place-card" shadow="hover" @click.stop="showPlaceDetails(place)">
+                    <el-card class="place-card" shadow="hover" @click.stop="showPlaceDetails(place)" ref="placeCards">
                         <div class="place-header">
                             <h3>{{ place.city }}, {{ place.country }}</h3>
                             <div class="place-date">{{ formatDateRange(place.dateStart, place.dateEnd) }}</div>
                         </div>
                         <p class="place-description">{{ place.description }}</p>
-                        <div class="place-photos" v-if="place.photos && place.photos.length > 0">
+                        <div class="place-photos" v-if="place.photos && place.photos.length > 0"
+                            :style="{ padding: isMobileRef ? '0 27px' : '0 35px' }">
                             <el-image v-for="(photo, photoIndex) in place.photos" :key="photoIndex" :src="photo.url"
-                                fit="cover" class="place-photo"
+                                fit="cover" class="place-photo" lazy
                                 @click.stop="openPhotoPreview(place, photoIndex)"></el-image>
                         </div>
                     </el-card>
@@ -76,17 +77,95 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
+import { ref, onMounted, computed, onBeforeUnmount, watch, nextTick } from 'vue';
 import Modal from './Modal.vue';
 import * as echarts from 'echarts';
 import { ElMessage } from 'element-plus';
 
 import { request } from '../api/request';
 import { getContinentForCountry } from '../utils/map';
-import { formatDateRange, getDate } from '../utils/utils';
+import { isMobile, formatDateRange, getDate } from '../utils/utils';
+
+const isMobileRef = ref(isMobile());
+// 地图容器引用
+const worldMapContainer = ref(null);
+const chinaMapContainer = ref(null);
+
+// 地图实例
+let worldMap = null;
+let chinaMap = null;
+
+// 地点数据
+const places = ref([]);
+
+// 创建一个Map来存储已经观察的元素，避免重复观察
+const observedPlaces = new Map();
+// 存储observer实例，以便在组件卸载时清理
+let placeObserver = null;
+
+// 创建Intersection Observer实例
+const createObserver = () => {
+    const options = {
+        root: null, // 使用视口作为根元素
+        rootMargin: '0px',
+        threshold: 0.3 // 当元素有10%进入视口时触发回调
+    };
+
+    return new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // 获取对应的place数据
+                const index = Number(entry.target.dataset.index);
+                const place = places.value[index];
+
+                if (place && !observedPlaces.get(place.id)) {
+                    // 标记该place已经被观察过，避免重复请求
+                    observedPlaces.set(place.id, true);
+                    // 加载该place的照片
+                    fetchTravelPhotos(place);
+                }
+
+                // 停止观察该元素
+                observer.unobserve(entry.target);
+            }
+        });
+    }, options);
+};
+
+// 观察元素的函数
+const observePlaceCards = () => {
+    // 如果已经有observer实例，先断开连接
+    if (placeObserver) {
+        placeObserver.disconnect();
+    }
+
+    // 创建新的observer
+    placeObserver = createObserver();
+    const placeCardElements = document.querySelectorAll('.place-card');
+
+    placeCardElements.forEach((card, index) => {
+        // 为每个card添加索引属性，用于在回调中找到对应的place数据
+        card.dataset.index = index;
+        placeObserver.observe(card);
+    });
+};
 
 onMounted(async () => {
     await fetchTravelData();
+    // 在下一个tick中设置观察者，确保DOM已经更新
+    setTimeout(() => {
+        observePlaceCards();
+    }, 100);
+});
+
+// 监听places数组变化，当有新的地点数据加载时重新设置观察者
+watch(() => places.value.length, async (newLength, oldLength) => {
+    if (newLength > oldLength) {
+        // 等待DOM更新
+        await nextTick();
+        // 重新设置观察者
+        observePlaceCards();
+    }
 });
 
 // 语言设置
@@ -135,17 +214,6 @@ const fetchTravelData = async () => {
             lang: LANG,
         });
         places.value = response.data.places || [];
-        // 获取每个地点的照片
-        await Promise.all(places.value.map(async (place) => {
-            try {
-                const photoResponse = await request.post(`/api/travel/getTravelPhotos`, {
-                    travelId: place.id,
-                });
-                place.photos = photoResponse.data.photos || [];
-            } catch (err) {
-                console.error(`Failed to fetch photos for place ${place.id}:`, err);
-            }
-        }));
 
         // 已访问的国家和城市（使用Set去重）
         const visitedCountries = [...new Set(places.value.map(place => place.country_ENG))];
@@ -162,16 +230,21 @@ const fetchTravelData = async () => {
     }
 };
 
-// 地图容器引用
-const worldMapContainer = ref(null);
-const chinaMapContainer = ref(null);
-
-// 地图实例
-let worldMap = null;
-let chinaMap = null;
-
-// 地点数据
-const places = ref([]);
+// 获取每个地点的照片
+const fetchTravelPhotos = async (place) => {
+    if (place.photos && place.photos.length > 0) {
+        return;
+    }
+    try {
+        const res = await request.post("/api/travel/getTravelPhotos", {
+            travelId: place.id,
+        });
+        place.photos = res.data.photos || [];
+    } catch (error) {
+        console.error('Failed to fetch travel photos:', error);
+        ElMessage.error('获取旅行图片失败');
+    }
+};
 
 // 显示地点详情
 const showPlaceDetails = (place) => {
@@ -232,9 +305,15 @@ const nextPhoto = () => {
     }
 };
 
-// 组件卸载前移除事件监听
+// 组件卸载前移除事件监听和清理observer
 onBeforeUnmount(() => {
     document.removeEventListener('keydown', handleKeyDown);
+
+    // 清理Intersection Observer
+    if (placeObserver) {
+        placeObserver.disconnect();
+        placeObserver = null;
+    }
 });
 
 // 初始化世界地图
@@ -482,6 +561,7 @@ const fetchChinaMapData = async () => {
     vertical-align: middle;
     letter-spacing: 1px;
     background: linear-gradient(90deg, #c084fc, #e9d5ff);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0px 0px 8px rgba(192, 132, 252, 0.5);
@@ -530,6 +610,10 @@ const fetchChinaMapData = async () => {
     margin-bottom: 20px;
     backdrop-filter: blur(10px);
     color: #fff;
+    max-height: 283.59px;
+    overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .place-card:hover {
@@ -564,7 +648,6 @@ const fetchChinaMapData = async () => {
     flex-wrap: wrap;
     gap: 10px;
     margin-top: 1rem;
-    padding: 0 20px;
 }
 
 .place-photo {
