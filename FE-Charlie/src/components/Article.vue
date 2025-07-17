@@ -48,13 +48,13 @@
                             <el-menu-item index="">
                                 <span>{{ t('allCategories') }}</span>
                                 <el-tag size="small" class="category-count">{{ articles.length
-                                }}</el-tag>
+                                    }}</el-tag>
                             </el-menu-item>
                             <el-menu-item v-for="category in categories" :key="category" :index="category">
                                 <span>{{ category }}</span>
                                 <el-tag size="small" class="category-count">{{
                                     getCategoryCount(category)
-                                }}</el-tag>
+                                    }}</el-tag>
                             </el-menu-item>
                         </div>
                     </el-menu>
@@ -98,14 +98,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                    }} {{ t('minute') }}</span>
+                                }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -452,6 +452,7 @@ const handleDraftOrReleased = async (articleId) => {
 
         if (res.data.status === 200) {
             // 更新成功，刷新文章列表
+            currentArticle.value.isReleased = !currentArticle.value.isReleased
             ElMessage.success(article.isReleased ? t('setAsDraft') + "成功" : t('publish') + "成功")
             await getArticles()
         } else {

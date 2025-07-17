@@ -2,28 +2,35 @@
     <el-main class="main-content">
         <section class="map-section">
             <div class="section-title">
-                <h2>{{ t('worldMap') }}</h2>
+                <h2>{{ t('worldMap') }}
+                    <span class="corner-count">{{ countriesCount }} {{ t('countrys') }}</span>
+                </h2>
             </div>
             <div class="map-container" ref="worldMapContainer"></div>
         </section>
 
         <section class="map-section">
             <div class="section-title">
-                <h2>{{ t('chinaMap') }}</h2>
+                <h2>{{ t('chinaMap') }}
+                    <span class="corner-count">{{ citiesCount }} {{ t('cities') }}</span>
+                </h2>
             </div>
             <div class="map-container china-map-container" ref="chinaMapContainer"></div>
         </section>
 
         <section class="places-section">
             <div class="section-title">
-                <h2>{{ t('placesVisited') }}</h2>
+                <h2>
+                    {{ t('placesVisited') }}
+                    <span class="corner-count">{{ places.length }} {{ t('corners') }}</span>
+                </h2>
             </div>
             <el-row :gutter="24" class="places-grid">
                 <el-col :xs="24" :sm="12" :md="8" v-for="(place, index) in places" :key="index"
                     style="margin-top: 50px;">
                     <el-card class="place-card" shadow="hover" @click.stop="showPlaceDetails(place)">
                         <div class="place-header">
-                            <h3>{{ place.city }}</h3>
+                            <h3>{{ place.city }}, {{ place.country }}</h3>
                             <div class="place-date">{{ formatDateRange(place.dateStart, place.dateEnd) }}</div>
                         </div>
                         <p class="place-description">{{ place.description }}</p>
@@ -76,6 +83,7 @@ import { ElMessage } from 'element-plus';
 
 import { request } from '../api/request';
 import { getContinentForCountry } from '../utils/map';
+import { formatDateRange, getDate } from '../utils/utils';
 
 onMounted(async () => {
     await fetchTravelData();
@@ -88,16 +96,32 @@ const t = (key) => {
     const translations = {
         worldMap: {
             Chinese: "🌍 全球",
-            English: "🌍 World"
+            English: "🌍 Global"
         },
         chinaMap: {
             Chinese: "🇨🇳 中国",
             English: "🇨🇳 China"
         },
         placesVisited: {
-            Chinese: "✨ 点亮的角落",
-            English: "✨ Corners Been Lighted"
+            Chinese: "👣 足迹",
+            English: "👣 Footprint On"
         },
+        countrys: {
+            Chinese: "个国家",
+            English: "Countrys"
+        },
+        cities: {
+            Chinese: "个城市",
+            English: "Cities"
+        },
+        corners: {
+            Chinese: "个角落",
+            English: "Corners"
+        },
+        statisticsTime: {
+            Chinese: "截止到",
+            English: "Updated on"
+        }
     };
     return translations[key]?.[LANG] || key;
 };
@@ -148,31 +172,6 @@ let chinaMap = null;
 
 // 地点数据
 const places = ref([]);
-
-
-
-// 格式化日期范围
-const formatDateRange = (start, end) => {
-    if (!start) return '';
-
-    const startDate = new Date(start);
-    const startStr = startDate.toLocaleDateString(LANG === 'English' ? 'en-US' : 'zh-CN', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-
-    if (!end || start === end) return startStr;
-
-    const endDate = new Date(end);
-    const endStr = endDate.toLocaleDateString(LANG === 'English' ? 'en-US' : 'zh-CN', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-
-    return `${startStr} - ${endStr}`;
-};
 
 // 显示地点详情
 const showPlaceDetails = (place) => {
@@ -239,6 +238,8 @@ onBeforeUnmount(() => {
 });
 
 // 初始化世界地图
+const continentsCount = ref(0);
+const countriesCount = ref(0);
 const initWorldMap = async (visitedCountries) => {
     if (!worldMapContainer.value) return;
 
@@ -249,12 +250,14 @@ const initWorldMap = async (visitedCountries) => {
 
     // 计算点亮的大洲数量
     const visitedContinents = [...new Set(visitedCountries.map(country => getContinentForCountry(country)))];
-    const continentsCount = visitedContinents.filter(continent => continent !== 'Unknown').length;
-    const countriesCount = visitedCountries.length;
+    continentsCount.value = visitedContinents.filter(continent => continent !== 'Unknown').length;
+    countriesCount.value = visitedCountries.length;
 
     // 统计信息文本
+    // const statsText =
+    //     `🌍 Footprint on ${countriesCount.value} Countries\n🗺️ Footprint on ${continentsCount.value} Continents`;
     const statsText =
-        `🌍 Countries Visited: ${countriesCount}\n🗺️ Continents Visited: ${continentsCount}`;
+        `📅 ${t("statisticsTime")} ${getDate(LANG)}`;
 
     const option = {
         backgroundColor: 'transparent',
@@ -265,18 +268,17 @@ const initWorldMap = async (visitedCountries) => {
         // 添加统计信息图表组件
         graphic: [{
             type: 'text',
-            right: 20,
+            right: 24,
             bottom: 20,
             style: {
                 text: statsText,
-                textAlign: 'right',
-                fill: '#ffd700',
-                fontSize: 17,
-                fontWeight: 'bold',
-                fontStyle: 'italic',
-                fontFamily: "Times New Roman",
-                lineHeight: 25,
-                textShadow: '0 0 3px rgba(0,0,0,0.5)'
+                textAlign: 'left',
+                fill: '#E0E0E0', // 柔白，避免死白
+                fontSize: 14, // 更秀气一点
+                fontWeight: 400, // 常规字体更优雅
+                fontFamily: 'Inter, Roboto, sans-serif',
+                lineHeight: 22,
+                textShadow: '0 1px 2px rgba(0, 0, 0, 0.25)' // 更自然的阴影，减少突兀感
             }
         }],
         series: [{
@@ -285,15 +287,27 @@ const initWorldMap = async (visitedCountries) => {
             map: 'world',
             roam: true,
             itemStyle: {
-                areaColor: '#ffffff',
-                borderColor: '#404040'
+                areaColor: new echarts.graphic.LinearGradient(
+                    0, 0, 0, 1,
+                    [
+                        { offset: 0, color: '#ffffff' },
+                        { offset: 1, color: '#f0f0f0' }
+                    ]
+                ),
+                borderColor: '#C0C0C0'
             },
             emphasis: {
                 label: {
                     show: true
                 },
                 itemStyle: {
-                    areaColor: '#ffd700'
+                    areaColor: new echarts.graphic.LinearGradient(
+                        0, 0, 0, 1,
+                        [
+                            { offset: 0, color: '#B875DB' },
+                            { offset: 1, color: '#9A4DC0' }
+                        ]
+                    )
                 }
             },
             data: [
@@ -301,7 +315,13 @@ const initWorldMap = async (visitedCountries) => {
                     name: country,
                     value: 1,
                     itemStyle: {
-                        areaColor: '#ffd700'
+                        areaColor: new echarts.graphic.LinearGradient(
+                            0, 0, 0, 1,
+                            [
+                                { offset: 0, color: '#D7A7F9' },
+                                { offset: 1, color: '#B875DB' }
+                            ]
+                        )
                     }
                 })),
             ]
@@ -313,6 +333,7 @@ const initWorldMap = async (visitedCountries) => {
 };
 
 // 初始化中国地图
+const citiesCount = ref(0);
 const initChinaMap = async (visitedCities) => {
     if (!chinaMapContainer.value) return;
 
@@ -322,10 +343,12 @@ const initChinaMap = async (visitedCities) => {
     chinaMap = echarts.init(chinaMapContainer.value);
 
     // 计算点亮的城市数量
-    const citiesCount = visitedCities.length;
+    citiesCount.value = visitedCities.length;
 
     // 统计信息文本
-    const statsText = `🏙️ Cities Visited: ${citiesCount}`;
+    // const statsText = `🏙️ Footprint on ${citiesCount.value} Cities`;
+    const statsText =
+        `📅 ${t("statisticsTime")} ${getDate(LANG)}`;
 
     const option = {
         backgroundColor: 'transparent',
@@ -336,17 +359,17 @@ const initChinaMap = async (visitedCities) => {
         // 添加统计信息图表组件
         graphic: [{
             type: 'text',
-            right: 20,
+            right: 24,
             bottom: 20,
             style: {
                 text: statsText,
-                textAlign: 'right',
-                fill: '#ffd700',
-                fontSize: 17,
-                fontWeight: 'bold',
-                fontStyle: 'italic',
-                fontFamily: "Times New Roman",
-                textShadow: '0 0 3px rgba(0,0,0,0.5)'
+                textAlign: 'left',
+                fill: '#E0E0E0', // 柔白，避免死白
+                fontSize: 14, // 更秀气一点
+                fontWeight: 400, // 常规字体更优雅
+                fontFamily: 'Inter, Roboto, sans-serif',
+                lineHeight: 22,
+                textShadow: '0 1px 2px rgba(0, 0, 0, 0.25)' // 更自然的阴影，减少突兀感
             }
         }],
         series: [{
@@ -358,15 +381,27 @@ const initChinaMap = async (visitedCities) => {
             center: [104, 36], // 设置地图中心点，向下移动几个像素
 
             itemStyle: {
-                areaColor: '#ffffff',
-                borderColor: '#404040'
+                areaColor: new echarts.graphic.LinearGradient(
+                    0, 0, 0, 1,
+                    [
+                        { offset: 0, color: '#ffffff' },
+                        { offset: 1, color: '#f0f0f0' }
+                    ]
+                ),
+                borderColor: '#C0C0C0'
             },
             emphasis: {
                 label: {
                     show: true
                 },
                 itemStyle: {
-                    areaColor: '#ffd700'
+                    areaColor: new echarts.graphic.LinearGradient(
+                        0, 0, 0, 1,
+                        [
+                            { offset: 0, color: '#B875DB' },
+                            { offset: 1, color: '#9A4DC0' }
+                        ]
+                    )
                 }
             },
             data: [
@@ -374,7 +409,13 @@ const initChinaMap = async (visitedCities) => {
                     name: city,
                     value: 1,
                     itemStyle: {
-                        areaColor: '#ffd700'
+                        areaColor: new echarts.graphic.LinearGradient(
+                            0, 0, 0, 1,
+                            [
+                                { offset: 0, color: '#D7A7F9' },
+                                { offset: 1, color: '#B875DB' }
+                            ]
+                        )
                     }
                 })),
             ]
@@ -431,6 +472,19 @@ const fetchChinaMapData = async () => {
     padding: 0;
     position: relative;
     display: inline-block;
+}
+
+.section-title h2 .corner-count {
+    font-size: 0.6em;
+    font-weight: 400;
+    font-style: italic;
+    margin-left: 5px;
+    vertical-align: middle;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #c084fc, #e9d5ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0px 0px 8px rgba(192, 132, 252, 0.5);
 }
 
 .section-title h2::after {

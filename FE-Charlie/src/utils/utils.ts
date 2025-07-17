@@ -69,3 +69,46 @@ export const countContent = (
         readingTime: totalMinutes,
     };
 };
+
+export const getDate = (LANG: string = "Chinese") => {
+    return new Date().toLocaleDateString(
+        LANG === "English" ? "en-US" : "zh-CN",
+        {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        }
+    );
+};
+
+export const formatDateRange = (
+    start: string,
+    end: string,
+    LANG: string = "Chinese"
+) => {
+    if (!start) return "";
+
+    const startDate = new Date(start);
+    const startStr = startDate.toLocaleDateString(
+        LANG === "English" ? "en-US" : "zh-CN",
+        {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        }
+    );
+
+    if (!end || start === end) return startStr;
+
+    const endDate = new Date(end);
+    const endStr = endDate.toLocaleDateString(
+        LANG === "English" ? "en-US" : "zh-CN",
+        {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        }
+    );
+
+    return `${startStr} - ${endStr}`;
+};
