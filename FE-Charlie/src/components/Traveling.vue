@@ -36,8 +36,8 @@
                         <p class="place-description">{{ place.description }}</p>
                         <div class="place-photos" v-if="place.photos && place.photos.length > 0"
                             :style="{ padding: isMobileRef ? '0 27px' : '0 35px' }">
-                            <el-image v-for="(photo, photoIndex) in place.photos" :key="photoIndex" :src="photo.url"
-                                fit="cover" class="place-photo" lazy
+                            <el-image v-for="(photo, photoIndex) in place.photos" :key="photoIndex"
+                                :src="photo.thumb_url || photo.url" fit="cover" class="place-photo" lazy
                                 @click.stop="openPhotoPreview(place, photoIndex)"></el-image>
                         </div>
                     </el-card>
@@ -50,8 +50,7 @@
         <Modal v-model:visible="photoPreviewVisible" type="custom" :title="currentPlace?.city || ''" :showCancel="false"
             :showConfirm="false">
             <div class="photo-preview-container">
-                <div class="photo-preview-image-container"
-                    @click="openPhotoPage(currentPhotos[currentPhotoIndex]?.url)">
+                <div class="photo-preview-image-container">
                     <img v-if="currentPhotos && currentPhotoIndex >= 0" :src="currentPhotos[currentPhotoIndex]?.url"
                         class="preview-image" />
                 </div>
@@ -107,8 +106,8 @@ let placeObserver = null;
 const createObserver = () => {
     const options = {
         root: null, // 使用视口作为根元素
-        rootMargin: '0px',
-        threshold: 0.3 // 当元素有10%进入视口时触发回调
+        rootMargin: isMobileRef.value ? '50px' : '0px',
+        threshold: 0 // 元素一进入视口立刻触发回调
     };
 
     return new IntersectionObserver((entries, observer) => {
@@ -240,6 +239,13 @@ const fetchTravelPhotos = async (place) => {
             travelId: place.id,
         });
         place.photos = res.data.photos || [];
+        place.photos = place.photos.map(photo => {
+            const thumb_url = `${photo.url}?x-oss-process=image/resize,w_300`;
+            return {
+                ...photo,
+                thumb_url
+            };
+        });
     } catch (error) {
         console.error('Failed to fetch travel photos:', error);
         ElMessage.error('获取旅行图片失败');
@@ -267,9 +273,9 @@ const openPhotoPreview = (place, photoIndex) => {
     document.addEventListener('keydown', handleKeyDown);
 };
 
-const openPhotoPage = (url) => {
-    window.open(url, '_blank');
-};
+// const openPhotoPage = (url) => {
+//     window.open(url, '_blank');
+// };
 
 // 关闭图片预览
 const closePhotoPreview = () => {
