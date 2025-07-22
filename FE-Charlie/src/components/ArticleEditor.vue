@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick, useTemplateRef } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { request } from '../api/request'
@@ -162,6 +162,50 @@ onMounted(async () => {
         isEdit.value = true
         await getArticleDetail(articleId)
     }
+
+    // 添加键盘事件监听
+    document.addEventListener('keydown', handleKeyDown)
+})
+
+// Command(Ctrl)+S 保存
+const handleKeyDown = async (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        // 阻止默认的保存行为
+        event.preventDefault()
+        await formRef.value.validate(async (valid) => {
+            if (!valid) return
+            if (articleForm.content === "" && articleForm.content_ENG === "") {
+                ElMessage.warning("请输入文章内容")
+                return
+            }
+
+            try {
+                const apiUrl = '/api/update_article'
+                const requestData = {
+                    ...articleForm,
+                    isReleased: false,
+                }
+
+                const res = await request.post(apiUrl, requestData)
+
+                if (res.data.status === 200) {
+                    ElMessage.success(t('saveSuccess'))
+                } else if (res.data.status === -1) {
+                    ElMessage.warning(res.data.message)
+                } else {
+                    ElMessage.error(res.data.message || t('saveFailed'))
+                }
+            } catch (error) {
+                console.error('暂存失败:', error)
+                ElMessage.error(t('saveFailed'))
+            }
+        })
+    }
+}
+
+// 组件卸载时移除事件监听
+onBeforeUnmount(() => {
+    document.removeEventListener('keydown', handleKeyDown)
 })
 
 // 多语言支持
