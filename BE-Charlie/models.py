@@ -307,7 +307,7 @@ class Article(Base):
 
 
 class PlaceBeenTo(Base):
-    __tablename__ = "place_beent_to"
+    __tablename__ = "place_been_to"
     id = Column(Integer, primary_key=True, autoincrement=True)
     country = Column(Text)
     country_ENG = Column(Text)
@@ -343,13 +343,13 @@ class PlaceBeenTo(Base):
             "dateEnd": self.dateEnd,
         }
         return data
-
+        
 
 class TravelPhoto(Base):
     __tablename__ = "travel_photo"
     id = Column(Integer, primary_key=True, autoincrement=True)
     url = Column(Text)
-    travelId = Column(Integer, ForeignKey("place_beent_to.id"))
+    travelId = Column(Integer, ForeignKey("place_been_to.id"))
     travel = relationship("PlaceBeenTo", backref="photos")
     isShown = Column(Boolean, default=True)
 
