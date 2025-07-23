@@ -1,5 +1,5 @@
 <template>
-    <el-main class="main-content">
+    <el-main class="main-content" :style="{ 'padding': isMobileRef ? '40px 60px' : '40px 20px' }">
         <!-- 英雄区域 -->
         <section class="hero-section">
             <div class="hero-content">
@@ -460,7 +460,6 @@ onBeforeUnmount(() => {
 .main-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 40px 20px;
     overflow: visible;
 }
 
