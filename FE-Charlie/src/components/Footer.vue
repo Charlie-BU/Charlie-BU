@@ -2,13 +2,17 @@
     <el-footer class="footer">
         <div class="footer-content">
             <p>Copyright © 2025 - Present <span style="font-style: italic; font-weight: bold;">Charlie. BU</span>
-                {{ t('footnote') }}</p>
+                <br v-if="isMobileRef" /> {{ t('footnote') }}
+            </p>
         </div>
     </el-footer>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { ref, reactive } from 'vue'
+import { isMobile } from '../utils/utils';
+
+const isMobileRef = ref(isMobile());
 
 const LANG = localStorage.getItem("LANG") || "Chinese";
 const translations = reactive({
