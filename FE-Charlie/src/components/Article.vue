@@ -1,5 +1,5 @@
 <template>
-    <el-main class="article-content">
+    <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
         <div class="article-container">
             <!-- 左侧文章菜单 -->
             <div class="article-sidebar">
@@ -48,13 +48,13 @@
                             <el-menu-item index="">
                                 <span>{{ t('allCategories') }}</span>
                                 <el-tag size="small" class="category-count">{{ articles.length
-                                    }}</el-tag>
+                                }}</el-tag>
                             </el-menu-item>
                             <el-menu-item v-for="category in categories" :key="category" :index="category">
                                 <span>{{ category }}</span>
                                 <el-tag size="small" class="category-count">{{
                                     getCategoryCount(category)
-                                    }}</el-tag>
+                                }}</el-tag>
                             </el-menu-item>
                         </div>
                     </el-menu>
@@ -98,14 +98,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
+                                    }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -469,7 +469,6 @@ const handleDraftOrReleased = async (articleId) => {
 .article-content {
     max-width: 1500px;
     margin: 0 auto;
-    padding: 40px 20px;
 }
 
 .article-container {
