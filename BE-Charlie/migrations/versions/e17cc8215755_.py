@@ -1,14 +1,14 @@
 """empty message
 
 Revision ID: e17cc8215755
-Revises: 18c576dba598
-Create Date: 2025-07-22 19:05:08.245122
+Revises: 
+Create Date: 2025-07-23 10:42:09.103800
 
 """
 
 # revision identifiers, used by Alembic.
 revision = 'e17cc8215755'
-down_revision = '18c576dba598'
+down_revision = None
 branch_labels = None
 depends_on = None
 
