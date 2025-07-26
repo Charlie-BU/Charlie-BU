@@ -11,7 +11,8 @@
 
 ### 👨‍💻 About Me
 
-- 💻 Full-stack developer & problem-solver passionate about bringing ideas to life through code  
+- 💻 Full-stack developer & problem-solver passionate about bringing ideas to life through code
+- 💼 Frontend Engineer Intern @ ByteDance Data AML, [ByteDance Shanghai](https://www.bytedance.com/zh/)
 - 🎓 Software Engineering @ Tongji University (Shanghai, China)  
 - 🌱 Open-source contributor to [Robyn](https://github.com/sansyrox/robyn), improving Python CORS support  
 - 📦 Built and shipped 15+ full-featured projects with real-world deployment & usage  
@@ -57,5 +58,3 @@
 > “From the ping-pong table to production-ready pipelines,  
 > I code not just to build — but to understand, connect, and create.”
 
-
-<!-- - 💼 Incoming Frontend Engineer Intern @ CamScanner, [Shanghai IntSig Information Co., Ltd.](https://www.intsig.com/) --> 
