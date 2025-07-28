@@ -55,7 +55,7 @@
         <section class="features-section">
             <div class="section-title section-title-container" @mouseenter="handle_mouse_enter('talents')"
                 @mouseleave="handle_mouse_leave('talents')">
-                <h2>{{ t('myTalents') }}</h2>
+                <h2>{{ t('aboutMe') }}</h2>
                 <el-button v-if="admin_id && hover_module === 'talents'" class="add-button" size="small" type="primary"
                     icon="Plus">添加</el-button>
             </div>
@@ -71,7 +71,7 @@
                             </el-icon>
                         </div>
                         <h3>{{ talent.title }}</h3>
-                        <p>{{ talent.description }}</p>
+                        <p style="text-align: justify;">{{ talent.description }}</p>
                         <div v-if="talent.gotoUrl" class="view-details"
                             :style="{ color: talent.showDetails ? '#ffffff' : '#A78BFA' }">
                             <span :class="{ 'show': talent.showDetails }">{{ t('detail') }}&nbsp;</span>
@@ -148,7 +148,7 @@
                             <el-icon class="quote-icon">
                                 <ChatDotRound />
                             </el-icon>
-                            <p>{{ bubble.content }}</p>
+                            <p style="text-align: justify;">{{ bubble.content }}</p>
                         </div>
                     </div>
                 </el-card>
@@ -199,7 +199,7 @@ const translations = reactive({
     Chinese: {
         CV: '我的简历',
         contactMe: '与我交流',
-        myTalents: '我的专长',
+        aboutMe: '关于我',
         detail: '查看详情',
         myAchievements: '我的成就',
         growthPath: '成长轨迹',
@@ -210,7 +210,7 @@ const translations = reactive({
     English: {
         CV: 'My CV',
         contactMe: 'Contact Me',
-        myTalents: 'My Talents',
+        aboutMe: 'About Me',
         detail: 'Detail',
         myAchievements: 'My Achievements',
         growthPath: 'Growth Path',
