@@ -152,6 +152,7 @@ const toggleLanguage = () => {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .nav-menu {
