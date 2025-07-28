@@ -486,6 +486,7 @@ onBeforeUnmount(() => {
 }
 
 .gradient-text {
+    white-space: nowrap;
     background: linear-gradient(45deg, #e674f5, #0e8add, #F59E0B);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
