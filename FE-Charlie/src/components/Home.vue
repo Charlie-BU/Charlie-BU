@@ -66,7 +66,8 @@
                         @contextmenu.prevent="(e) => handle_right_click(e, talent, 'talent')"
                         @mouseenter="talent.showDetails = true" @mouseleave="talent.showDetails = false">
                         <div class="feature-icon">
-                            <el-icon :size="40">
+                            <img v-if="talent.icon.startsWith('https://')" :src="talent.icon" alt="talent.icon"></img>
+                            <el-icon v-else :size="40">
                                 <component :is="talent.icon" />
                             </el-icon>
                         </div>
@@ -899,6 +900,37 @@ onBeforeUnmount(() => {
     color: #A78BFA;
     font-size: 1.2em;
     filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.5));
+    position: relative;
+    display: inline-block;
+}
+
+.feature-icon::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.3) 0%, rgba(167, 139, 250, 0.1) 50%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(8px);
+    z-index: -1;
+    transition: all 0.3s ease;
+}
+
+.feature-icon img {
+    position: relative;
+    z-index: 1;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.feature-card:hover .feature-icon::before {
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.5) 0%, rgba(167, 139, 250, 0.2) 50%, transparent 70%);
+    transform: translate(-50%, -50%) scale(1.1);
 }
 
 .feature-card h3 {
