@@ -4,7 +4,8 @@
         <section class="hero-section">
             <div class="hero-content">
                 <h1 class="hero-title">
-                    <span class="gradient-text">Hey, I'm Charlie</span>
+                    <span class="gradient-text"><span style="-webkit-text-fill-color: white">🤵</span> Hey, I'm
+                        Charlie</span>
                 </h1>
                 <p class="hero-subtitle section-title-container" @mouseenter="handle_mouse_enter('description')"
                     @mouseleave="handle_mouse_leave('description')">
