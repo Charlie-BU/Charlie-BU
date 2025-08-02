@@ -8,14 +8,14 @@ import type {
 import { ElMessage } from "element-plus";
 
 // 本地：为了防止打包后网站被认定不安全，打包前须注释
-// const DEVELOP_URL = "http://localhost:1209";
+const DEVELOP_URL = "http://localhost:1209";
 // 使用接口反向代理
 // @ts-ignore
 // const PRODUCTION_URL = "http://124.223.93.75:90";
 const PRODUCTION_URL = "https://charliebu.cn/api";
 
 const service: AxiosInstance = axios.create({
-    baseURL: PRODUCTION_URL,
+    baseURL: DEVELOP_URL,
     timeout: 50000,
     withCredentials: true, // 自动携带cookies
 });
