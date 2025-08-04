@@ -160,6 +160,9 @@ def store_all_photos():
     session = Session()
     travel_ids = [tid for (tid,) in session.query(PlaceBeenTo.id)]
     for travel_id in travel_ids:
+        photo_count = session.query(TravelPhoto).filter(TravelPhoto.travelId == travel_id).count()
+        if photo_count >= 1:
+            continue
         try:
             store_photos_from_oss_by_travelId(travel_id)
         except Exception:
