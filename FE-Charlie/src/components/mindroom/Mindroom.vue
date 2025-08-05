@@ -652,7 +652,7 @@ const sendMessage = () => {
     })
 
     // 清空输入框
-    messageInput.value = ''
+    messageInput.value = '';
 
     // 滚动到底部
     nextTick(() => {
