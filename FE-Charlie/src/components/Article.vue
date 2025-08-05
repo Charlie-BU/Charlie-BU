@@ -48,13 +48,13 @@
                             <el-menu-item index="">
                                 <span>{{ t('allCategories') }}</span>
                                 <el-tag size="small" class="category-count">{{ articles.length
-                                }}</el-tag>
+                                    }}</el-tag>
                             </el-menu-item>
                             <el-menu-item v-for="category in categories" :key="category" :index="category">
                                 <span>{{ category }}</span>
                                 <el-tag size="small" class="category-count">{{
                                     getCategoryCount(category)
-                                }}</el-tag>
+                                    }}</el-tag>
                             </el-menu-item>
                         </div>
                     </el-menu>
@@ -98,14 +98,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                    }} {{ t('minute') }}</span>
+                                }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -296,7 +296,9 @@ const currentArticle = ref({})
 
 const routeArticle = async () => {
     const articleHash = route.params.id
-    const articleId = getArticleIdFromHash(articleHash)
+    if (articleHash) {
+        const articleId = getArticleIdFromHash(articleHash)
+    }
     // 检查文章列表是否为空
     if (filteredArticles.value.length === 0) {
         return; // 如果没有文章，直接返回
