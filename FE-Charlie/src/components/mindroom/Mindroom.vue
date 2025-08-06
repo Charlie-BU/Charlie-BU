@@ -72,7 +72,6 @@
                     <div class="document-toolbar">
                         <div class="editor-mode-toggle">
                             <el-radio-group v-model="editorMode" size="small">
-                                <el-radio-button label="richtext">{{ t('richText') }}</el-radio-button>
                                 <el-radio-button label="markdown">{{ t('markdown') }}</el-radio-button>
                             </el-radio-group>
                         </div>
@@ -87,110 +86,20 @@
                         </div>
                     </div>
                     <div class="document-editor">
-                        <!-- 富文本编辑器 -->
-                        <div v-if="editorMode === 'richtext'" class="richtext-editor">
-                            <textarea ref="richtextEditor" v-model="documentContent" :placeholder="t('startTyping')"
-                                @input="handleDocumentChange"></textarea>
-                        </div>
                         <!-- Markdown编辑器 -->
-                        <div v-else class="markdown-editor">
+                        <div class="markdown-editor">
                             <div class="markdown-toolbar">
-                                <el-button-group>
-                                    <el-button @click="insertMarkdown('bold')" size="small">
-                                        <el-icon>
-                                            <Bold />
-                                        </el-icon>
-                                    </el-button>
-                                    <el-button @click="insertMarkdown('italic')" size="small">
-                                        <el-icon>
-                                            <Italic />
-                                        </el-icon>
-                                    </el-button>
-                                    <el-button @click="insertMarkdown('heading')" size="small">
-                                        <el-icon>
-                                            <TopRight />
-                                        </el-icon>
-                                    </el-button>
-                                    <el-button @click="insertMarkdown('link')" size="small">
-                                        <el-icon>
-                                            <Link />
-                                        </el-icon>
-                                    </el-button>
-                                    <el-button @click="insertMarkdown('code')" size="small">
-                                        <el-icon>
-                                            <Terminal />
-                                        </el-icon>
-                                    </el-button>
-                                    <el-button @click="insertMarkdown('list')" size="small">
-                                        <el-icon>
-                                            <List />
-                                        </el-icon>
-                                    </el-button>
-                                </el-button-group>
+
                             </div>
                             <textarea ref="markdownEditor" v-model="documentContent" :placeholder="t('startTyping')"
-                                @input="handleDocumentChange"></textarea>
-                            <div class="markdown-preview" v-html="renderMarkdown(documentContent)"></div>
+                                style="min-height: calc(100vh - 120px);" @input="handleDocumentChange"></textarea>
                         </div>
                     </div>
                 </div>
 
-                <!-- 聊天区域 -->
-                <div class="chat-pane">
-                    <div class="chat-messages" ref="chatMessages">
-                        <div v-if="messages.length === 0" class="no-messages">
-                            {{ t('noMessages') }}
-                        </div>
-                        <div v-for="(message, index) in messages" :key="index" class="message-item"
-                            :class="{ 'my-message': message.isMe }">
-                            <div class="message-header">
-                                <span class="message-sender">{{ message.sender }}</span>
-                                <span class="message-time">{{ formatTime(message.timestamp) }}</span>
-                            </div>
-                            <div class="message-content" v-html="formatMessageContent(message.content)"></div>
-                        </div>
-                    </div>
-                    <div class="chat-input">
-                        <el-input v-model="messageInput" :placeholder="t('typeMessage')" @keyup.enter="sendMessage"
-                            type="textarea" :rows="2">
-                            <template #append>
-                                <el-button @click="sendMessage">{{ t('send') }}</el-button>
-                            </template>
-                        </el-input>
-                        <div class="chat-tools">
-                            <el-button-group size="small">
-                                <el-tooltip :content="t('insertEmoji')" placement="top">
-                                    <el-button @click="showEmojiPicker = !showEmojiPicker">
-                                        <el-icon>
-                                            <Sunny />
-                                        </el-icon>
-                                    </el-button>
-                                </el-tooltip>
-                                <el-tooltip :content="t('insertCode')" placement="top">
-                                    <el-button @click="insertCodeBlock">
-                                        <el-icon>
-                                            <Terminal />
-                                        </el-icon>
-                                    </el-button>
-                                </el-tooltip>
-                                <el-tooltip :content="t('quoteDocument')" placement="top">
-                                    <el-button @click="quoteDocument">
-                                        <el-icon>
-                                            <DocumentCopy />
-                                        </el-icon>
-                                    </el-button>
-                                </el-tooltip>
-                            </el-button-group>
-                        </div>
-                        <div v-if="showEmojiPicker" class="emoji-picker">
-                            <!-- 简单的表情选择器 -->
-                            <div class="emoji-grid">
-                                <span v-for="emoji in emojis" :key="emoji" @click="insertEmoji(emoji)"
-                                    class="emoji-item">{{ emoji
-                                    }}</span>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Markdown预览区 -->
+                <div class="markdown-preview-pane">
+                    <div class="markdown-preview" v-html="renderMarkdown(documentContent)"></div>
                 </div>
             </div>
         </div>
@@ -823,7 +732,7 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    height: calc(100vh - 200px);
+    height: 85vh;
 }
 
 .room-header {
@@ -869,20 +778,28 @@ onBeforeUnmount(() => {
 
 .room-content {
     display: flex;
-    gap: 20px;
-    height: 100%;
-    overflow: hidden;
+    max-height: 1000vh;
+    height: calc(100vh - 120px);
+    overflow: auto;
 }
 
-/* 文档编辑区样式 */
 .document-pane {
-    flex: 3;
-    display: flex;
-    flex-direction: column;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    flex: 1;
+    padding-right: 16px;
+    border-right: 1px solid #eee;
+}
+
+.markdown-preview-pane {
+    flex: 1;
+    padding-left: 16px;
+    overflow-y: auto;
+}
+
+.markdown-preview {
+    padding: 16px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .document-toolbar {
