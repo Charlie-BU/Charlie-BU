@@ -226,11 +226,10 @@ const checkAdminPermission = async () => {
         const res = await request.post('/api/check_sessionid', {
             sessionid: Cookies.get('sessionid')
         })
-        if (res.data.status === 200) {
-            admin_id.value = res.data.admin_id
-        } else {
+        if (!res.data.admin_id) {
             Cookies.remove('sessionid')
         }
+        admin_id.value = res.data.admin_id
     } catch (error) {
         console.error('检查管理员权限失败:', error)
     }
