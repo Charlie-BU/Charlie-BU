@@ -31,10 +31,15 @@ def decode(encoded_string):
 
 
 def generate_sessionid(user_id):
+    nonce = uuid.uuid4().hex
+    # 写入 redis，TTL = 会话过期时间
+    if redis_client.exists(f"user_id:{user_id}"):
+        redis_client.delete(f"user_id:{user_id}")
+    redis_client.setex(f"user_id:{user_id}", SESSION_EXPIRE_SECONDS, nonce)
     payload = {
         "user_id": user_id,
         "timestamp": int(time.time()),
-        "nonce": uuid.uuid4().hex,
+        "nonce": nonce,
         "algorithm": "sha512",
     }
     payload_str = json.dumps(payload, separators=(',', ':'))
@@ -54,21 +59,38 @@ def check_sessionid(sessionid):
         payload = json.loads(payload_str)
         
         if not {"user_id", "timestamp", "nonce", "algorithm"} <= payload.keys():
-            return {}  # 字段缺失
+            print("字段缺失")
+            return {}
         if payload.get("algorithm") != "sha512":
-            return {}  # 算法不匹配
+            print("算法不匹配")
+            return {}
         if time.time() - int(payload["timestamp"]) > SESSION_EXPIRE_SECONDS:
-            return {}  # sessionid过期
+            print("sessionid 已过期")
+            return {}
+
+        # 检查 nonce
+        nonce_key = f"user_id:{payload['user_id']}"
+        if not redis_client.exists(nonce_key):
+            print("nonce 不存在")
+            return {}
+        nonce = redis_client.get(nonce_key).decode()
+        if nonce != payload['nonce']:
+            print("nonce 不匹配")
+            return {}
         
-        # nonce 防重放
-        nonce_key = f"nonce:{payload['nonce']}"
-        if redis_client.exists(nonce_key):
-            return {}  # nonce 已存在，怀疑重放攻击，拒绝请求
-        else:
-            # 第一次见到这个 nonce，写入 Redis，TTL = 剩余有效时间
-            ttl = SESSION_EXPIRE_SECONDS - (time.time() - int(payload["timestamp"]))
-            if ttl > 0:
-                redis_client.setex(nonce_key, int(ttl), 1)
+        # nonce 防重放：不能加，会导致sessionid变为一次性
+        # nonce_key = f"nonce:{payload['nonce']}"
+        # if redis_client.exists(nonce_key):
+        #     print("nonce 已存在")
+        #     return {}
+        # else:
+        #     # 第一次见到这个 nonce，写入 Redis，TTL = 剩余有效时间
+        #     ttl = max(0, SESSION_EXPIRE_SECONDS - (time.time() - int(payload["timestamp"])))
+        #     if ttl > 0:
+        #         redis_client.setex(nonce_key, int(ttl), 1)
+        #     else:
+        #         print("ttl 小于 0")
+        #         return {}
 
         return {
             "user_id": int(payload["user_id"]),
