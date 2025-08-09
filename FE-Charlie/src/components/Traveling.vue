@@ -31,7 +31,7 @@
                     <el-card class="place-card" shadow="hover" @click.stop="showPlaceDetails(place)" ref="placeCards">
                         <div class="place-header">
                             <h3>{{ place.city }}, {{ place.country }}</h3>
-                            <div class="place-date">{{ formatDateRange(place.dateStart, place.dateEnd) }}</div>
+                            <div class="place-date">{{ formatDateRange(place.dateStart, place.dateEnd, LANG) }}</div>
                         </div>
                         <p class="place-description">{{ place.description }}</p>
                         <div class="place-photos" v-if="place.photos && place.photos.length > 0"
