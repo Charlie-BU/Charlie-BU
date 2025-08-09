@@ -7,7 +7,6 @@
             <el-menu mode="horizontal" :default-active="activeIndex" class="nav-menu" router>
                 <el-menu-item index="/">{{ t('home') }}</el-menu-item>
                 <el-menu-item index="/articles">{{ t('articles') }}</el-menu-item>
-                <el-menu-item index="/mindroom">{{ t('mindroom') }}</el-menu-item>
                 <el-menu-item index="/traveling">{{ t('traveling') }}</el-menu-item>
             </el-menu>
             <!-- 退出登录按钮 -->
@@ -68,7 +67,6 @@ const translations = reactive({
         home: '首页',
         articles: '文章',
         daily: '日常',
-        mindroom: '灵感空间',
         traveling: '旅行',
         logout: '退出登录',
         logoutSuccess: '已成功退出登录'
@@ -77,7 +75,6 @@ const translations = reactive({
         home: 'Home',
         articles: 'Articles',
         daily: 'Daily',
-        mindroom: 'Mindroom',
         traveling: 'Traveling',
         logout: 'Logout',
         logoutSuccess: 'Successfully logged out'

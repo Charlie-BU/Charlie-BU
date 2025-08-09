@@ -50,7 +50,8 @@ onMounted(() => {
     width: 100%;
     height: 100%;
     z-index: -1;
-    background: linear-gradient(-45deg, #4c087d, #a50495, #3d0069, #671bad, #0071e3, #8225d3, #4A00E0);
+    /* 不加背景色方案 */
+    /* background: linear-gradient(-45deg, #4c087d, #a50495, #3d0069, #671bad, #0071e3, #8225d3, #4A00E0); */
     background-size: 400% 400%;
     animation: gradient 40s ease infinite;
 }
