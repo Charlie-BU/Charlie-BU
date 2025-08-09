@@ -87,7 +87,9 @@ const t = (key) => {
 
 const checkLoginStatus = () => {
     const sessionid = Cookies.get('sessionid')
-    isLoggedIn.value = !!sessionid
+    if (sessionid && sessionid.length > 20) {
+        isLoggedIn.value = true
+    }
 }
 
 const newVisitor = async () => {
