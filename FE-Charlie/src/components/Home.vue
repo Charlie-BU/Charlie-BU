@@ -239,7 +239,7 @@ const check_sessionid = async () => {
         const res = await request.post('/api/check_sessionid', {
             sessionid: Cookies.get('sessionid')
         });
-        if (res.data.status !== 200) {
+        if (!res.data.admin_id) {
             Cookies.remove('sessionid');
             return;
         }
