@@ -6,3 +6,4 @@ bcrypt
 requests
 pycountry
 oss2
+redis
