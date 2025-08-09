@@ -13,33 +13,16 @@ from config import LOGIN_SECRET, SESSION_EXPIRE_SECONDS, OSS_ACCESS_KEY_ID, OSS_
 from models import Session, PlaceBeenTo, TravelPhoto
 from redis_settings import redis_client
 
-def encode(input_string):
-    byteString = input_string.encode('utf-8')
-    base64_bytes = base64.b64encode(byteString)
-    encoded_string = base64_bytes.decode()
-    return encoded_string
-
-
-def decode(encoded_string):
-    try:
-        base64_bytes = encoded_string.encode('utf-8')
-        byte_string = base64.b64decode(base64_bytes)
-        decoded_string = byte_string.decode()
-    except Exception:
-        return None
-    return decoded_string
-
 
 def generate_sessionid(user_id):
-    nonce = uuid.uuid4().hex
+    # 通过uuid，限制单一设备登录
+    session_uuid = uuid.uuid4().hex
     # 写入 redis，TTL = 会话过期时间
-    if redis_client.exists(f"user_id:{user_id}"):
-        redis_client.delete(f"user_id:{user_id}")
-    redis_client.setex(f"user_id:{user_id}", SESSION_EXPIRE_SECONDS, nonce)
+    redis_client.setex(f"user_id:{user_id}", SESSION_EXPIRE_SECONDS, session_uuid)
     payload = {
         "user_id": user_id,
         "timestamp": int(time.time()),
-        "nonce": nonce,
+        "session_uuid": session_uuid,
         "algorithm": "sha512",
     }
     payload_str = json.dumps(payload, separators=(',', ':'))
@@ -58,7 +41,7 @@ def check_sessionid(sessionid):
             return {}  # 签名无效
         payload = json.loads(payload_str)
         
-        if not {"user_id", "timestamp", "nonce", "algorithm"} <= payload.keys():
+        if not {"user_id", "timestamp", "session_uuid", "algorithm"} <= payload.keys():
             print("字段缺失")
             return {}
         if payload.get("algorithm") != "sha512":
@@ -68,14 +51,14 @@ def check_sessionid(sessionid):
             print("sessionid 已过期")
             return {}
 
-        # 检查 nonce
+        # 检查 session_uuid
         nonce_key = f"user_id:{payload['user_id']}"
         if not redis_client.exists(nonce_key):
-            print("nonce 不存在")
+            print("session_uuid 不存在")
             return {}
-        nonce = redis_client.get(nonce_key).decode()
-        if nonce != payload['nonce']:
-            print("nonce 不匹配")
+        session_uuid = redis_client.get(nonce_key).decode()
+        if session_uuid != payload['session_uuid']:
+            print("session_uuid 不匹配")
             return {}
         
         # nonce 防重放：不能加，会导致sessionid变为一次性
@@ -98,7 +81,7 @@ def check_sessionid(sessionid):
         }
     
     except Exception:
-        return {}  # 格式错误、解码失败等
+        return {}
 
 
 def parse_cookie_string(cookie_string):
