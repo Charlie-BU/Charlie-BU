@@ -35,7 +35,7 @@
                         </div>
                         <p class="place-description">{{ place.description }}</p>
                         <div class="place-photos" v-if="place.photos && place.photos.length > 0"
-                            :style="{ padding: isMobileRef ? '0 27px' : '0 35px' }">
+                            :style="{ padding: isMobileRef ? '0 25px' : '0 35px', display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }">
                             <el-image v-for="(photo, photoIndex) in place.photos" :key="photoIndex"
                                 :src="photo.thumb_url || photo.url" fit="cover" class="place-photo" lazy
                                 @click.stop="openPhotoPreview(place, photoIndex)"></el-image>
@@ -663,6 +663,9 @@ const fetchChinaMapData = async () => {
     object-fit: cover;
     cursor: pointer;
     transition: transform 0.2s ease;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
 }
 
 .place-photo:hover {
