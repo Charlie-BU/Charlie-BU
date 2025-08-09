@@ -4,13 +4,14 @@ import hmac
 import re
 import time
 from datetime import date
-
 import oss2
-import requests
+import requests 
+import json
+import uuid
 
-from config import LOGIN_SECRET, OSS_ACCESS_KEY_ID, OSS_ENDPOINT, OSS_BUCKET_NAME, OSS_ACCESS_KEY_SECRET, PREFIX
+from config import LOGIN_SECRET, SESSION_EXPIRE_SECONDS, OSS_ACCESS_KEY_ID, OSS_ENDPOINT, OSS_BUCKET_NAME, OSS_ACCESS_KEY_SECRET, PREFIX
 from models import Session, PlaceBeenTo, TravelPhoto
-
+from redis_settings import redis_client
 
 def encode(input_string):
     byteString = input_string.encode('utf-8')
@@ -29,46 +30,53 @@ def decode(encoded_string):
     return decoded_string
 
 
-def calc_signature(message):
-    secret = LOGIN_SECRET.encode('utf-8')
-    message = str(message).encode('utf-8')
-    signature = hmac.new(secret, message, hashlib.sha512).hexdigest()
-    return signature
-
-
 def generate_sessionid(user_id):
-    timestamp = str(int(time.time()))
-    signature = calc_signature(str(user_id))
-    sessionid = f"userId={user_id}&timestamp={timestamp}&signature={signature}&algorithm=sha512"
-    return encode(sessionid)
-
-
-def check_signature(signature, message):
-    secret = LOGIN_SECRET.encode('utf-8')
-    message = str(message).encode('utf-8')
-    correct_sig = hmac.new(secret, message, hashlib.sha512).hexdigest()
-    return hmac.compare_digest(signature, correct_sig)
+    payload = {
+        "user_id": user_id,
+        "timestamp": int(time.time()),
+        "nonce": uuid.uuid4().hex,
+        "algorithm": "sha512",
+    }
+    payload_str = json.dumps(payload, separators=(',', ':'))
+    signature = hmac.new(LOGIN_SECRET, payload_str.encode(), hashlib.sha512).hexdigest()
+    sessionid = base64.urlsafe_b64encode(f"{payload_str}.{signature}".encode()).decode()
+    return sessionid
 
 
 def check_sessionid(sessionid):
-    decoded_sessionid = decode(sessionid)
-    if not decoded_sessionid:
-        return {}
-    pattern = rf"^userId=(\d+)&timestamp=(\d+)&signature=(.+)&algorithm=sha512$"  # 必须用()包含住捕获组才能被match.group捕获
-    match = re.match(pattern, decoded_sessionid)
-    if not match:
-        return {}
-    user_id = match.group(1)
-    timestamp = match.group(2)
-    signature = match.group(3)
-    if not check_signature(signature, user_id):  # 签名无效
-        return {}
-    if time.time() - float(timestamp) > 10800:  # 3小时有效
-        return {}
-    return {
-        "user_id": int(user_id),
-        "timestamp": timestamp
-    }
+    try:
+        decoded = base64.urlsafe_b64decode(sessionid.encode()).decode()
+        payload_str, signature = decoded.rsplit('.', 1)
+        expected_sig = hmac.new(LOGIN_SECRET, payload_str.encode(), hashlib.sha512).hexdigest()
+       
+        if not hmac.compare_digest(signature, expected_sig):
+            return {}  # 签名无效
+        payload = json.loads(payload_str)
+        
+        if not {"user_id", "timestamp", "nonce", "algorithm"} <= payload.keys():
+            return {}  # 字段缺失
+        if payload.get("algorithm") != "sha512":
+            return {}  # 算法不匹配
+        if time.time() - int(payload["timestamp"]) > SESSION_EXPIRE_SECONDS:
+            return {}  # sessionid过期
+        
+        # nonce 防重放
+        nonce_key = f"nonce:{payload['nonce']}"
+        if redis_client.exists(nonce_key):
+            return {}  # nonce 已存在，怀疑重放攻击，拒绝请求
+        else:
+            # 第一次见到这个 nonce，写入 Redis，TTL = 剩余有效时间
+            ttl = SESSION_EXPIRE_SECONDS - (time.time() - int(payload["timestamp"]))
+            if ttl > 0:
+                redis_client.setex(nonce_key, int(ttl), 1)
+
+        return {
+            "user_id": int(payload["user_id"]),
+            "timestamp": payload["timestamp"],
+        }
+    
+    except Exception:
+        return {}  # 格式错误、解码失败等
 
 
 def parse_cookie_string(cookie_string):
