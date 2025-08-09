@@ -240,6 +240,7 @@ const check_sessionid = async () => {
             sessionid: Cookies.get('sessionid')
         });
         if (res.data.status !== 200) {
+            Cookies.remove('sessionid');
             return;
         }
         admin_id.value = res.data.admin_id;
