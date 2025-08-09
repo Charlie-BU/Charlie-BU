@@ -296,9 +296,12 @@ const currentArticle = ref({})
 
 const routeArticle = async () => {
     const articleHash = route.params.id
-    if (articleHash) {
-        const articleId = getArticleIdFromHash(articleHash)
+    if (!articleHash) {
+        currentArticleId.value = filteredArticles.value[0].id
+        await getArticleContent()
+        return;
     }
+    const articleId = getArticleIdFromHash(articleHash)
     // 检查文章列表是否为空
     if (filteredArticles.value.length === 0) {
         return; // 如果没有文章，直接返回
