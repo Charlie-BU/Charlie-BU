@@ -39,7 +39,7 @@ def calc_signature(message):
 def generate_sessionid(user_id):
     timestamp = str(int(time.time()))
     signature = calc_signature(str(user_id))
-    sessionid = f"userId={user_id}&timestamp={timestamp}&signature={signature}&algorithm=sha256"
+    sessionid = f"userId={user_id}&timestamp={timestamp}&signature={signature}&algorithm=sha512"
     return encode(sessionid)
 
 
@@ -54,7 +54,7 @@ def check_sessionid(sessionid):
     decoded_sessionid = decode(sessionid)
     if not decoded_sessionid:
         return {}
-    pattern = rf"^userId=(\d+)&timestamp=(\d+)&signature=(.+)&algorithm=sha256$"  # 必须用()包含住捕获组才能被match.group捕获
+    pattern = rf"^userId=(\d+)&timestamp=(\d+)&signature=(.+)&algorithm=sha512$"  # 必须用()包含住捕获组才能被match.group捕获
     match = re.match(pattern, decoded_sessionid)
     if not match:
         return {}
