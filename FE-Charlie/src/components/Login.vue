@@ -122,7 +122,6 @@ const handleLogin = async () => {
         if (valid) {
             loading.value = true
             try {
-                // 这里替换为实际的登录API调用
                 const res = await request.post('/api/login', {
                     username: loginForm.username,
                     password: loginForm.password
