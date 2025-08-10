@@ -53,13 +53,13 @@
                             <el-menu-item index="">
                                 <span>{{ t('allCategories') }}</span>
                                 <el-tag size="small" class="category-count">{{ articles.length
-                                    }}</el-tag>
+                                }}</el-tag>
                             </el-menu-item>
                             <el-menu-item v-for="category in categories" :key="category" :index="category">
                                 <span>{{ category }}</span>
                                 <el-tag size="small" class="category-count">{{
                                     getCategoryCount(category)
-                                    }}</el-tag>
+                                }}</el-tag>
                             </el-menu-item>
                         </div>
                     </el-menu>
@@ -103,14 +103,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
+                                    }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -149,10 +149,10 @@
                         <input v-model="searchInput" class="custom-input"
                             :placeholder="t('searchArticlePlaceholder')" />
                     </div>
-                    <div v-if="searchInput" class="search-results">
-                        <div class="search-item">示例文章1</div>
-                        <div class="search-item">示例文章2</div>
-                        <div class="search-item">示例文章3</div>
+                    <div v-if="searchResult" class="search-results">
+                        <div class="search-item" v-for="article in searchResult" :key="article.id">
+                            {{ article.title }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -328,6 +328,26 @@ const searchDialogVisible = ref(false)
 const searchInput = ref('')
 const handleSearchArticle = () => {
     searchDialogVisible.value = true
+}
+
+// 监听searchInput变化
+watch(() => searchInput.value, (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+        searchArticles()
+    }
+})
+
+const searchResult = ref([])
+const searchArticles = () => {
+    const keyword = searchInput.value.trim().toLowerCase()
+    if (keyword) {
+        selectedCategory.value = ''
+        searchResult.value = articles.value.filter(article =>
+            article.title.toLowerCase().includes(keyword)
+        )
+    } else {
+        searchResult.value = articles.value
+    }
 }
 
 // 文章列表
