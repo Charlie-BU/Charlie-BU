@@ -150,7 +150,8 @@
                             :placeholder="t('searchArticlePlaceholder')" />
                     </div>
                     <div v-if="searchInput" class="search-results">
-                        <div class="search-item" v-for="article in searchResult" :key="article.id">
+                        <div class="search-item" v-for="article in searchResult" :key="article.id"
+                            @click="selectArticle(article.id)">
                             <div class="search-item-title" v-html="article.title"></div>
                             <div class="search-item-content" v-html="article.content_show"></div>
                             <div class="search-item-meta">
@@ -411,6 +412,7 @@ const routeArticle = async () => {
 
 // 选择文章
 const selectArticle = async (id) => {
+    searchDialogVisible.value = false
     // 如果当前已经是这篇文章，不做任何操作
     if (currentArticleId.value === id) return;
     currentArticleId.value = id
