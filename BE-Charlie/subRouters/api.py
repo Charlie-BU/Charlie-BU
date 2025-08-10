@@ -413,10 +413,12 @@ async def search_article(request):
             title = article.title_ENG
             content = article.content_ENG.replace("#", "")
             content = content.replace(">", "")
+            content = content.replace("*", "")
         else:
             title = article.title
             content = article.content.replace("#", "")
             content = content.replace(">", "")
+            content = content.replace("*", "")
         content_show = ""
 
         try:
