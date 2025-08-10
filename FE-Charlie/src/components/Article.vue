@@ -6,10 +6,15 @@
                 <div class="sidebar-header">
                     <div class="sidebar-title-row">
                         <h3>{{ t('articleList') }}</h3>
-                        <el-button v-if="admin_id" class="add-article-btn"
-                            :style="{ 'margin-right': isMobileRef ? '0' : '-30px' }" size="small" type="primary"
+                    </div>
+                    <div style="white-space: nowrap;">
+                        <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
                             @click="handleAddArticle" :icon="Plus">
                             {{ t('addArticle') }}
+                        </el-button>
+                        <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
+                            :icon="Search">
+                            {{ t('searchArticle') }}
                         </el-button>
                         <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
                             :icon="CollectionTag">
@@ -41,7 +46,7 @@
             <!-- 分类导航菜单 -->
             <transition name="fade-dropdown">
                 <div class="category-filter" v-show="categoryMenuVisible"
-                    :style="{ 'top': isMobileRef ? '100px' : '60px' }">
+                    :style="{ 'top': isMobileRef ? '100px' : '90px' }">
                     <h4 class="category-title">{{ t('categories') }}</h4>
                     <el-menu class="category-menu" :default-active="selectedCategory" @select="handleCategorySelect">
                         <div class="category-menu-items">
@@ -128,6 +133,32 @@
         </div>
     </el-main>
 
+    <transition name="modal-fade">
+        <div v-if="searchDialogVisible" class="search-modal-overlay" @click="searchDialogVisible = false">
+            <div class="search-modal" :style="{ width: isMobileRef ? '80%' : '40%' }" @click.stop>
+                <div class="search-modal-header">
+                    <span class="search-modal-title">{{ t('searchArticle') }}</span>
+                </div>
+                <div class="search-modal-body">
+                    <div class="custom-input-wrapper">
+                        <span class="input-prefix-icon">
+                            <el-icon>
+                                <Search />
+                            </el-icon>
+                        </span>
+                        <input v-model="searchInput" class="custom-input"
+                            :placeholder="t('searchArticlePlaceholder')" />
+                    </div>
+                    <div v-if="searchInput" class="search-results">
+                        <div class="search-item">示例文章1</div>
+                        <div class="search-item">示例文章2</div>
+                        <div class="search-item">示例文章3</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </transition>
+
     <!-- 删除确认弹窗 -->
     <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteArticle')" :content="t('deleteConfirm')"
         @confirm="confirmDelete" @cancel="cancelDelete" />
@@ -136,7 +167,7 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import { Plus, Delete, Edit, CollectionTag, Clock } from '@element-plus/icons-vue'
+import { Plus, Delete, Edit, CollectionTag, Clock, Search, Close, CircleClose } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
@@ -190,6 +221,8 @@ const translations = {
         deleteFailed: '删除失败',
         allCategories: '全部',
         categories: '分类',
+        searchArticle: '搜索',
+        searchArticlePlaceholder: '输入文章标题或内容',
     },
     English: {
         articleList: 'Article List',
@@ -209,6 +242,8 @@ const translations = {
         deleteFailed: 'Delete failed',
         allCategories: 'All',
         categories: 'Categories',
+        searchArticle: 'Search',
+        searchArticlePlaceholder: 'Search articles by title or content',
     }
 }
 
@@ -286,6 +321,13 @@ const handleCategorySelect = (index) => {
         }
         categoryMenuVisible.value = false
     }
+}
+
+// 搜索相关
+const searchDialogVisible = ref(false)
+const searchInput = ref('')
+const handleSearchArticle = () => {
+    searchDialogVisible.value = true
 }
 
 // 文章列表
@@ -579,10 +621,10 @@ const handleDraftOrReleased = async (articleId) => {
 }
 
 .sidebar-title-row {
-    display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
+    margin-bottom: 10px;
 }
 
 .sidebar-header h3 {
@@ -599,7 +641,6 @@ const handleDraftOrReleased = async (articleId) => {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     transition: all 0.3s ease;
-    margin-left: 0;
 }
 
 .add-article-btn:hover {
@@ -919,6 +960,145 @@ const handleDraftOrReleased = async (articleId) => {
 }
 
 :deep(.el-form-item__label) {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.search-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.search-modal {
+    margin-bottom: 300px;
+    background: rgba(76, 8, 125, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.search-modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-modal-title {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.search-modal-close {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.search-modal-close:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.search-modal-body {
+    padding: 15px 20px;
+}
+
+.search-results {
+    margin-top: 10px;
+    max-height: 300px;
+    overflow: auto;
+}
+
+.search-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.2s;
+    border-radius: 20px;
+}
+
+.search-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* 模态动画 */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+    opacity: 0;
+}
+
+.modal-fade-enter-active .search-modal,
+.modal-fade-leave-active .search-modal {
+    transition: transform 0.3s ease;
+}
+
+.modal-fade-enter-from .search-modal,
+.modal-fade-leave-to .search-modal {
+    transform: scale(0.95);
+}
+
+.custom-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 0 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: border-color 0.3s;
+}
+
+.custom-input-wrapper:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.custom-input-wrapper:focus-within {
+    border-color: #A78BFA;
+    box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
+}
+
+.input-prefix-icon {
+    color: rgba(255, 255, 255, 0.6);
+    margin-right: 10px;
+    margin-top: 5px;
+}
+
+.custom-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    padding: 10px 0;
+    outline: none;
+}
+
+.custom-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.input-clear-icon {
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.input-clear-icon:hover {
     color: rgba(255, 255, 255, 0.9);
 }
 </style>
