@@ -53,13 +53,13 @@
                             <el-menu-item index="">
                                 <span>{{ t('allCategories') }}</span>
                                 <el-tag size="small" class="category-count">{{ articles.length
-                                }}</el-tag>
+                                    }}</el-tag>
                             </el-menu-item>
                             <el-menu-item v-for="category in categories" :key="category" :index="category">
                                 <span>{{ category }}</span>
                                 <el-tag size="small" class="category-count">{{
                                     getCategoryCount(category)
-                                }}</el-tag>
+                                    }}</el-tag>
                             </el-menu-item>
                         </div>
                     </el-menu>
@@ -103,14 +103,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                    }} {{ t('minute') }}</span>
+                                }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -149,9 +149,21 @@
                         <input v-model="searchInput" class="custom-input"
                             :placeholder="t('searchArticlePlaceholder')" />
                     </div>
-                    <div v-if="searchResult" class="search-results">
+                    <div v-if="searchInput" class="search-results">
                         <div class="search-item" v-for="article in searchResult" :key="article.id">
-                            {{ article.title }}
+                            <div class="search-item-title" v-html="article.title"></div>
+                            <div class="search-item-content" v-html="article.content_show"></div>
+                            <div class="search-item-meta">
+                                <span>{{ t('created') }}: {{ formatTime(article.timeCreated) }}</span>
+                                <br />
+                                <span>{{ t('updated') }}: {{ formatTime(article.timeLastUpdated) }}</span>
+                            </div>
+                            <!-- <div class="article-tags">
+                                <el-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" size="small"
+                                    effect="dark" class="article-tag">
+                                    {{ tag }}
+                                </el-tag>
+                            </div> -->
                         </div>
                     </div>
                 </div>
@@ -338,15 +350,23 @@ watch(() => searchInput.value, (newValue, oldValue) => {
 })
 
 const searchResult = ref([])
-const searchArticles = () => {
+const searchArticles = async () => {
     const keyword = searchInput.value.trim().toLowerCase()
     if (keyword) {
         selectedCategory.value = ''
-        searchResult.value = articles.value.filter(article =>
-            article.title.toLowerCase().includes(keyword)
-        )
+        try {
+            const res = await request.post('/api/search_article', {
+                lang: LANG,
+                keyword: keyword
+            })
+            if (res.data.result) {
+                searchResult.value = res.data.result
+            }
+        } catch (error) {
+            console.error('搜索文章失败:', error)
+        }
     } else {
-        searchResult.value = articles.value
+        searchResult.value = []
     }
 }
 
@@ -992,12 +1012,12 @@ const handleDraftOrReleased = async (articleId) => {
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     z-index: 1000;
 }
 
 .search-modal {
-    margin-bottom: 300px;
+    margin-top: 120px;
     background: rgba(76, 8, 125, 0.95);
     backdrop-filter: blur(20px);
     border-radius: 16px;
@@ -1034,7 +1054,7 @@ const handleDraftOrReleased = async (articleId) => {
 
 .search-results {
     margin-top: 10px;
-    max-height: 300px;
+    max-height: 500px;
     overflow: auto;
 }
 
@@ -1049,6 +1069,29 @@ const handleDraftOrReleased = async (articleId) => {
 
 .search-item:hover {
     background: rgba(255, 255, 255, 0.1);
+}
+
+.search-item-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.search-item-content {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: left;
+    margin-bottom: 5px;
+}
+
+.search-item-meta {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+.search-item-tags .el-tag {
+    margin-right: 5px;
 }
 
 /* 模态动画 */

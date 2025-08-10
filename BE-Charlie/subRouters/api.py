@@ -396,6 +396,64 @@ async def get_article_detail(request):
     })
 
 
+@apiRouter.post("/search_article")
+async def search_article(request):
+    session = Session()
+    data = request.json()
+    lang = data.get("lang", "Chinese")
+    keyword = data.get("keyword")
+    if lang == "English":
+        articles = session.query(Article).filter(Article.content_ENG.like(f"%{keyword}%")).order_by(Article.timeLastUpdated.desc()).all()
+    else:
+        articles = session.query(Article).filter(Article.content.like(f"%{keyword}%")).order_by(Article.timeLastUpdated.desc()).all()
+
+    result = []
+    for article in articles:
+        if lang == "English":
+            title = article.title_ENG
+            content = article.content_ENG.replace("#", "")
+            content = content.replace(">", "")
+        else:
+            title = article.title
+            content = article.content.replace("#", "")
+            content = content.replace(">", "")
+        content_show = ""
+
+        try:
+            # 在文章标题中
+            startIndex = title.index(keyword)
+            endIndex = startIndex + len(keyword)
+            title = title[:startIndex] + "<span style='font-weight: bold; color: red;'>" + title[startIndex:endIndex] + "</span>" + title[endIndex:]
+        except ValueError:  # 在文章内容中
+            if len(keyword) < 2:  # 关键词不足2个不检查文章内容
+                continue
+            for index, line in enumerate(content.split("\n")):
+                if index == 0:  # 跳过文章标题
+                    continue
+                if keyword in line:
+                    try:
+                        startIndex = line.index(keyword)
+                    except ValueError:
+                        continue
+                    endIndex = startIndex + len(keyword)
+                    content_show = line[:startIndex] + "<span style='font-weight: bold; color: red;'>" + line[startIndex:endIndex] + "</span>" + line[endIndex:]
+
+        result.append({
+            "id": article.id,
+            "title": title,
+            "content_show": content_show,
+            "timeCreated": article.timeCreated,
+            "timeLastUpdated": article.timeLastUpdated,
+            "tags": article.tags,
+        })
+    session.close()
+    return jsonify({
+        "status": 200,
+        "message": "success",
+        "result": result
+    })
+
+
 @apiRouter.post("/update_article")
 async def update_article(request):
     session = Session()
