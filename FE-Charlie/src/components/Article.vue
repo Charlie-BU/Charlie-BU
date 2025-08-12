@@ -179,7 +179,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { Plus, Delete, Edit, CollectionTag, Clock, Search, Close, CircleClose } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
@@ -198,9 +198,23 @@ onMounted(async () => {
     await checkAdminPermission()
     await getArticles()
     await routeArticle()
+    // 添加键盘事件监听
+    document.addEventListener('keydown', handleKeyDown)
 })
 
 const isMobileRef = ref(isMobile())
+
+// Command(Ctrl)+F 查找
+const handleKeyDown = async (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        // 阻止默认的保存行为
+        event.preventDefault()
+        searchDialogVisible.value = true
+    }
+    if (searchDialogVisible.value === true && event.key === 'Escape') {
+        searchDialogVisible.value = false
+    }
+}
 
 // 监听路由参数变化
 watch(() => route.params.id, (newId, oldId) => {
@@ -552,6 +566,11 @@ const handleDraftOrReleased = async (articleId) => {
         ElMessage.error(t('saveFailed'))
     }
 }
+
+onBeforeUnmount(() => {
+    // 组件卸载时移除事件监听
+    document.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <style scoped>
