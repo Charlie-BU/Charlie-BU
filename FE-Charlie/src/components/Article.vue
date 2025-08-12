@@ -136,9 +136,9 @@
     <transition name="modal-fade">
         <div v-if="searchDialogVisible" class="search-modal-overlay" @click="searchDialogVisible = false">
             <div class="search-modal" :style="{ width: isMobileRef ? '80%' : '40%' }" @click.stop>
-                <div class="search-modal-header">
+                <!-- <div class="search-modal-header">
                     <span class="search-modal-title">{{ t('searchArticle') }}</span>
-                </div>
+                </div> -->
                 <div class="search-modal-body">
                     <div class="custom-input-wrapper">
                         <span class="input-prefix-icon">
