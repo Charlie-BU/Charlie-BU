@@ -2,7 +2,7 @@
     <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
         <div class="article-container">
             <!-- 左侧文章菜单 -->
-            <div class="article-sidebar">
+            <div class="article-sidebar" v-if="!isSidebarCollapsed">
                 <div class="sidebar-header">
                     <div class="sidebar-title-row">
                         <h3>{{ t('articleList') }}</h3>
@@ -43,28 +43,6 @@
                     </div>
                 </el-scrollbar>
             </div>
-            <!-- 分类导航菜单 -->
-            <transition name="fade-dropdown">
-                <div class="category-filter" v-show="categoryMenuVisible"
-                    :style="{ 'top': isMobileRef ? '100px' : '90px' }">
-                    <h4 class="category-title">{{ t('categories') }}</h4>
-                    <el-menu class="category-menu" :default-active="selectedCategory" @select="handleCategorySelect">
-                        <div class="category-menu-items">
-                            <el-menu-item index="">
-                                <span>{{ t('allCategories') }}</span>
-                                <el-tag size="small" class="category-count">{{ articles.length
-                                    }}</el-tag>
-                            </el-menu-item>
-                            <el-menu-item v-for="category in categories" :key="category" :index="category">
-                                <span>{{ category }}</span>
-                                <el-tag size="small" class="category-count">{{
-                                    getCategoryCount(category)
-                                    }}</el-tag>
-                            </el-menu-item>
-                        </div>
-                    </el-menu>
-                </div>
-            </transition>
 
             <!-- 右侧文章内容 -->
             <div class="article-main">
@@ -130,9 +108,40 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 折叠按钮 -->
+            <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" circle
+                @click="isSidebarCollapsed = !isSidebarCollapsed" :icon="Menu" />
         </div>
     </el-main>
 
+
+    <!-- 分类导航菜单 -->
+    <transition name="modal-fade">
+        <div v-if="categoryMenuVisible" class="category-modal-overlay" @click="categoryMenuVisible = false">
+            <div class="category-modal" :style="{ width: isMobileRef ? '50%' : '15%' }" @click.stop>
+                <div class="category-modal-header">
+                    <span class="category-modal-title">{{ t('categories') }}</span>
+                </div>
+                <div class="category-modal-body">
+                    <el-menu class="category-menu" :default-active="selectedCategory" @select="handleCategorySelect">
+                        <div class="category-menu-items">
+                            <el-menu-item index="">
+                                <span>{{ t('allCategories') }}</span>
+                                <el-tag size="small" class="category-count">{{ articles.length }}</el-tag>
+                            </el-menu-item>
+                            <el-menu-item v-for="category in categories" :key="category" :index="category">
+                                <span>{{ category }}</span>
+                                <el-tag size="small" class="category-count">{{ getCategoryCount(category) }}</el-tag>
+                            </el-menu-item>
+                        </div>
+                    </el-menu>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+    <!-- 搜索弹窗 -->
     <transition name="modal-fade">
         <div v-if="searchDialogVisible" class="search-modal-overlay" @click="searchDialogVisible = false">
             <div class="search-modal" :style="{ width: isMobileRef ? '80%' : '40%' }" @click.stop>
@@ -189,6 +198,8 @@ import Cookies from 'js-cookie'
 import { request } from '../api/request'
 import { calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '../utils/utils'
 import Modal from './Modal.vue'
+// 在 Element Plus 中，图标（如 Menu）是独立的 Vue 组件，不能通过全局注册来自动可用
+import { Menu } from '@element-plus/icons-vue'
 
 // 路由
 const route = useRoute()
@@ -202,6 +213,7 @@ onMounted(async () => {
     document.addEventListener('keydown', handleKeyDown)
 })
 
+const isSidebarCollapsed = ref(false)
 const isMobileRef = ref(isMobile())
 
 // Command(Ctrl)+F 查找
@@ -211,8 +223,13 @@ const handleKeyDown = async (event) => {
         event.preventDefault()
         searchDialogVisible.value = true
     }
-    if (searchDialogVisible.value === true && event.key === 'Escape') {
-        searchDialogVisible.value = false
+    if (event.key === 'Escape') {
+        if (searchDialogVisible.value === true) {
+            searchDialogVisible.value = false
+        }
+        if (categoryMenuVisible.value === true) {
+            categoryMenuVisible.value = false
+        }
     }
 }
 
@@ -1006,6 +1023,17 @@ onBeforeUnmount(() => {
     margin-top: 4px;
 }
 
+.collapse-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    /* 调整位置 */
+    z-index: 1000;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+}
+
 /* 表单内的输入框样式覆盖 */
 :deep(.el-input__inner),
 :deep(.el-textarea__inner) {
@@ -1022,6 +1050,56 @@ onBeforeUnmount(() => {
 
 :deep(.el-form-item__label) {
     color: rgba(255, 255, 255, 0.9);
+}
+
+.category-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    z-index: 1000;
+}
+
+.category-modal {
+    margin-top: 120px;
+    background: rgba(76, 8, 125, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.category-modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-modal-title {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.category-modal-close {
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+}
+
+.category-modal-close:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.category-modal-body {
+    padding: 15px 20px;
 }
 
 .search-modal-overlay {
