@@ -1,63 +1,50 @@
+<!-- TODO: 摘要 -->
 <template>
     <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
         <div class="article-container">
             <!-- 左侧文章菜单 -->
-            <div class="article-sidebar">
-                <div class="sidebar-header">
-                    <div class="sidebar-title-row">
-                        <h3>{{ t('articleList') }}</h3>
-                        <el-button v-if="admin_id" class="add-article-btn"
-                            :style="{ 'margin-right': isMobileRef ? '0' : '-30px' }" size="small" type="primary"
-                            @click="handleAddArticle" :icon="Plus">
-                            {{ t('addArticle') }}
-                        </el-button>
-                        <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
-                            :icon="CollectionTag">
-                            {{ selectedCategory || t('allCategories') }}
-                        </el-button>
-                    </div>
-                </div>
-                <el-scrollbar style="overflow: auto;">
-                    <div class="article-menu">
-                        <div v-for="(article, index) in filteredArticles" :key="index" class="article-menu-item"
-                            :class="{ 'active': currentArticleId === article.id }" @click="selectArticle(article.id)">
-                            <div class="article-item-header">
-                                <div class="article-menu-title">{{ article.title }}</div>
-                                <el-button v-if="admin_id" class="delete-article-btn" size="small" type="danger"
-                                    @click.stop="handleDeleteArticle(article.id)" :icon="Delete" circle>
-                                </el-button>
-                            </div>
-                            <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
-                            <div class="article-menu-tags">
-                                <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
-                                    effect="dark" class="article-tag">
-                                    {{ tag }}
-                                </el-tag>
-                            </div>
+            <transition name="sidebar-collapse">
+                <div class="article-sidebar" v-if="!isSidebarCollapsed">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title-row">
+                            <h3>{{ t('articleList') }}</h3>
+                        </div>
+                        <div style="white-space: nowrap;">
+                            <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
+                                @click="handleAddArticle" :icon="Plus">
+                                {{ t('addArticle') }}
+                            </el-button>
+                            <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
+                                :icon="Search">
+                                {{ t('searchArticle') }}
+                            </el-button>
+                            <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
+                                :icon="CollectionTag">
+                                {{ selectedCategory || t('allCategories') }}
+                            </el-button>
                         </div>
                     </div>
-                </el-scrollbar>
-            </div>
-            <!-- 分类导航菜单 -->
-            <transition name="fade-dropdown">
-                <div class="category-filter" v-show="categoryMenuVisible"
-                    :style="{ 'top': isMobileRef ? '100px' : '60px' }">
-                    <h4 class="category-title">{{ t('categories') }}</h4>
-                    <el-menu class="category-menu" :default-active="selectedCategory" @select="handleCategorySelect">
-                        <div class="category-menu-items">
-                            <el-menu-item index="">
-                                <span>{{ t('allCategories') }}</span>
-                                <el-tag size="small" class="category-count">{{ articles.length
-                                    }}</el-tag>
-                            </el-menu-item>
-                            <el-menu-item v-for="category in categories" :key="category" :index="category">
-                                <span>{{ category }}</span>
-                                <el-tag size="small" class="category-count">{{
-                                    getCategoryCount(category)
-                                    }}</el-tag>
-                            </el-menu-item>
+                    <el-scrollbar style="overflow: auto;">
+                        <div class="article-menu">
+                            <div v-for="(article, index) in filteredArticles" :key="index" class="article-menu-item"
+                                :class="{ 'active': currentArticleId === article.id }"
+                                @click="selectArticle(article.id)">
+                                <div class="article-item-header">
+                                    <div class="article-menu-title">{{ article.title }}</div>
+                                    <el-button v-if="admin_id" class="delete-article-btn" size="small" type="danger"
+                                        @click.stop="handleDeleteArticle(article.id)" :icon="Delete" circle>
+                                    </el-button>
+                                </div>
+                                <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
+                                <div class="article-menu-tags">
+                                    <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
+                                        effect="dark" class="article-tag">
+                                        {{ tag }}
+                                    </el-tag>
+                                </div>
+                            </div>
                         </div>
-                    </el-menu>
+                    </el-scrollbar>
                 </div>
             </transition>
 
@@ -98,14 +85,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
+                                    }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -125,8 +112,77 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 折叠按钮 -->
+            <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" circle
+                @click="isSidebarCollapsed = !isSidebarCollapsed" icon="Expand" />
         </div>
     </el-main>
+
+    <!-- 分类导航菜单 -->
+    <transition name="modal-fade">
+        <div v-if="categoryMenuVisible" class="category-modal-overlay" @click="categoryMenuVisible = false">
+            <div class="category-modal" :style="{ width: isMobileRef ? '50%' : '15%' }" @click.stop>
+                <div class="category-modal-header">
+                    <span class="category-modal-title">{{ t('categories') }}</span>
+                </div>
+                <div class="category-modal-body">
+                    <el-menu class="category-menu" :default-active="selectedCategory" @select="handleCategorySelect">
+                        <div class="category-menu-items">
+                            <el-menu-item index="">
+                                <span>{{ t('allCategories') }}</span>
+                                <el-tag size="small" class="category-count">{{ articles.length }}</el-tag>
+                            </el-menu-item>
+                            <el-menu-item v-for="category in categories" :key="category" :index="category">
+                                <span>{{ category }}</span>
+                                <el-tag size="small" class="category-count">{{ getCategoryCount(category) }}</el-tag>
+                            </el-menu-item>
+                        </div>
+                    </el-menu>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+    <!-- 搜索弹窗 -->
+    <transition name="modal-fade">
+        <div v-if="searchDialogVisible" class="search-modal-overlay" @click="searchDialogVisible = false">
+            <div class="search-modal" :style="{ width: isMobileRef ? '80%' : '40%' }" @click.stop>
+                <!-- <div class="search-modal-header">
+                    <span class="search-modal-title">{{ t('searchArticle') }}</span>
+                </div> -->
+                <div class="search-modal-body">
+                    <div class="custom-input-wrapper">
+                        <span class="input-prefix-icon">
+                            <el-icon>
+                                <Search />
+                            </el-icon>
+                        </span>
+                        <input v-model="searchInput" class="custom-input"
+                            :placeholder="t('searchArticlePlaceholder')" />
+                    </div>
+                    <div v-if="searchInput" class="search-results">
+                        <div class="search-item" v-for="article in searchResult" :key="article.id"
+                            @click="selectArticle(article.id)">
+                            <div class="search-item-title" v-html="article.title"></div>
+                            <div class="search-item-content" v-html="article.content_show"></div>
+                            <div class="search-item-meta">
+                                <span>{{ t('created') }}: {{ formatTime(article.timeCreated) }}</span>
+                                <br />
+                                <span>{{ t('updated') }}: {{ formatTime(article.timeLastUpdated) }}</span>
+                            </div>
+                            <!-- <div class="article-tags">
+                                <el-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" size="small"
+                                    effect="dark" class="article-tag">
+                                    {{ tag }}
+                                </el-tag>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </transition>
 
     <!-- 删除确认弹窗 -->
     <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteArticle')" :content="t('deleteConfirm')"
@@ -135,12 +191,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
-import { Plus, Delete, Edit, CollectionTag, Clock } from '@element-plus/icons-vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+import { Plus, Delete, Edit, CollectionTag, Clock, Search, Close, CircleClose } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
+import hljs from 'highlight.js';
 import Cookies from 'js-cookie'
 import { request } from '../api/request'
 import { calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '../utils/utils'
@@ -154,9 +211,29 @@ onMounted(async () => {
     await checkAdminPermission()
     await getArticles()
     await routeArticle()
+    // 添加键盘事件监听
+    document.addEventListener('keydown', handleKeyDown)
 })
 
+const isSidebarCollapsed = ref(false)
 const isMobileRef = ref(isMobile())
+
+// Command(Ctrl)+F 查找
+const handleKeyDown = async (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        // 阻止默认的保存行为
+        event.preventDefault()
+        searchDialogVisible.value = true
+    }
+    if (event.key === 'Escape') {
+        if (searchDialogVisible.value === true) {
+            searchDialogVisible.value = false
+        }
+        if (categoryMenuVisible.value === true) {
+            categoryMenuVisible.value = false
+        }
+    }
+}
 
 // 监听路由参数变化
 watch(() => route.params.id, (newId, oldId) => {
@@ -166,8 +243,24 @@ watch(() => route.params.id, (newId, oldId) => {
     }
 })
 
-// 初始化markdown-it
-const markdown = new MarkdownIt()
+// 初始化markdown-it，添加代码高亮
+const markdown = new MarkdownIt({
+  highlight: (str, lang) => {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang, ignoreIllegals: true }).value}</code></pre>`;
+      } catch (_) {}
+    }
+    // 语言未知时自动识别或转义
+    const safeHtml = hljs.highlightAuto(str).value;
+    return `<pre class="hljs"><code>${safeHtml}</code></pre>`;
+  }
+});
+
+// Markdown渲染函数
+const renderMarkdown = (content) => {
+    return markdown.render(content || '')
+}
 
 // 多语言支持
 const LANG = localStorage.getItem("LANG") || "Chinese";
@@ -190,6 +283,8 @@ const translations = {
         deleteFailed: '删除失败',
         allCategories: '全部',
         categories: '分类',
+        searchArticle: '搜索',
+        searchArticlePlaceholder: '输入文章标题或内容',
     },
     English: {
         articleList: 'Article List',
@@ -209,6 +304,8 @@ const translations = {
         deleteFailed: 'Delete failed',
         allCategories: 'All',
         categories: 'Categories',
+        searchArticle: 'Search',
+        searchArticlePlaceholder: 'Search articles by title or content',
     }
 }
 
@@ -288,6 +385,41 @@ const handleCategorySelect = (index) => {
     }
 }
 
+// 搜索相关
+const searchDialogVisible = ref(false)
+const searchInput = ref('')
+const handleSearchArticle = () => {
+    searchDialogVisible.value = true
+}
+
+// 监听searchInput变化
+watch(() => searchInput.value, (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+        searchArticles()
+    }
+})
+
+const searchResult = ref([])
+const searchArticles = async () => {
+    const keyword = searchInput.value.trim().toLowerCase()
+    if (keyword) {
+        selectedCategory.value = ''
+        try {
+            const res = await request.post('/api/search_article', {
+                lang: LANG,
+                keyword: keyword
+            })
+            if (res.data.result) {
+                searchResult.value = res.data.result
+            }
+        } catch (error) {
+            console.error('搜索文章失败:', error)
+        }
+    } else {
+        searchResult.value = []
+    }
+}
+
 // 文章列表
 const articles = ref([])
 const currentArticleId = ref(null)
@@ -329,6 +461,7 @@ const routeArticle = async () => {
 
 // 选择文章
 const selectArticle = async (id) => {
+    searchDialogVisible.value = false
     // 如果当前已经是这篇文章，不做任何操作
     if (currentArticleId.value === id) return;
     currentArticleId.value = id
@@ -350,11 +483,6 @@ const formatTime = (timestamp) => {
         hour: 'numeric',
         minute: 'numeric',
     })
-}
-
-// Markdown渲染函数
-const renderMarkdown = (content) => {
-    return markdown.render(content || '')
 }
 
 // 获取文章列表
@@ -468,6 +596,11 @@ const handleDraftOrReleased = async (articleId) => {
         ElMessage.error(t('saveFailed'))
     }
 }
+
+onBeforeUnmount(() => {
+    // 组件卸载时移除事件监听
+    document.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <style scoped>
@@ -484,6 +617,32 @@ const handleDraftOrReleased = async (articleId) => {
 }
 
 /* 左侧菜单样式 */
+.sidebar-collapse-enter-active,
+.sidebar-collapse-leave-active {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.sidebar-collapse-enter-from,
+.sidebar-collapse-leave-to {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.sidebar-collapse-enter-to,
+.sidebar-collapse-leave-from {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.collapse-btn {
+    transition: transform 0.3s ease;
+}
+
+.collapse-btn.collapsed {
+    transform: rotate(-180deg);
+}
+
 .article-sidebar {
     flex: 0 0 300px;
     background: rgba(255, 255, 255, 0.08);
@@ -579,10 +738,10 @@ const handleDraftOrReleased = async (articleId) => {
 }
 
 .sidebar-title-row {
-    display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
+    margin-bottom: 10px;
 }
 
 .sidebar-header h3 {
@@ -599,7 +758,6 @@ const handleDraftOrReleased = async (articleId) => {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     transition: all 0.3s ease;
-    margin-left: 0;
 }
 
 .add-article-btn:hover {
@@ -904,6 +1062,17 @@ const handleDraftOrReleased = async (articleId) => {
     margin-top: 4px;
 }
 
+.collapse-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    /* 调整位置 */
+    z-index: 1000;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+}
+
 /* 表单内的输入框样式覆盖 */
 :deep(.el-input__inner),
 :deep(.el-textarea__inner) {
@@ -919,6 +1088,218 @@ const handleDraftOrReleased = async (articleId) => {
 }
 
 :deep(.el-form-item__label) {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.category-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    z-index: 1000;
+}
+
+.category-modal {
+    margin-top: 120px;
+    background: rgba(76, 8, 125, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.category-modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-modal-title {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.category-modal-close {
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+}
+
+.category-modal-close:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.category-modal-body {
+    padding: 15px 20px;
+}
+
+.search-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    z-index: 1000;
+}
+
+.search-modal {
+    margin-top: 120px;
+    background: rgba(76, 8, 125, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.search-modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-modal-title {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.search-modal-close {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.search-modal-close:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.search-modal-body {
+    padding: 15px 20px;
+}
+
+.search-results {
+    margin-top: 10px;
+    max-height: 500px;
+    overflow: auto;
+}
+
+.search-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.2s;
+    border-radius: 20px;
+}
+
+.search-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.search-item-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.search-item-content {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: left;
+    margin-bottom: 5px;
+}
+
+.search-item-meta {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+.search-item-tags .el-tag {
+    margin-right: 5px;
+}
+
+/* 模态动画 */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+    opacity: 0;
+}
+
+.modal-fade-enter-active .search-modal,
+.modal-fade-leave-active .search-modal {
+    transition: transform 0.3s ease;
+}
+
+.modal-fade-enter-from .search-modal,
+.modal-fade-leave-to .search-modal {
+    transform: scale(0.95);
+}
+
+.custom-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 0 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: border-color 0.3s;
+}
+
+.custom-input-wrapper:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.custom-input-wrapper:focus-within {
+    border-color: #A78BFA;
+    box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
+}
+
+.input-prefix-icon {
+    color: rgba(255, 255, 255, 0.6);
+    margin-right: 10px;
+    margin-top: 5px;
+}
+
+.custom-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    padding: 10px 0;
+    outline: none;
+}
+
+.custom-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.input-clear-icon {
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.input-clear-icon:hover {
     color: rgba(255, 255, 255, 0.9);
 }
 </style>
