@@ -185,6 +185,7 @@ import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
+import hljs from 'highlight.js';
 import Cookies from 'js-cookie'
 import { request } from '../api/request'
 import { calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '../utils/utils'
@@ -210,8 +211,24 @@ watch(() => route.params.id, (newId, oldId) => {
     }
 })
 
-// 初始化markdown-it
-const markdown = new MarkdownIt()
+// 初始化markdown-it，添加代码高亮
+const markdown = new MarkdownIt({
+  highlight: (str, lang) => {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang, ignoreIllegals: true }).value}</code></pre>`;
+      } catch (_) {}
+    }
+    // 语言未知时自动识别或转义
+    const safeHtml = hljs.highlightAuto(str).value;
+    return `<pre class="hljs"><code>${safeHtml}</code></pre>`;
+  }
+});
+
+// Markdown渲染函数
+const renderMarkdown = (content) => {
+    return markdown.render(content || '')
+}
 
 // 多语言支持
 const LANG = localStorage.getItem("LANG") || "Chinese";
@@ -434,11 +451,6 @@ const formatTime = (timestamp) => {
         hour: 'numeric',
         minute: 'numeric',
     })
-}
-
-// Markdown渲染函数
-const renderMarkdown = (content) => {
-    return markdown.render(content || '')
 }
 
 // 获取文章列表

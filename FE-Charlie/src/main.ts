@@ -7,6 +7,7 @@ import App from "./App.vue";
 import router from "./router";
 // 导入所有图标
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
+import "highlight.js/styles/github-dark.css";
 
 const app = createApp(App);
 app.use(ElementPlus);
