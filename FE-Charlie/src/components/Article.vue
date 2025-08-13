@@ -1,68 +1,50 @@
+<!-- TODO: 摘要 -->
 <template>
     <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
         <div class="article-container">
             <!-- 左侧文章菜单 -->
-            <div class="article-sidebar">
-                <div class="sidebar-header">
-                    <div class="sidebar-title-row">
-                        <h3>{{ t('articleList') }}</h3>
-                    </div>
-                    <div style="white-space: nowrap;">
-                        <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
-                            @click="handleAddArticle" :icon="Plus">
-                            {{ t('addArticle') }}
-                        </el-button>
-                        <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
-                            :icon="Search">
-                            {{ t('searchArticle') }}
-                        </el-button>
-                        <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
-                            :icon="CollectionTag">
-                            {{ selectedCategory || t('allCategories') }}
-                        </el-button>
-                    </div>
-                </div>
-                <el-scrollbar style="overflow: auto;">
-                    <div class="article-menu">
-                        <div v-for="(article, index) in filteredArticles" :key="index" class="article-menu-item"
-                            :class="{ 'active': currentArticleId === article.id }" @click="selectArticle(article.id)">
-                            <div class="article-item-header">
-                                <div class="article-menu-title">{{ article.title }}</div>
-                                <el-button v-if="admin_id" class="delete-article-btn" size="small" type="danger"
-                                    @click.stop="handleDeleteArticle(article.id)" :icon="Delete" circle>
-                                </el-button>
-                            </div>
-                            <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
-                            <div class="article-menu-tags">
-                                <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
-                                    effect="dark" class="article-tag">
-                                    {{ tag }}
-                                </el-tag>
-                            </div>
+            <transition name="sidebar-collapse">
+                <div class="article-sidebar" v-if="!isSidebarCollapsed">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title-row">
+                            <h3>{{ t('articleList') }}</h3>
+                        </div>
+                        <div style="white-space: nowrap;">
+                            <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
+                                @click="handleAddArticle" :icon="Plus">
+                                {{ t('addArticle') }}
+                            </el-button>
+                            <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
+                                :icon="Search">
+                                {{ t('searchArticle') }}
+                            </el-button>
+                            <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
+                                :icon="CollectionTag">
+                                {{ selectedCategory || t('allCategories') }}
+                            </el-button>
                         </div>
                     </div>
-                </el-scrollbar>
-            </div>
-            <!-- 分类导航菜单 -->
-            <transition name="fade-dropdown">
-                <div class="category-filter" v-show="categoryMenuVisible"
-                    :style="{ 'top': isMobileRef ? '100px' : '90px' }">
-                    <h4 class="category-title">{{ t('categories') }}</h4>
-                    <el-menu class="category-menu" :default-active="selectedCategory" @select="handleCategorySelect">
-                        <div class="category-menu-items">
-                            <el-menu-item index="">
-                                <span>{{ t('allCategories') }}</span>
-                                <el-tag size="small" class="category-count">{{ articles.length
-                                    }}</el-tag>
-                            </el-menu-item>
-                            <el-menu-item v-for="category in categories" :key="category" :index="category">
-                                <span>{{ category }}</span>
-                                <el-tag size="small" class="category-count">{{
-                                    getCategoryCount(category)
-                                    }}</el-tag>
-                            </el-menu-item>
+                    <el-scrollbar style="overflow: auto;">
+                        <div class="article-menu">
+                            <div v-for="(article, index) in filteredArticles" :key="index" class="article-menu-item"
+                                :class="{ 'active': currentArticleId === article.id }"
+                                @click="selectArticle(article.id)">
+                                <div class="article-item-header">
+                                    <div class="article-menu-title">{{ article.title }}</div>
+                                    <el-button v-if="admin_id" class="delete-article-btn" size="small" type="danger"
+                                        @click.stop="handleDeleteArticle(article.id)" :icon="Delete" circle>
+                                    </el-button>
+                                </div>
+                                <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
+                                <div class="article-menu-tags">
+                                    <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
+                                        effect="dark" class="article-tag">
+                                        {{ tag }}
+                                    </el-tag>
+                                </div>
+                            </div>
                         </div>
-                    </el-menu>
+                    </el-scrollbar>
                 </div>
             </transition>
 
@@ -103,14 +85,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
+                                    }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -130,15 +112,45 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 折叠按钮 -->
+            <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" circle
+                @click="isSidebarCollapsed = !isSidebarCollapsed" icon="Expand" />
         </div>
     </el-main>
 
+    <!-- 分类导航菜单 -->
+    <transition name="modal-fade">
+        <div v-if="categoryMenuVisible" class="category-modal-overlay" @click="categoryMenuVisible = false">
+            <div class="category-modal" :style="{ width: isMobileRef ? '50%' : '15%' }" @click.stop>
+                <div class="category-modal-header">
+                    <span class="category-modal-title">{{ t('categories') }}</span>
+                </div>
+                <div class="category-modal-body">
+                    <el-menu class="category-menu" :default-active="selectedCategory" @select="handleCategorySelect">
+                        <div class="category-menu-items">
+                            <el-menu-item index="">
+                                <span>{{ t('allCategories') }}</span>
+                                <el-tag size="small" class="category-count">{{ articles.length }}</el-tag>
+                            </el-menu-item>
+                            <el-menu-item v-for="category in categories" :key="category" :index="category">
+                                <span>{{ category }}</span>
+                                <el-tag size="small" class="category-count">{{ getCategoryCount(category) }}</el-tag>
+                            </el-menu-item>
+                        </div>
+                    </el-menu>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+    <!-- 搜索弹窗 -->
     <transition name="modal-fade">
         <div v-if="searchDialogVisible" class="search-modal-overlay" @click="searchDialogVisible = false">
             <div class="search-modal" :style="{ width: isMobileRef ? '80%' : '40%' }" @click.stop>
-                <div class="search-modal-header">
+                <!-- <div class="search-modal-header">
                     <span class="search-modal-title">{{ t('searchArticle') }}</span>
-                </div>
+                </div> -->
                 <div class="search-modal-body">
                     <div class="custom-input-wrapper">
                         <span class="input-prefix-icon">
@@ -179,7 +191,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { Plus, Delete, Edit, CollectionTag, Clock, Search, Close, CircleClose } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
@@ -199,9 +211,29 @@ onMounted(async () => {
     await checkAdminPermission()
     await getArticles()
     await routeArticle()
+    // 添加键盘事件监听
+    document.addEventListener('keydown', handleKeyDown)
 })
 
+const isSidebarCollapsed = ref(false)
 const isMobileRef = ref(isMobile())
+
+// Command(Ctrl)+F 查找
+const handleKeyDown = async (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        // 阻止默认的保存行为
+        event.preventDefault()
+        searchDialogVisible.value = true
+    }
+    if (event.key === 'Escape') {
+        if (searchDialogVisible.value === true) {
+            searchDialogVisible.value = false
+        }
+        if (categoryMenuVisible.value === true) {
+            categoryMenuVisible.value = false
+        }
+    }
+}
 
 // 监听路由参数变化
 watch(() => route.params.id, (newId, oldId) => {
@@ -564,6 +596,11 @@ const handleDraftOrReleased = async (articleId) => {
         ElMessage.error(t('saveFailed'))
     }
 }
+
+onBeforeUnmount(() => {
+    // 组件卸载时移除事件监听
+    document.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <style scoped>
@@ -580,6 +617,32 @@ const handleDraftOrReleased = async (articleId) => {
 }
 
 /* 左侧菜单样式 */
+.sidebar-collapse-enter-active,
+.sidebar-collapse-leave-active {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.sidebar-collapse-enter-from,
+.sidebar-collapse-leave-to {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.sidebar-collapse-enter-to,
+.sidebar-collapse-leave-from {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.collapse-btn {
+    transition: transform 0.3s ease;
+}
+
+.collapse-btn.collapsed {
+    transform: rotate(-180deg);
+}
+
 .article-sidebar {
     flex: 0 0 300px;
     background: rgba(255, 255, 255, 0.08);
@@ -999,6 +1062,17 @@ const handleDraftOrReleased = async (articleId) => {
     margin-top: 4px;
 }
 
+.collapse-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    /* 调整位置 */
+    z-index: 1000;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+}
+
 /* 表单内的输入框样式覆盖 */
 :deep(.el-input__inner),
 :deep(.el-textarea__inner) {
@@ -1015,6 +1089,56 @@ const handleDraftOrReleased = async (articleId) => {
 
 :deep(.el-form-item__label) {
     color: rgba(255, 255, 255, 0.9);
+}
+
+.category-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    z-index: 1000;
+}
+
+.category-modal {
+    margin-top: 120px;
+    background: rgba(76, 8, 125, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.category-modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-modal-title {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.category-modal-close {
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+}
+
+.category-modal-close:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.category-modal-body {
+    padding: 15px 20px;
 }
 
 .search-modal-overlay {
