@@ -84,14 +84,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                    }} {{ t('minute') }}</span>
+                                }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -192,7 +192,7 @@
                 <div class="summary-modal-header"
                     style="background: #f5f7fa; padding: 10px 15px; border-bottom: 1px solid #ebeef5;">
                     <span class="summary-modal-title" style="font-weight: 500; color: #303133;">{{ t('summary')
-                    }}</span>
+                        }}</span>
                 </div>
                 <div class="summary-modal-body"
                     style="padding: 15px; max-height: 60vh; overflow-y: auto; background: white;">
