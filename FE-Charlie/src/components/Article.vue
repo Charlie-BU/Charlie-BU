@@ -1,4 +1,3 @@
-<!-- TODO: 摘要 -->
 <template>
     <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
         <div class="article-container">
@@ -184,6 +183,27 @@
         </div>
     </transition>
 
+    <!-- 摘要弹窗 -->
+    <transition name="modal-fade">
+        <div v-if="summaryDialogVisible" class="summary-modal-overlay">
+            <div class="summary-modal" :style="{
+                width: isMobileRef ? '80%' : '300px',
+            }" @click.stop>
+                <div class="summary-modal-header"
+                    style="background: #f5f7fa; padding: 10px 15px; border-bottom: 1px solid #ebeef5;">
+                    <span class="summary-modal-title" style="font-weight: 500; color: #303133;">{{ t('summary')
+                    }}</span>
+                </div>
+                <div class="summary-modal-body"
+                    style="padding: 15px; max-height: 60vh; overflow-y: auto; background: white;">
+                    <el-tree :data="treeData" :props="{ children: 'children', label: 'label' }"
+                        style="background: transparent;" node-key="id" highlight-current
+                        :expand-on-click-node="false" />
+                </div>
+            </div>
+        </div>
+    </transition>
+
     <!-- 删除确认弹窗 -->
     <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteArticle')" :content="t('deleteConfirm')"
         @confirm="confirmDelete" @cancel="cancelDelete" />
@@ -193,7 +213,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { Plus, Delete, Edit, CollectionTag, Clock, Search, Close, CircleClose } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElTree, ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
@@ -245,16 +265,16 @@ watch(() => route.params.id, (newId, oldId) => {
 
 // 初始化markdown-it，添加代码高亮
 const markdown = new MarkdownIt({
-  highlight: (str, lang) => {
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang, ignoreIllegals: true }).value}</code></pre>`;
-      } catch (_) {}
+    highlight: (str, lang) => {
+        if (lang && hljs.getLanguage(lang)) {
+            try {
+                return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang, ignoreIllegals: true }).value}</code></pre>`;
+            } catch (_) { }
+        }
+        // 语言未知时自动识别或转义
+        const safeHtml = hljs.highlightAuto(str).value;
+        return `<pre class="hljs"><code>${safeHtml}</code></pre>`;
     }
-    // 语言未知时自动识别或转义
-    const safeHtml = hljs.highlightAuto(str).value;
-    return `<pre class="hljs"><code>${safeHtml}</code></pre>`;
-  }
 });
 
 // Markdown渲染函数
@@ -283,6 +303,7 @@ const translations = {
         deleteFailed: '删除失败',
         allCategories: '全部',
         categories: '分类',
+        summary: '摘要',
         searchArticle: '搜索',
         searchArticlePlaceholder: '输入文章标题或内容',
     },
@@ -304,6 +325,7 @@ const translations = {
         deleteFailed: 'Delete failed',
         allCategories: 'All',
         categories: 'Categories',
+        summary: 'Summary',
         searchArticle: 'Search',
         searchArticlePlaceholder: 'Search articles by title or content',
     }
@@ -384,6 +406,18 @@ const handleCategorySelect = (index) => {
         categoryMenuVisible.value = false
     }
 }
+
+// 摘要相关
+const summaryDialogVisible = ref(true)
+const treeData = ref([
+    {
+        label: 'Level one 1',
+        children: [
+            { label: 'Level two 1-1' }
+        ]
+    },
+    // 添加更多节点
+])
 
 // 搜索相关
 const searchDialogVisible = ref(false)
@@ -1301,5 +1335,27 @@ onBeforeUnmount(() => {
 
 .input-clear-icon:hover {
     color: rgba(255, 255, 255, 0.9);
+}
+
+.summary-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.summary-modal {
+    background: rgba(76, 8, 125, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
 }
 </style>
