@@ -252,8 +252,8 @@ const markdown = new MarkdownIt({
       } catch (_) {}
     }
     // 语言未知时自动识别或转义
-    const safeHtml = hljs.highlightAuto(str).value;
-    return `<pre class="hljs"><code>${safeHtml}</code></pre>`;
+    const safeHtml = hljs.highlightAuto(str).value
+    return `<pre class="hljs"><code>${safeHtml}</code></pre>`
   }
 });
 
