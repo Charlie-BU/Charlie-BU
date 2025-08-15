@@ -254,6 +254,7 @@ class Article(Base):
     # 文本：1；markdown：2
     type = Column(Integer, default=1)
     isReleased = Column(Boolean, default=False)
+    aiSummary = Column(Text)
 
     @property
     def title(self):
@@ -289,6 +290,7 @@ class Article(Base):
             "tags": self.tags,
             "type": self.type,
             "isReleased": self.isReleased,
+            "aiSummary": self.aiSummary,
         }
         return data
 
@@ -302,8 +304,10 @@ class Article(Base):
             "tags": self.tag_ENG,
             "type": self.type,
             "isReleased": self.isReleased,
+            "aiSummary": self.aiSummary,
         }
         return data
+
 
 
 class PlaceBeenTo(Base):
