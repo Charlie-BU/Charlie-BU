@@ -116,3 +116,18 @@ Code
         icon: "⊞",
     },
 };
+
+export const removeMarkdownSymbols = (text: string) => {
+    return text
+        .replace(/^#{1,6}\s*/gm, '') // 去除标题符号 # 
+        .replace(/(\*\*|__)(.*?)\1/g, '$2') // 去除粗体 **text** 或 __text__
+        .replace(/(\*|_)(.*?)\1/g, '$2') // 去除斜体 *text* 或 _text_
+        .replace(/`{1,3}([^`]+)`{1,3}/g, '$1') // 去除代码 `text` 或 ```text```
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // 去除链接 [text](url)
+        .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // 去除图片 ![alt](url)
+        .replace(/~~(.*?)~~/g, '$1') // 去除删除线 ~~text~~
+        .replace(/^>\s*/gm, '') // 去除引用 >
+        .replace(/^[-*+]\s+/gm, '') // 去除无序列表 - * +
+        .replace(/^\d+\.\s+/gm, '') // 去除有序列表 1. 2. 3.
+        .trim()
+}
