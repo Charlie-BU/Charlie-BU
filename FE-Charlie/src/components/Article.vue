@@ -1,158 +1,7 @@
 <template>
     <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
-        <!-- 移动端 -->
-        <div v-if="isMobileRef" class="article-container">
-            <div style="display: flex; flex-direction: row; height: 100%; gap: 16px;">
-                <!-- 文章列表 -->
-                <transition name="sidebar-collapse">
-                    <div class="article-sidebar" v-if="!isSidebarCollapsed" style="width: 48%;">
-                        <div class="sidebar-header">
-                            <div class="sidebar-title-row" style="margin-bottom: 10px;">
-                                <h3>{{ t('articleList') }}</h3>
-                            </div>
-                            <div style="white-space: nowrap;">
-                                <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
-                                    @click="handleAddArticle" :icon="Plus">
-                                    {{ t('addArticle') }}
-                                </el-button> 
-                                <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
-                                    :icon="Search">
-                                    {{ t('searchArticle') }}
-                                </el-button>
-                                <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
-                                    :icon="CollectionTag">
-                                    {{ selectedCategory || t('allCategories') }}
-                                </el-button>
-                            </div>
-                        </div>
-                        <el-scrollbar style="overflow: auto;">
-                            <div class="article-menu">
-                                <div v-for="(article, index) in filteredArticles" :key="index" class="article-menu-item"
-                                    :class="{ 'active': currentArticleId === article.id }"
-                                    @click="selectArticle(article.id)">
-                                    <div class="article-item-header">
-                                        <div class="article-menu-title">{{ article.title }}</div>
-                                        <el-button v-if="admin_id" class="delete-article-btn" size="small" type="danger"
-                                            @click.stop="handleDeleteArticle(article.id)" :icon="Delete" circle>
-                                        </el-button>
-                                    </div>
-                                    <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
-                                    <div class="article-menu-tags">
-                                        <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
-                                            effect="dark" class="article-tag">
-                                            {{ tag }}
-                                        </el-tag>
-                                    </div>
-                                </div>
-                            </div>
-                        </el-scrollbar>
-                    </div>
-                </transition>
-
-                <!-- 摘要 -->
-                <transition name="sidebar-collapse">
-                    <div class="article-sidebar" style="width: 48%;" v-if="summaryDialogVisible">
-                        <div class="sidebar-header">
-                            <div class="sidebar-title-row">
-                                <h3>{{ t('summary') }}</h3>
-                            </div>
-                        </div>
-                        <el-scrollbar style="overflow: auto;">
-                            <div class="article-summary">
-                                <el-tree
-                                    v-if="treeData && treeData.length > 0"
-                                    :data="treeData"
-                                    :props="{
-                                        children: 'children',
-                                        label: 'label'
-                                    }"
-                                    @node-click="handleNodeClick"
-                                    node-key="id"
-                                    default-expand-all
-                                    highlight-current
-                                    class="summary-tree"
-                                />
-                                <div v-else class="summary-empty">
-                                    <p>{{ t('selectArticle') }}</p>
-                                </div>
-                            </div>
-                        </el-scrollbar>
-                    </div>
-                </transition>  
-            </div>
-
-             <!-- 文章内容 -->
-            <div class="article-main">
-                <div class="article-header">
-                    <div class="article-title-row">
-                        <h1 class="article-title">{{ currentArticle.title }}</h1>
-                        <div v-if="admin_id" class="article-actions">
-                            <el-button size="medium" type="primary" @click="handleEditArticle(currentArticle.id)"
-                                :icon="Edit">
-                                {{ t('editArticle') }}
-                            </el-button>
-                            <el-button size="medium" type="primary"
-                                :style="{ background: currentArticle.isReleased ? '' : 'green' }"
-                                @click="handleDraftOrReleased(currentArticle.id)"
-                                :icon="currentArticle.isReleased ? 'MessageBox' : 'Promotion'">
-                                {{ currentArticle.isReleased ? t('setAsDraft') : t('publish') }}
-                            </el-button>
-                        </div>
-                    </div>
-                    <div class="article-meta">
-                        <div class="article-time">
-                            <div class="time-item">
-                                <el-icon>
-                                    <Calendar />
-                                </el-icon>
-                                <span>{{ t('created') }}: {{ formatTime(currentArticle.timeCreated) }}</span>
-                            </div>
-                            <div class="time-item">
-                                <el-icon>
-                                    <Clock />
-                                </el-icon>
-                                <span>{{ t('updated') }}: {{ formatTime(currentArticle.timeLastUpdated) }}</span>
-                            </div>
-                            <div class="time-item">
-                                <el-icon>
-                                    <Document />
-                                </el-icon>
-                                <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
-                            </div>
-                            <div class="time-item">
-                                <el-icon>
-                                    <Timer />
-                                </el-icon>
-                                <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
-                            </div>
-                        </div>
-                        <div class="article-tags">
-                            <el-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" size="small"
-                                effect="dark" class="article-tag">
-                                {{ tag }}
-                            </el-tag>
-                        </div>
-                    </div>
-                </div>
-                <div class="article-content-body">
-                    <!-- 根据文章类型渲染不同内容 -->
-                    <template v-if="currentArticle.type === 1">
-                        {{ currentArticle.content }}
-                    </template>
-                    <div v-else-if="currentArticle.type === 2" v-html="renderMarkdown(currentArticle.content)">
-                    </div>
-                </div>
-            </div>
-        
-            <!-- 折叠按钮 -->
-            <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" style="left: 10px;" :style="isSidebarCollapsed && !summaryDialogVisible? 'top: 50px;': ''" circle
-                @click="isSidebarCollapsed = !isSidebarCollapsed; summaryDialogVisible = !summaryDialogVisible;" icon="Expand" />
-        </div>
-
         <!-- 电脑端 -->
-        <div v-else class="article-container">
+        <div v-if="!isMobileRef" class="article-container">
             <!-- 文章列表 -->
             <transition name="sidebar-collapse">
                 <div class="article-sidebar" v-if="!isSidebarCollapsed">
@@ -302,6 +151,157 @@
             <el-button class="collapse-btn" :class="{ 'collapsed': summaryDialogVisible }" :style="summaryDialogVisible? 'right: 10px;': 'right: 25px;'" circle
                 @click="summaryDialogVisible = !summaryDialogVisible" icon="Expand" />
         </div>
+
+        <!-- 移动端 -->
+        <div v-else class="article-container">
+            <div style="display: flex; flex-direction: row; height: 100%; gap: 16px;">
+                <!-- 文章列表 -->
+                <transition name="sidebar-collapse">
+                    <div class="article-sidebar" v-if="!isSidebarCollapsed" style="width: 48%;">
+                        <div class="sidebar-header">
+                            <div class="sidebar-title-row" style="margin-bottom: 10px;">
+                                <h3>{{ t('articleList') }}</h3>
+                            </div>
+                            <div style="white-space: nowrap;">
+                                <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
+                                    @click="handleAddArticle" :icon="Plus">
+                                    {{ t('addArticle') }}
+                                </el-button> 
+                                <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
+                                    :icon="Search">
+                                    {{ t('searchArticle') }}
+                                </el-button>
+                                <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
+                                    :icon="CollectionTag">
+                                    {{ selectedCategory || t('allCategories') }}
+                                </el-button>
+                            </div>
+                        </div>
+                        <el-scrollbar style="overflow: auto;">
+                            <div class="article-menu">
+                                <div v-for="(article, index) in filteredArticles" :key="index" class="article-menu-item"
+                                    :class="{ 'active': currentArticleId === article.id }"
+                                    @click="selectArticle(article.id)">
+                                    <div class="article-item-header">
+                                        <div class="article-menu-title">{{ article.title }}</div>
+                                        <el-button v-if="admin_id" class="delete-article-btn" size="small" type="danger"
+                                            @click.stop="handleDeleteArticle(article.id)" :icon="Delete" circle>
+                                        </el-button>
+                                    </div>
+                                    <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
+                                    <div class="article-menu-tags">
+                                        <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
+                                            effect="dark" class="article-tag">
+                                            {{ tag }}
+                                        </el-tag>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-scrollbar>
+                    </div>
+                </transition>
+
+                <!-- 摘要 -->
+                <transition name="sidebar-collapse">
+                    <div class="article-sidebar" style="width: 48%;" v-if="summaryDialogVisible">
+                        <div class="sidebar-header">
+                            <div class="sidebar-title-row">
+                                <h3>{{ t('summary') }}</h3>
+                            </div>
+                        </div>
+                        <el-scrollbar style="overflow: auto;">
+                            <div class="article-summary">
+                                <el-tree
+                                    v-if="treeData && treeData.length > 0"
+                                    :data="treeData"
+                                    :props="{
+                                        children: 'children',
+                                        label: 'label'
+                                    }"
+                                    @node-click="handleNodeClick"
+                                    node-key="id"
+                                    default-expand-all
+                                    highlight-current
+                                    class="summary-tree"
+                                />
+                                <div v-else class="summary-empty">
+                                    <p>{{ t('selectArticle') }}</p>
+                                </div>
+                            </div>
+                        </el-scrollbar>
+                    </div>
+                </transition>  
+            </div>
+
+             <!-- 文章内容 -->
+            <div class="article-main">
+                <div class="article-header">
+                    <div class="article-title-row">
+                        <h1 class="article-title">{{ currentArticle.title }}</h1>
+                        <div v-if="admin_id" class="article-actions">
+                            <el-button size="medium" type="primary" @click="handleEditArticle(currentArticle.id)"
+                                :icon="Edit">
+                                {{ t('editArticle') }}
+                            </el-button>
+                            <el-button size="medium" type="primary"
+                                :style="{ background: currentArticle.isReleased ? '' : 'green' }"
+                                @click="handleDraftOrReleased(currentArticle.id)"
+                                :icon="currentArticle.isReleased ? 'MessageBox' : 'Promotion'">
+                                {{ currentArticle.isReleased ? t('setAsDraft') : t('publish') }}
+                            </el-button>
+                        </div>
+                    </div>
+                    <div class="article-meta">
+                        <div class="article-time">
+                            <div class="time-item">
+                                <el-icon>
+                                    <Calendar />
+                                </el-icon>
+                                <span>{{ t('created') }}: {{ formatTime(currentArticle.timeCreated) }}</span>
+                            </div>
+                            <div class="time-item">
+                                <el-icon>
+                                    <Clock />
+                                </el-icon>
+                                <span>{{ t('updated') }}: {{ formatTime(currentArticle.timeLastUpdated) }}</span>
+                            </div>
+                            <div class="time-item">
+                                <el-icon>
+                                    <Document />
+                                </el-icon>
+                                <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
+                                }}</span>
+                            </div>
+                            <div class="time-item">
+                                <el-icon>
+                                    <Timer />
+                                </el-icon>
+                                <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
+                                }} {{ t('minute') }}</span>
+                            </div>
+                        </div>
+                        <div class="article-tags">
+                            <el-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" size="small"
+                                effect="dark" class="article-tag">
+                                {{ tag }}
+                            </el-tag>
+                        </div>
+                    </div>
+                </div>
+                <div class="article-content-body">
+                    <!-- 根据文章类型渲染不同内容 -->
+                    <template v-if="currentArticle.type === 1">
+                        {{ currentArticle.content }}
+                    </template>
+                    <div v-else-if="currentArticle.type === 2" v-html="renderMarkdown(currentArticle.content)">
+                    </div>
+                </div>
+            </div>
+        
+            <!-- 折叠按钮 -->
+            <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" style="left: 10px;" :style="isSidebarCollapsed && !summaryDialogVisible? 'top: 50px;': ''" circle
+                @click="isSidebarCollapsed = !isSidebarCollapsed; summaryDialogVisible = !summaryDialogVisible;" icon="Expand" />
+        </div>        
     </el-main>
 
     <!-- 分类导航菜单 -->
