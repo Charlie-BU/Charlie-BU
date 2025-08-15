@@ -13,7 +13,7 @@
                             <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
                                 @click="handleAddArticle" :icon="Plus">
                                 {{ t('addArticle') }}
-                            </el-button> 
+                            </el-button>
                             <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
                                 :icon="Search">
                                 {{ t('searchArticle') }}
@@ -48,7 +48,7 @@
                 </div>
             </transition>
 
-             <!-- 文章内容 -->
+            <!-- 文章内容 -->
             <div class="article-main">
                 <div class="article-header">
                     <div class="article-title-row">
@@ -116,7 +116,7 @@
             <!-- 摘要 -->
             <transition name="sidebar-collapse">
                 <div class="article-sidebar" v-if="summaryDialogVisible" style="overflow: auto;">
-                    <div v-if="currentArticle.aiSummary" class="ai-summary">
+                    <div class="ai-summary">
                         <div class="sidebar-header">
                             <div class="sidebar-title-row">
                                 <h3>{{ t('AISummary') }}</h3>
@@ -124,22 +124,26 @@
                         </div>
                         <el-scrollbar style="overflow: auto;">
                             <div class="article-summary">
-                                <div v-if="currentArticle.title">
-                                    <div v-if="aiSummary || isGeneratingSummary" class="ai-summary-content-wrapper">
-                                        <div 
-                                            class="ai-summary-content" 
-                                            :class="{ 'streaming': isGeneratingSummary }"
-                                        >
-                                            <span v-if="isGeneratingSummary && !aiSummary" class="generating-placeholder">
-                                                {{ t('generatingSummary') }}...
+                                <div v-if="currentArticle">
+                                    <div class="ai-summary-content-wrapper">
+                                        <div v-if="aiSummary || isGeneratingSummary" class="ai-summary-content"
+                                            :class="{ 'streaming': isGeneratingSummary }">
+                                            <span v-if="isGeneratingSummary && !aiSummary"
+                                                class="generating-placeholder">
+                                                {{ t('isGeneratingSummary') }}
                                             </span>
-                                            <span 
-                                                v-else 
-                                                v-html="formattedSummary"
-                                                class="summary-text"
-                                            ></span>
+                                            <span v-else v-html="formattedSummary" class="summary-text"></span>
                                             <span v-if="isGeneratingSummary" class="cursor">|</span>
                                         </div>
+                                        <el-button class="add-article-btn" size="small" type="primary"
+                                            :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
+                                            style="float: right;"
+                                            :style="{ 'margin-top': isGeneratingSummary || formattedSummary ? '10px' : '0' }"
+                                            @click="regenerate_article_AISummary" icon="Refresh">
+                                            {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
+                                                ? t('regenerateSummary') : t('generateSummary')
+                                            }}
+                                        </el-button>
                                     </div>
                                 </div>
                                 <div v-else class="summary-empty">
@@ -156,19 +160,11 @@
                         </div>
                         <el-scrollbar style="overflow: auto;">
                             <div class="article-summary">
-                                <el-tree
-                                    v-if="treeData && treeData.length > 0"
-                                    :data="treeData"
-                                    :props="{
-                                        children: 'children',
-                                        label: 'label'
-                                    }"
-                                    @node-click="handleNodeClick"
-                                    node-key="id"
-                                    default-expand-all
-                                    highlight-current
-                                    class="summary-tree"
-                                />
+                                <el-tree v-if="treeData && treeData.length > 0" :data="treeData" :props="{
+                                    children: 'children',
+                                    label: 'label'
+                                }" @node-click="handleNodeClick" node-key="id" default-expand-all highlight-current
+                                    class="summary-tree" />
                                 <div v-else class="summary-empty">
                                     <p>{{ t('selectArticle') }}</p>
                                 </div>
@@ -176,15 +172,17 @@
                         </el-scrollbar>
                     </div>
                 </div>
-            </transition>           
+            </transition>
 
             <!-- 左侧折叠按钮 -->
             <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" style="left: 10px;" circle
                 @click="isSidebarCollapsed = !isSidebarCollapsed" icon="Expand" />
             <!-- 右侧折叠按钮 -->
-            <el-button class="collapse-btn" :class="{ 'collapsed': summaryDialogVisible }" :style="summaryDialogVisible? 'right: 10px;': 'right: 25px;'" circle
+            <el-button class="collapse-btn" :class="{ 'collapsed': summaryDialogVisible }"
+                :style="summaryDialogVisible ? 'right: 10px;' : 'right: 25px;'" circle
                 @click="summaryDialogVisible = !summaryDialogVisible" icon="Expand" />
         </div>
+
 
         <!-- 移动端 -->
         <div v-else class="article-container">
@@ -200,13 +198,13 @@
                                 <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
                                     @click="handleAddArticle" :icon="Plus">
                                     {{ t('addArticle') }}
-                                </el-button> 
-                                <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
-                                    :icon="Search">
+                                </el-button>
+                                <el-button class="add-article-btn" size="small" type="primary"
+                                    @click="handleSearchArticle" :icon="Search">
                                     {{ t('searchArticle') }}
                                 </el-button>
-                                <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
-                                    :icon="CollectionTag">
+                                <el-button class="add-article-btn" size="small" type="primary"
+                                    @click="toggleCategoryMenu" :icon="CollectionTag">
                                     {{ selectedCategory || t('allCategories') }}
                                 </el-button>
                             </div>
@@ -246,22 +244,26 @@
                             </div>
                             <el-scrollbar style="overflow: auto;">
                                 <div class="article-summary">
-                                    <div v-if="currentArticle.title">
-                                        <div v-if="aiSummary || isGeneratingSummary" class="ai-summary-content-wrapper">
-                                            <div 
-                                                class="ai-summary-content" 
-                                                :class="{ 'streaming': isGeneratingSummary }"
-                                            >
-                                                <span v-if="isGeneratingSummary && !aiSummary" class="generating-placeholder">
-                                                    {{ t('generatingSummary') }}...
+                                    <div v-if="currentArticle">
+                                        <div class="ai-summary-content-wrapper">
+                                            <div v-if="aiSummary || isGeneratingSummary" class="ai-summary-content"
+                                                :class="{ 'streaming': isGeneratingSummary }">
+                                                <span v-if="isGeneratingSummary && !aiSummary"
+                                                    class="generating-placeholder">
+                                                    {{ t('isGeneratingSummary') }}
                                                 </span>
-                                                <span 
-                                                    v-else 
-                                                    v-html="formattedSummary"
-                                                    class="summary-text"
-                                                ></span>
+                                                <span v-else v-html="formattedSummary" class="summary-text"></span>
                                                 <span v-if="isGeneratingSummary" class="cursor">|</span>
                                             </div>
+                                            <el-button class="add-article-btn" size="small" type="primary"
+                                                :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
+                                                style="float: right;"
+                                                :style="{ 'margin-top': isGeneratingSummary || formattedSummary ? '10px' : '0' }"
+                                                @click="regenerate_article_AISummary" icon="Refresh">
+                                                {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
+                                                    ? t('regenerateSummary') : t('generateSummary')
+                                                }}
+                                            </el-button>
                                         </div>
                                     </div>
                                     <div v-else class="summary-empty">
@@ -278,19 +280,11 @@
                             </div>
                             <el-scrollbar style="overflow: auto;">
                                 <div class="article-summary">
-                                    <el-tree
-                                        v-if="treeData && treeData.length > 0"
-                                        :data="treeData"
-                                        :props="{
-                                            children: 'children',
-                                            label: 'label'
-                                        }"
-                                        @node-click="handleNodeClick"
-                                        node-key="id"
-                                        default-expand-all
-                                        highlight-current
-                                        class="summary-tree"
-                                    />
+                                    <el-tree v-if="treeData && treeData.length > 0" :data="treeData" :props="{
+                                        children: 'children',
+                                        label: 'label'
+                                    }" @node-click="handleNodeClick" node-key="id" default-expand-all highlight-current
+                                        class="summary-tree" />
                                     <div v-else class="summary-empty">
                                         <p>{{ t('selectArticle') }}</p>
                                     </div>
@@ -298,10 +292,10 @@
                             </el-scrollbar>
                         </div>
                     </div>
-                </transition>  
+                </transition>
             </div>
 
-             <!-- 文章内容 -->
+            <!-- 文章内容 -->
             <div class="article-main">
                 <div class="article-header">
                     <div class="article-title-row">
@@ -365,11 +359,13 @@
                     </div>
                 </div>
             </div>
-        
+
             <!-- 折叠按钮 -->
-            <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" style="left: 10px;" :style="isSidebarCollapsed && !summaryDialogVisible? 'top: 50px;': ''" circle
-                @click="isSidebarCollapsed = !isSidebarCollapsed; summaryDialogVisible = !summaryDialogVisible;" icon="Expand" />
-        </div>        
+            <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" style="left: 10px;"
+                :style="isSidebarCollapsed && !summaryDialogVisible ? 'top: 50px;' : ''" circle
+                @click="isSidebarCollapsed = !isSidebarCollapsed; summaryDialogVisible = !summaryDialogVisible;"
+                icon="Expand" />
+        </div>
     </el-main>
 
     <!-- 分类导航菜单 -->
@@ -544,7 +540,11 @@ const translations = {
         AISummary: '✨ AI 总结',
         generateSummaryFailed: '生成 AI 总结失败',
         noContent: '文章内容为空',
-        summaryGenerated: 'AI 总结已生成',
+        isGeneratingSummary: '生成中...',
+        generateSummary: '生成 AI 总结',
+        regenerateSummary: '重新生成',
+        regenerateSuccess: 'AI 总结已重新生成',
+        regenerateFailed: 'AI 总结重新生成失败',
     },
     English: {
         articleList: 'Article List',
@@ -570,7 +570,11 @@ const translations = {
         AISummary: '✨ AI Summary',
         generateSummaryFailed: 'Failed to generate summary',
         noContent: 'Article content is empty',
-        summaryGenerated: 'Summary generated',
+        isGeneratingSummary: 'Generating...',
+        generateSummary: 'Generate AI Summary',
+        regenerateSummary: 'Regenerate',
+        regenerateSuccess: 'Summary regenerated',
+        regenerateFailed: 'Failed to regenerate summary',
     }
 }
 
@@ -658,7 +662,7 @@ const treeData = ref([])
 const generateToc = (content, type) => {
     if (!content) return []
     let headings = []
-    
+
     if (type === 1) {
         // 普通文本类型 - 提取包含 # 的行作为标题
         const lines = content.split('\n')
@@ -681,14 +685,14 @@ const generateToc = (content, type) => {
         const headingRegex = /^(#{2,6})\s+(.+)$/gm
         let match
         let lineIndex = 0
-        
+
         while ((match = headingRegex.exec(content)) !== null) {
             const level = match[1].length
             const text = match[2].trim()
             // 计算行号
             const contentBefore = content.substring(0, match.index)
             lineIndex = contentBefore.split('\n').length - 1
-            
+
             headings.push({
                 level,
                 text,
@@ -697,11 +701,11 @@ const generateToc = (content, type) => {
             })
         }
     }
-    
+
     // 构建树形结构
     const tree = []
     const stack = []
-    
+
     headings.forEach(heading => {
         const node = {
             id: heading.id,
@@ -709,21 +713,21 @@ const generateToc = (content, type) => {
             lineIndex: heading.lineIndex,
             children: []
         }
-        
+
         // 找到正确的父节点
         while (stack.length > 0 && stack[stack.length - 1].level >= heading.level) {
             stack.pop()
         }
-        
+
         if (stack.length === 0) {
             tree.push(node)
         } else {
             stack[stack.length - 1].children.push(node)
         }
-        
-        stack.push({...node, level: heading.level})
+
+        stack.push({ ...node, level: heading.level })
     })
-    
+
     return tree
 }
 
@@ -826,7 +830,7 @@ const selectArticle = async (id) => {
     // 如果当前已经是这篇文章，不做任何操作
     if (currentArticleId.value === id) return;
     // 停止当前的AI总结生成
-    stopAISummaryGeneration()
+    stopAISummaryRender()
     currentArticleId.value = id
     // 检查当前路由是否已经是这篇文章
     if (route.params.id !== id) {
@@ -879,7 +883,13 @@ const getArticleContent = async () => {
         // 生成目录树
         treeData.value = generateToc(currentArticle.value.content, currentArticle.value.type);
         // 生成AI摘要
-        await generateAISummary(currentArticle.value.content, currentArticle.value.title)
+        if (isCancelled.value) {
+            setTimeout(async () => {
+                await renderAISummary(currentArticle.value.aiSummary)
+            }, 500)
+            return
+        }
+        await renderAISummary(currentArticle.value.aiSummary)
     } catch (error) {
         console.error(error)
     }
@@ -973,21 +983,19 @@ const formattedSummary = computed(() => {
     return aiSummary.value.replace(/\n/g, '<br>')
 })
 
-// 生成AI总结
-const generateAISummary = async () => {
+// 渲染AI总结
+const renderAISummary = async (AISUMMARY) => {
     if (!currentArticle.value.content) {
         ElMessage.warning(t('noContent'))
         return
     }
-    
     isGeneratingSummary.value = true
     isCancelled.value = false // 重置取消标志
     aiSummary.value = ''
-    
+
     try {
-        const summary = currentArticle.value.aiSummary
-        if (summary) {
-            await streamEffect(summary)
+        if (AISUMMARY) {
+            await streamEffect(AISUMMARY)
             return
         }
     } catch (error) {
@@ -1002,34 +1010,31 @@ const generateAISummary = async () => {
     }
 }
 
-// 停止AI摘要生成
-// TODO：取消逻辑有误
-const stopAISummaryGeneration = () => {
-    if (isGeneratingSummary.value) {
-        isCancelled.value = true // 设置取消标志
-        isGeneratingSummary.value = false
-        aiSummary.value = ''
-        ElMessage.info(t('summaryStopped'))
-    }
+// 停止AI总结渲染
+const stopAISummaryRender = () => {
+    isCancelled.value = true // 设置取消标志
+    isGeneratingSummary.value = false
+    aiSummary.value = ''
 }
 
 // 流式效果
 const streamEffect = async (text) => {
     const chars = text.split('')
     let currentText = ''
-    
+
     for (let i = 0; i < chars.length; i++) {
         // 检查是否被取消
         if (isCancelled.value) {
+            // 通过抛出错误来取消Promise链
             throw new Error('CANCELLED')
         }
-        
+
         currentText += chars[i]
         aiSummary.value = currentText
-        
+
         // 根据字符类型调整延迟
         const delay = chars[i] === '\n' ? 100 : Math.random() * 30 + 20
-        
+
         // 使用可取消的延迟
         await new Promise((resolve, reject) => {
             const timeoutId = setTimeout(() => {
@@ -1039,7 +1044,7 @@ const streamEffect = async (text) => {
                     reject(new Error('CANCELLED'))
                 }
             }, delay)
-            
+
             // 如果取消，立即拒绝Promise
             if (isCancelled.value) {
                 clearTimeout(timeoutId)
@@ -1049,11 +1054,30 @@ const streamEffect = async (text) => {
     }
 }
 
+const regenerate_article_AISummary = async () => {
+    stopAISummaryRender()
+    isGeneratingSummary.value = true
+    try {
+        const res = await request.post('/api/regenerate_article_AISummary', {
+            id: currentArticle.value.id
+        })
+        if (res.data.status === 200 || res.data.status === 201) {
+            ElMessage.success(t('regenerateSuccess'))
+            await renderAISummary(res.data.aiSummary)
+        } else {
+            ElMessage.error(res.data.message || t('regenerateFailed'))
+        }
+    } catch (error) {
+        ElMessage.error(t('regenerateFailed'))
+        console.error('重新生成AI总结失败:', error)
+    }
+}
+
 onBeforeUnmount(() => {
     // 组件卸载时移除事件监听
     document.removeEventListener('keydown', handleKeyDown)
     // 组件卸载时取消正在进行的生成
-    stopAISummaryGeneration()
+    stopAISummaryRender()
 })
 </script>
 
@@ -1845,13 +1869,28 @@ onBeforeUnmount(() => {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
 }
 
 @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0;
+    }
 }
 
 /* 移动端适配 */
@@ -1861,7 +1900,7 @@ onBeforeUnmount(() => {
         align-items: stretch;
         gap: 10px;
     }
-    
+
     .ai-summary-header .el-button {
         width: 100%;
     }

@@ -2,6 +2,7 @@ import json
 from robyn import SubRouter, jsonify
 
 from models import *
+from LLM import get_ark_summary
 import utils
 
 apiRouter = SubRouter(__file__, prefix="/api")
@@ -456,6 +457,45 @@ async def search_article(request):
     })
 
 
+@apiRouter.post("/add_article")
+async def add_article(request):
+    session = Session()
+    headers = request.headers
+    cookie = utils.parse_cookie_string(headers.get("cookie"))
+    sessionid = cookie.get("sessionid")
+    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+        return jsonify({
+            "status": 403,
+            "message": "No permission",
+        })
+    data = request.json()
+    type = int(data.get("type"))
+    content = data.get("content")
+    content_ENG = data.get("content_ENG")
+    tags = data.get("tags")
+    if tags:
+        tags = json.loads(tags)
+    tag_ENG = data.get("tag_ENG")
+    if tag_ENG:
+        tag_ENG = json.loads(tag_ENG)
+    article = Article(type=type, content=content, content_ENG=content_ENG, timeCreated=datetime.now(), tags=tags,
+                      tag_ENG=tag_ENG,
+                      timeLastUpdated=datetime.now())
+    isReleased = True if data.get("isReleased") == "true" else False
+    article.isReleased = isReleased
+
+    aiSummary = get_ark_summary("文章内容如下：\n", content)
+    article.aiSummary = aiSummary
+
+    session.add(article)
+    session.commit()
+    session.close()
+    return jsonify({
+        "status": 200,
+        "message": "success",
+    })
+
+
 @apiRouter.post("/update_article")
 async def update_article(request):
     session = Session()
@@ -510,7 +550,11 @@ async def update_article(request):
         })
     isReleased = True if data.get("isReleased") == "true" else False
     article.isReleased = isReleased
-    article.timeLastUpdated = datetime.now()
+
+    if isReleased == True:
+        aiSummary = get_ark_summary("文章内容如下：\n", article.content)
+        article.aiSummary = aiSummary
+
     session.commit()
     session.close()
     return jsonify({
@@ -519,38 +563,42 @@ async def update_article(request):
     })
 
 
-@apiRouter.post("/add_article")
-async def add_article(request):
+@apiRouter.post("/regenerate_article_AISummary")
+async def regenerate_article_AISummary(request):
     session = Session()
     headers = request.headers
     cookie = utils.parse_cookie_string(headers.get("cookie"))
     sessionid = cookie.get("sessionid")
-    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
-        return jsonify({
-            "status": 403,
-            "message": "No permission",
-        })
+
     data = request.json()
-    type = int(data.get("type"))
-    content = data.get("content")
-    content_ENG = data.get("content_ENG")
-    tags = data.get("tags")
-    if tags:
-        tags = json.loads(tags)
-    tag_ENG = data.get("tag_ENG")
-    if tag_ENG:
-        tag_ENG = json.loads(tag_ENG)
-    article = Article(type=type, content=content, content_ENG=content_ENG, timeCreated=datetime.now(), tags=tags,
-                      tag_ENG=tag_ENG,
-                      timeLastUpdated=datetime.now())
-    isReleased = True if data.get("isReleased") == "true" else False
-    article.isReleased = isReleased
-    session.add(article)
+    id = data.get("id")
+    article = session.get(Article, id)
+    if not article:
+        return jsonify({
+            "status": 404,
+            "message": "Article not found",
+        })
+    if not article.content:
+        return jsonify({
+            "status": 400,
+            "message": "Article content is empty",
+        })
+
+    aiSummary = get_ark_summary("文章内容如下：\n", article.content)
+    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+        session.close()
+        return jsonify({
+            "status": 201,
+            "message": "user-success",
+            "aiSummary": aiSummary,
+        })
+    article.aiSummary = aiSummary
     session.commit()
     session.close()
     return jsonify({
         "status": 200,
-        "message": "success",
+        "message": "admin-success",
+        "aiSummary": aiSummary,
     })
 
 

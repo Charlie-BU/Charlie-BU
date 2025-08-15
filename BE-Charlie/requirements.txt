@@ -7,3 +7,4 @@ requests
 pycountry
 oss2
 redis
+volcengine-python-sdk[ark]
