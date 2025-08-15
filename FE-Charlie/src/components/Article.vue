@@ -1,18 +1,170 @@
 <template>
     <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
-        <div class="article-container">
-            <!-- 左侧文章菜单 -->
+        <!-- 移动端 -->
+        <div v-if="isMobileRef" class="article-container">
+            <div style="display: flex; flex-direction: row; height: 100%; gap: 16px;">
+                <!-- 文章列表 -->
+                <transition name="sidebar-collapse">
+                    <div class="article-sidebar" v-if="!isSidebarCollapsed" style="width: 48%;">
+                        <div class="sidebar-header">
+                            <div class="sidebar-title-row" style="margin-bottom: 10px;">
+                                <h3>{{ t('articleList') }}</h3>
+                            </div>
+                            <div style="white-space: nowrap;">
+                                <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
+                                    @click="handleAddArticle" :icon="Plus">
+                                    {{ t('addArticle') }}
+                                </el-button> 
+                                <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
+                                    :icon="Search">
+                                    {{ t('searchArticle') }}
+                                </el-button>
+                                <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
+                                    :icon="CollectionTag">
+                                    {{ selectedCategory || t('allCategories') }}
+                                </el-button>
+                            </div>
+                        </div>
+                        <el-scrollbar style="overflow: auto;">
+                            <div class="article-menu">
+                                <div v-for="(article, index) in filteredArticles" :key="index" class="article-menu-item"
+                                    :class="{ 'active': currentArticleId === article.id }"
+                                    @click="selectArticle(article.id)">
+                                    <div class="article-item-header">
+                                        <div class="article-menu-title">{{ article.title }}</div>
+                                        <el-button v-if="admin_id" class="delete-article-btn" size="small" type="danger"
+                                            @click.stop="handleDeleteArticle(article.id)" :icon="Delete" circle>
+                                        </el-button>
+                                    </div>
+                                    <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
+                                    <div class="article-menu-tags">
+                                        <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
+                                            effect="dark" class="article-tag">
+                                            {{ tag }}
+                                        </el-tag>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-scrollbar>
+                    </div>
+                </transition>
+
+                <!-- 摘要 -->
+                <transition name="sidebar-collapse">
+                    <div class="article-sidebar" style="width: 48%;" v-if="summaryDialogVisible">
+                        <div class="sidebar-header">
+                            <div class="sidebar-title-row">
+                                <h3>{{ t('summary') }}</h3>
+                            </div>
+                        </div>
+                        <el-scrollbar style="overflow: auto;">
+                            <div class="article-summary">
+                                <el-tree
+                                    v-if="treeData && treeData.length > 0"
+                                    :data="treeData"
+                                    :props="{
+                                        children: 'children',
+                                        label: 'label'
+                                    }"
+                                    @node-click="handleNodeClick"
+                                    node-key="id"
+                                    default-expand-all
+                                    highlight-current
+                                    class="summary-tree"
+                                />
+                                <div v-else class="summary-empty">
+                                    <p>{{ t('selectArticle') }}</p>
+                                </div>
+                            </div>
+                        </el-scrollbar>
+                    </div>
+                </transition>  
+            </div>
+
+             <!-- 文章内容 -->
+            <div class="article-main">
+                <div class="article-header">
+                    <div class="article-title-row">
+                        <h1 class="article-title">{{ currentArticle.title }}</h1>
+                        <div v-if="admin_id" class="article-actions">
+                            <el-button size="medium" type="primary" @click="handleEditArticle(currentArticle.id)"
+                                :icon="Edit">
+                                {{ t('editArticle') }}
+                            </el-button>
+                            <el-button size="medium" type="primary"
+                                :style="{ background: currentArticle.isReleased ? '' : 'green' }"
+                                @click="handleDraftOrReleased(currentArticle.id)"
+                                :icon="currentArticle.isReleased ? 'MessageBox' : 'Promotion'">
+                                {{ currentArticle.isReleased ? t('setAsDraft') : t('publish') }}
+                            </el-button>
+                        </div>
+                    </div>
+                    <div class="article-meta">
+                        <div class="article-time">
+                            <div class="time-item">
+                                <el-icon>
+                                    <Calendar />
+                                </el-icon>
+                                <span>{{ t('created') }}: {{ formatTime(currentArticle.timeCreated) }}</span>
+                            </div>
+                            <div class="time-item">
+                                <el-icon>
+                                    <Clock />
+                                </el-icon>
+                                <span>{{ t('updated') }}: {{ formatTime(currentArticle.timeLastUpdated) }}</span>
+                            </div>
+                            <div class="time-item">
+                                <el-icon>
+                                    <Document />
+                                </el-icon>
+                                <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
+                                }}</span>
+                            </div>
+                            <div class="time-item">
+                                <el-icon>
+                                    <Timer />
+                                </el-icon>
+                                <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
+                                }} {{ t('minute') }}</span>
+                            </div>
+                        </div>
+                        <div class="article-tags">
+                            <el-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" size="small"
+                                effect="dark" class="article-tag">
+                                {{ tag }}
+                            </el-tag>
+                        </div>
+                    </div>
+                </div>
+                <div class="article-content-body">
+                    <!-- 根据文章类型渲染不同内容 -->
+                    <template v-if="currentArticle.type === 1">
+                        {{ currentArticle.content }}
+                    </template>
+                    <div v-else-if="currentArticle.type === 2" v-html="renderMarkdown(currentArticle.content)">
+                    </div>
+                </div>
+            </div>
+        
+            <!-- 折叠按钮 -->
+            <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" style="left: 10px;" :style="isSidebarCollapsed && !summaryDialogVisible? 'top: 50px;': ''" circle
+                @click="isSidebarCollapsed = !isSidebarCollapsed; summaryDialogVisible = !summaryDialogVisible;" icon="Expand" />
+        </div>
+
+        <!-- 电脑端 -->
+        <div v-else class="article-container">
+            <!-- 文章列表 -->
             <transition name="sidebar-collapse">
                 <div class="article-sidebar" v-if="!isSidebarCollapsed">
                     <div class="sidebar-header">
-                        <div class="sidebar-title-row">
+                        <div class="sidebar-title-row" style="margin-bottom: 10px;">
                             <h3>{{ t('articleList') }}</h3>
                         </div>
                         <div style="white-space: nowrap;">
                             <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
                                 @click="handleAddArticle" :icon="Plus">
                                 {{ t('addArticle') }}
-                            </el-button>
+                            </el-button> 
                             <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
                                 :icon="Search">
                                 {{ t('searchArticle') }}
@@ -47,7 +199,7 @@
                 </div>
             </transition>
 
-            <!-- 右侧文章内容 -->
+             <!-- 文章内容 -->
             <div class="article-main">
                 <div class="article-header">
                     <div class="article-title-row">
@@ -112,9 +264,43 @@
                 </div>
             </div>
 
-            <!-- 折叠按钮 -->
-            <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" circle
+            <!-- 摘要 -->
+            <transition name="sidebar-collapse">
+                <div class="article-sidebar" v-if="summaryDialogVisible">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title-row">
+                            <h3>{{ t('summary') }}</h3>
+                        </div>
+                    </div>
+                    <el-scrollbar style="overflow: auto;">
+                        <div class="article-summary">
+                            <el-tree
+                                v-if="treeData && treeData.length > 0"
+                                :data="treeData"
+                                :props="{
+                                    children: 'children',
+                                    label: 'label'
+                                }"
+                                @node-click="handleNodeClick"
+                                node-key="id"
+                                default-expand-all
+                                highlight-current
+                                class="summary-tree"
+                            />
+                            <div v-else class="summary-empty">
+                                <p>{{ t('selectArticle') }}</p>
+                            </div>
+                        </div>
+                    </el-scrollbar>
+                </div>
+            </transition>           
+
+            <!-- 左侧折叠按钮 -->
+            <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" style="left: 10px;" circle
                 @click="isSidebarCollapsed = !isSidebarCollapsed" icon="Expand" />
+            <!-- 右侧折叠按钮 -->
+            <el-button class="collapse-btn" :class="{ 'collapsed': summaryDialogVisible }" :style="summaryDialogVisible? 'right: 10px;': 'right: 25px;'" circle
+                @click="summaryDialogVisible = !summaryDialogVisible" icon="Expand" />
         </div>
     </el-main>
 
@@ -183,26 +369,6 @@
         </div>
     </transition>
 
-    <!-- 摘要弹窗 -->
-    <transition name="modal-fade">
-        <div v-if="summaryDialogVisible" class="summary-modal-overlay">
-            <div class="summary-modal" :style="{
-                width: isMobileRef ? '80%' : '300px',
-            }" @click.stop>
-                <div class="summary-modal-header"
-                    style="background: #f5f7fa; padding: 10px 15px; border-bottom: 1px solid #ebeef5;">
-                    <span class="summary-modal-title" style="font-weight: 500; color: #303133;">{{ t('summary')
-                        }}</span>
-                </div>
-                <div class="summary-modal-body"
-                    style="padding: 15px; max-height: 60vh; overflow-y: auto; background: white;">
-                    <el-tree :data="treeData" :props="{ children: 'children', label: 'label' }"
-                        style="background: transparent;" node-key="id" highlight-current
-                        :expand-on-click-node="false" />
-                </div>
-            </div>
-        </div>
-    </transition>
 
     <!-- 删除确认弹窗 -->
     <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteArticle')" :content="t('deleteConfirm')"
@@ -222,6 +388,7 @@ import Cookies from 'js-cookie'
 import { request } from '../api/request'
 import { calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '../utils/utils'
 import Modal from './Modal.vue'
+import { removeMarkdownSymbols } from '../utils/markdown'
 
 // 路由
 const route = useRoute()
@@ -409,15 +576,99 @@ const handleCategorySelect = (index) => {
 
 // 摘要相关
 const summaryDialogVisible = ref(true)
-const treeData = ref([
-    {
-        label: 'Level one 1',
-        children: [
-            { label: 'Level two 1-1' }
-        ]
-    },
-    // 添加更多节点
-])
+const treeData = ref([])
+
+// 生成文章目录树
+const generateToc = (content, type) => {
+    if (!content) return []
+    let headings = []
+    
+    if (type === 1) {
+        // 普通文本类型 - 提取包含 # 的行作为标题
+        const lines = content.split('\n')
+        lines.forEach((line, index) => {
+            // 从两个 # 开始提取，一方面避免python语言注释，另一方面一级标题在本处渲染过大，不使用
+            const match = line.match(/^(#{2,6})\s+(.+)$/)
+            if (match) {
+                const level = match[1].length
+                const text = match[2].trim()
+                headings.push({
+                    level,
+                    text,
+                    lineIndex: index,
+                    id: `heading-${index}`
+                })
+            }
+        })
+    } else if (type === 2) {
+        // Markdown类型 - 使用正则提取标题
+        const headingRegex = /^(#{2,6})\s+(.+)$/gm
+        let match
+        let lineIndex = 0
+        
+        while ((match = headingRegex.exec(content)) !== null) {
+            const level = match[1].length
+            const text = match[2].trim()
+            // 计算行号
+            const contentBefore = content.substring(0, match.index)
+            lineIndex = contentBefore.split('\n').length - 1
+            
+            headings.push({
+                level,
+                text,
+                lineIndex,
+                id: `heading-${lineIndex}`
+            })
+        }
+    }
+    
+    // 构建树形结构
+    const tree = []
+    const stack = []
+    
+    headings.forEach(heading => {
+        const node = {
+            id: heading.id,
+            label: removeMarkdownSymbols(heading.text),
+            lineIndex: heading.lineIndex,
+            children: []
+        }
+        
+        // 找到正确的父节点
+        while (stack.length > 0 && stack[stack.length - 1].level >= heading.level) {
+            stack.pop()
+        }
+        
+        if (stack.length === 0) {
+            tree.push(node)
+        } else {
+            stack[stack.length - 1].children.push(node)
+        }
+        
+        stack.push({...node, level: heading.level})
+    })
+    
+    return tree
+}
+
+// 点击目录节点跳转到对应位置
+const handleNodeClick = (data) => {
+    if (data.lineIndex !== undefined) {
+        // 滚动到对应位置
+        const contentElement = document.querySelector('.article-content-body')
+        if (contentElement) {
+            // 找到对应的标题元素
+            const headings = contentElement.querySelectorAll('h2, h3, h4, h5, h6')
+            const curr_heading = Array.from(headings).filter((item) => item.innerText === data.label)[0]
+            if (curr_heading) {
+                curr_heading.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                })
+            }
+        }
+    }
+}
 
 // 搜索相关
 const searchDialogVisible = ref(false)
@@ -547,6 +798,8 @@ const getArticleContent = async () => {
             return
         }
         currentArticle.value = res.data.article;
+        // 生成目录树
+        treeData.value = generateToc(currentArticle.value.content, currentArticle.value.type);
     } catch (error) {
         console.error(error)
     }
@@ -648,6 +901,7 @@ onBeforeUnmount(() => {
     display: flex;
     gap: 30px;
     min-height: calc(100vh - 200px);
+    /* height: 90vh; */
 }
 
 /* 左侧菜单样式 */
@@ -671,6 +925,11 @@ onBeforeUnmount(() => {
 
 .collapse-btn {
     transition: transform 0.3s ease;
+    position: absolute;
+    top: 10px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
 }
 
 .collapse-btn.collapsed {
@@ -685,7 +944,7 @@ onBeforeUnmount(() => {
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    height: 800px;
+    max-height: 800px;
     padding-bottom: 80px;
 }
 
@@ -775,7 +1034,6 @@ onBeforeUnmount(() => {
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    margin-bottom: 10px;
 }
 
 .sidebar-header h3 {
@@ -1096,17 +1354,6 @@ onBeforeUnmount(() => {
     margin-top: 4px;
 }
 
-.collapse-btn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    /* 调整位置 */
-    z-index: 1000;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-}
-
 /* 表单内的输入框样式覆盖 */
 :deep(.el-input__inner),
 :deep(.el-textarea__inner) {
@@ -1337,25 +1584,48 @@ onBeforeUnmount(() => {
     color: rgba(255, 255, 255, 0.9);
 }
 
-.summary-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+/* 摘要区域样式 */
+.article-summary {
+    padding: 20px;
 }
 
-.summary-modal {
-    background: rgba(76, 8, 125, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
+.summary-tree {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.summary-tree :deep(.el-tree-node__label) {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.summary-tree :deep(.el-tree-node__content) {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+
+.summary-tree :deep(.el-tree-node__content:hover) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.summary-tree :deep(.el-tree-node.is-current > .el-tree-node__content) {
+    background: rgba(139, 92, 246, 0.2);
+    color: #A78BFA;
+}
+
+.summary-tree :deep(.el-tree-node__expand-icon) {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.summary-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    padding: 20px;
 }
 </style>
