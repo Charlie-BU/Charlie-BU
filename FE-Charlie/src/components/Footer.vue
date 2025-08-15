@@ -34,7 +34,7 @@ const t = (key) => {
     background: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(20px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: 60px;
+    margin-top: 40px;
     height: auto;
 }
 
