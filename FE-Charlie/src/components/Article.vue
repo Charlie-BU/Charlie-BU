@@ -85,14 +85,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
+                                    }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -332,14 +332,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
+                                    }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -543,8 +543,8 @@ const translations = {
         isGeneratingSummary: '生成中...',
         generateSummary: '生成 AI 总结',
         regenerateSummary: '重新生成',
-        regenerateSuccess: 'AI 总结已重新生成',
-        regenerateFailed: 'AI 总结重新生成失败',
+        generateSuccess: 'AI 总结生成成功',
+        generateFailed: 'AI 总结生成失败',
     },
     English: {
         articleList: 'Article List',
@@ -573,8 +573,8 @@ const translations = {
         isGeneratingSummary: 'Generating...',
         generateSummary: 'Generate AI Summary',
         regenerateSummary: 'Regenerate',
-        regenerateSuccess: 'Summary regenerated',
-        regenerateFailed: 'Failed to regenerate summary',
+        generateSuccess: 'AI Summary Generated',
+        generateFailed: 'AI Summary Generation Failed',
     }
 }
 
@@ -1062,13 +1062,13 @@ const regenerate_article_AISummary = async () => {
             id: currentArticle.value.id
         })
         if (res.data.status === 200 || res.data.status === 201) {
-            ElMessage.success(t('regenerateSuccess'))
+            ElMessage.success(t('generateSuccess'))
             await renderAISummary(res.data.aiSummary)
         } else {
-            ElMessage.error(res.data.message || t('regenerateFailed'))
+            ElMessage.error(res.data.message || t('generateFailed'))
         }
     } catch (error) {
-        ElMessage.error(t('regenerateFailed'))
+        ElMessage.error(t('generateFailed'))
         console.error('重新生成AI总结失败:', error)
     }
 }
