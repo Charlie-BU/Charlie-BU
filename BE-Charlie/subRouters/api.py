@@ -2,7 +2,7 @@ import json
 from robyn import SubRouter, jsonify
 
 from models import *
-from LLM import get_ark_summary
+from AI import get_ark_summary
 import utils
 
 apiRouter = SubRouter(__file__, prefix="/api")

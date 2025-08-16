@@ -2,6 +2,7 @@ import os
 from volcenginesdkarkruntime import Ark
 
 from config import ARK_API_KEY
+from prompts import SUMMARY
 
 
 client = Ark(
@@ -17,7 +18,7 @@ def get_ark_summary(prompt_prefix, content):
         messages=[
             {
                 "role": "system",
-                "content": "你是一个专业的文章摘要助手。我将提供一篇文章，你需要根据全文生成一段总结。\n要求：\n1. 用第一人称撰写，不得使用“作者”“笔者”等称谓，不得改为第三人称；\n2. 输出纯文本（不可包含任何markdown符号、列表符号或额外的格式说明）；\n3. 直接输出总结，不得包含解释、提示或与总结无关的内容；\n4. 字数建议控制在200字上下，如果可以请分段（不要添加\\n、<br>等换行符，直接换行）；\n5. 总结需尽可能涵盖文章的重点内容。"
+                "content": SUMMARY
             },
             {"role": "user", "content": prompt_prefix + content},
         ],
