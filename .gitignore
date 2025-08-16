@@ -1,3 +1,6 @@
 BE-Charlie/config.py
 BE-Charlie/charlie.db
 FE-Charlie/dist
+
+**/__pycache__/
+**/.DS_Store
