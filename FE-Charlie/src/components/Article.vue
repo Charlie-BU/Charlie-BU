@@ -118,7 +118,8 @@
                 <div class="article-sidebar" v-if="summaryDialogVisible" style="overflow: auto;">
                     <div class="ai-summary">
                         <div class="sidebar-header">
-                            <div class="sidebar-title-row">
+                            <div class="sidebar-title-row" style="display: flex; justify-content: center; gap: 0;">
+                                <img src="@/assets/ai.png" alt="AI Icon" class="ai-icon" />
                                 <h3>{{ t('AISummary') }}</h3>
                             </div>
                         </div>
@@ -135,15 +136,21 @@
                                             <span v-else v-html="formattedSummary" class="summary-text"></span>
                                             <span v-if="isGeneratingSummary" class="cursor">|</span>
                                         </div>
-                                        <el-button class="add-article-btn" size="small" type="primary"
-                                            :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
-                                            style="float: right;"
-                                            :style="{ 'margin-top': isGeneratingSummary || formattedSummary ? '10px' : '0' }"
-                                            @click="regenerate_article_AISummary" icon="Refresh">
-                                            {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
-                                                ? t('regenerateSummary') : t('generateSummary')
-                                            }}
-                                        </el-button>
+                                        <div
+                                            style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
+                                            <el-button v-if="isGeneratingSummary" class="add-article-btn" size="small"
+                                                type="danger" style="background: red;" @click="stopAISummaryRender"
+                                                icon="CircleClose">
+                                                {{ t('stopGenerating') }}
+                                            </el-button>
+                                            <el-button class="add-article-btn" size="small" type="primary"
+                                                :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
+                                                @click="regenerate_article_AISummary" icon="Refresh">
+                                                {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
+                                                    ? t('regenerateSummary') : t('generateSummary')
+                                                }}
+                                            </el-button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div v-else class="summary-empty">
@@ -238,8 +245,8 @@
                     <div class="article-sidebar" style="width: 48%; overflow: auto;" v-if="summaryDialogVisible">
                         <div v-if="currentArticle.aiSummary" class="ai-summary">
                             <div class="sidebar-header">
-                                <div class="sidebar-title-row">
-                                    <h3>{{ t('AISummary') }}</h3>
+                                <div class="sidebar-title-row" style="display: flex; justify-content: center; gap: 0;">
+                                    <h3><img src="@/assets/ai.png" alt="AI Icon" class="ai-icon" />{{ t('AISummary') }}</h3>
                                 </div>
                             </div>
                             <el-scrollbar style="overflow: auto;">
@@ -454,6 +461,8 @@ import { calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } fr
 import Modal from './Modal.vue'
 import { removeMarkdownSymbols } from '../utils/markdown'
 
+import aiIcon from '@/assets/ai.png';
+
 // 路由
 const route = useRoute()
 const router = useRouter()
@@ -537,11 +546,12 @@ const translations = {
         searchArticle: '搜索',
         searchArticlePlaceholder: '输入文章标题或内容',
         summary: '摘要',
-        AISummary: '✨ AI 总结',
+        AISummary: 'AI 总结',
         generateSummaryFailed: '生成 AI 总结失败',
         noContent: '文章内容为空',
         isGeneratingSummary: '生成中...',
         generateSummary: '生成 AI 总结',
+        stopGenerating: '停止生成',
         regenerateSummary: '重新生成',
         generateSuccess: 'AI 总结生成成功',
         generateFailed: 'AI 总结生成失败',
@@ -567,11 +577,12 @@ const translations = {
         searchArticle: 'Search',
         searchArticlePlaceholder: 'Search articles by title or content',
         summary: 'Summary',
-        AISummary: '✨ AI Summary',
+        AISummary: 'AI Summary',
         generateSummaryFailed: 'Failed to generate summary',
         noContent: 'Article content is empty',
         isGeneratingSummary: 'Generating...',
         generateSummary: 'Generate AI Summary',
+        stopGenerating: 'Stop Generating',
         regenerateSummary: 'Regenerate',
         generateSuccess: 'AI Summary Generated',
         generateFailed: 'AI Summary Generation Failed',
@@ -1417,6 +1428,12 @@ onBeforeUnmount(() => {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+.ai-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
 }
 
 .article-content-body {
