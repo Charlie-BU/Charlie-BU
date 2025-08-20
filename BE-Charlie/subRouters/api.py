@@ -2,7 +2,7 @@ import json
 from robyn import SubRouter, jsonify
 
 from models import *
-from LLM import get_ark_summary
+from AI import get_ark_summary
 import utils
 
 apiRouter = SubRouter(__file__, prefix="/api")
@@ -483,9 +483,10 @@ async def add_article(request):
                       timeLastUpdated=datetime.now())
     isReleased = True if data.get("isReleased") == "true" else False
     article.isReleased = isReleased
-
-    aiSummary = get_ark_summary("文章内容如下：\n", content)
-    article.aiSummary = aiSummary
+    
+    if isReleased:
+        aiSummary = get_ark_summary("文章内容如下：\n", content)
+        article.aiSummary = aiSummary
 
     session.add(article)
     session.commit()
@@ -551,7 +552,7 @@ async def update_article(request):
     isReleased = True if data.get("isReleased") == "true" else False
     article.isReleased = isReleased
 
-    if isReleased == True:
+    if isReleased:
         aiSummary = get_ark_summary("文章内容如下：\n", article.content)
         article.aiSummary = aiSummary
 
