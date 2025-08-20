@@ -126,8 +126,8 @@
                             <div class="article-summary">
                                 <div v-if="currentArticle">
                                     <div class="ai-summary-content-wrapper">
-                                        <div v-if="aiSummary || isGeneratingSummary" class="ai-summary-content"
-                                            :class="{ 'streaming': isGeneratingSummary }">
+                                        <div v-if="aiSummary || isGeneratingSummary || isTyping"
+                                            class="ai-summary-content" :class="{ 'streaming': isGeneratingSummary }">
                                             <span v-if="isGeneratingSummary && !aiSummary"
                                                 class="generating-placeholder">
                                                 {{ t('isGeneratingSummary') }}
@@ -137,12 +137,12 @@
                                         </div>
                                         <div
                                             style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
-                                            <el-button v-if="isGeneratingSummary" class="add-article-btn" size="small"
-                                                type="danger" style="background: red;" @click="stopAISummaryRender"
-                                                icon="CircleClose">
+                                            <el-button v-if="isTyping" class="add-article-btn" size="small"
+                                                type="danger" style="background: red;"
+                                                @click="stopAISummaryRender(false)" icon="CircleClose">
                                                 {{ t('stopGenerating') }}
                                             </el-button>
-                                            <el-button class="add-article-btn" size="small" type="primary"
+                                            <el-button v-else class="add-article-btn" size="small" type="primary"
                                                 :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
                                                 @click="regenerate_article_AISummary" icon="Refresh">
                                                 {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
@@ -252,7 +252,8 @@
                                 <div class="article-summary">
                                     <div v-if="currentArticle">
                                         <div class="ai-summary-content-wrapper">
-                                            <div v-if="aiSummary || isGeneratingSummary" class="ai-summary-content"
+                                            <div v-if="aiSummary || isGeneratingSummary || isTyping"
+                                                class="ai-summary-content"
                                                 :class="{ 'streaming': isGeneratingSummary }">
                                                 <span v-if="isGeneratingSummary && !aiSummary"
                                                     class="generating-placeholder">
@@ -261,15 +262,21 @@
                                                 <span v-else v-html="formattedSummary" class="summary-text"></span>
                                                 <span v-if="isGeneratingSummary" class="cursor">|</span>
                                             </div>
-                                            <el-button class="add-article-btn" size="small" type="primary"
-                                                :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
-                                                style="float: right;"
-                                                :style="{ 'margin-top': isGeneratingSummary || formattedSummary ? '10px' : '0' }"
-                                                @click="regenerate_article_AISummary" icon="Refresh">
-                                                {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
-                                                    ? t('regenerateSummary') : t('generateSummary')
-                                                }}
-                                            </el-button>
+                                            <div
+                                                style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
+                                                <el-button v-if="isTyping" class="add-article-btn" size="small"
+                                                    type="danger" style="background: red;"
+                                                    @click="stopAISummaryRender(false)" icon="CircleClose">
+                                                    {{ t('stopGenerating') }}
+                                                </el-button>
+                                                <el-button v-else class="add-article-btn" size="small" type="primary"
+                                                    :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
+                                                    @click="regenerate_article_AISummary" icon="Refresh">
+                                                    {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
+                                                        ? t('regenerateSummary') : t('generateSummary')
+                                                    }}
+                                                </el-button>
+                                            </div>
                                         </div>
                                     </div>
                                     <div v-else class="summary-empty">
@@ -984,12 +991,21 @@ const handleDraftOrReleased = async (articleId) => {
 
 // AI摘要相关
 const aiSummary = ref('')
-const isGeneratingSummary = ref(false)
-const isCancelled = ref(false) // 添加取消标志
+const isGeneratingSummary = ref(false)      // 是否在调用接口生成中
+const isTyping = ref(false)                 // 是否在流式打印
+const isCancelled = ref(false)              // 是否被取消
 const formattedSummary = computed(() => {
     if (!aiSummary.value) return ''
     return aiSummary.value.replace(/\n/g, '<br>')
 })
+
+// DEBUG
+// setInterval(() => {
+//     console.log("isGeneratingSummary", isGeneratingSummary.value);
+//     console.log("isTyping", isTyping.value);
+//     console.log("isCancelled", isCancelled.value);
+//     console.log("");
+// }, 1000)
 
 // 渲染AI总结
 const renderAISummary = async (AISUMMARY) => {
@@ -997,7 +1013,7 @@ const renderAISummary = async (AISUMMARY) => {
         ElMessage.warning(t('noContent'))
         return
     }
-    isGeneratingSummary.value = true
+    isTyping.value = true
     isCancelled.value = false // 重置取消标志
     aiSummary.value = ''
 
@@ -1014,15 +1030,18 @@ const renderAISummary = async (AISUMMARY) => {
         console.error('生成AI总结失败:', error)
         ElMessage.error(t('generateSummaryFailed'))
     } finally {
-        isGeneratingSummary.value = false
+        isTyping.value = false
     }
 }
 
 // 停止AI总结渲染
-const stopAISummaryRender = () => {
+const stopAISummaryRender = (clean = true) => {
     isCancelled.value = true // 设置取消标志
     isGeneratingSummary.value = false
-    aiSummary.value = ''
+    isTyping.value = false
+    if (clean) {
+        aiSummary.value = ''
+    }
 }
 
 // 流式效果
@@ -1060,6 +1079,7 @@ const streamEffect = async (text) => {
             }
         })
     }
+    isTyping.value = false
 }
 
 const regenerate_article_AISummary = async () => {
@@ -1071,6 +1091,7 @@ const regenerate_article_AISummary = async () => {
         })
         if (res.data.status === 200 || res.data.status === 201) {
             ElMessage.success(t('generateSuccess'))
+            isGeneratingSummary.value = false
             await renderAISummary(res.data.aiSummary)
         } else {
             ElMessage.error(res.data.message || t('generateFailed'))
@@ -1086,6 +1107,7 @@ onBeforeUnmount(() => {
     document.removeEventListener('keydown', handleKeyDown)
     // 组件卸载时取消正在进行的生成
     stopAISummaryRender()
+    isCancelled.value = false;
 })
 </script>
 
