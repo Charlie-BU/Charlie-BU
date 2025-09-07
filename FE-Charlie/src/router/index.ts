@@ -1,17 +1,16 @@
 import { createRouter, createWebHistory } from "vue-router";
+import {
+    type RouteLocationNormalized,
+    type NavigationGuardNext,
+} from "vue-router";
+
 import Home from "../components/Home.vue";
 import Login from "../components/Login.vue";
 import Article from "../components/Article.vue";
 import ArticleEditor from "../components/ArticleEditor.vue";
 import Traveling from "../components/Traveling.vue";
 import Dating from "../components/Dating/index.vue";
-
-import Cookies from "js-cookie";
-import { request } from "../api/request";
-import {
-    type RouteLocationNormalized,
-    type NavigationGuardNext,
-} from "vue-router";
+import { checkSessionId } from "../utils/utils";
 
 // 管理员权限验证
 const adminAuthGuard = async (
@@ -20,17 +19,10 @@ const adminAuthGuard = async (
     _from: RouteLocationNormalized,
     next: NavigationGuardNext
 ) => {
-    try {
-        const res = await request.post("/api/check_sessionid", {
-            sessionid: Cookies.get("sessionid"),
-        });
-        if (res.data.status === 200 && res.data.admin_id) {
-            next();
-        } else {
-            next("/");
-        }
-    } catch (error) {
-        console.error("权限验证失败:", error);
+    const admin_id = await checkSessionId();
+    if (admin_id) {
+        next();
+    } else {
         next("/");
     }
 };
