@@ -4,6 +4,8 @@ import Login from "../components/Login.vue";
 import Article from "../components/Article.vue";
 import ArticleEditor from "../components/ArticleEditor.vue";
 import Traveling from "../components/Traveling.vue";
+import Dating from "../components/Dating/index.vue";
+
 import Cookies from "js-cookie";
 import { request } from "../api/request";
 import {
@@ -70,6 +72,11 @@ const routes = [
         path: "/traveling",
         name: "Traveling",
         component: Traveling,
+    },
+    {
+        path: "/dating",
+        name: "Dating",
+        component: Dating,
     },
 ];
 

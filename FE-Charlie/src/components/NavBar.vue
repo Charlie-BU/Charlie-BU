@@ -8,6 +8,7 @@
                 <el-menu-item index="/">{{ t('home') }}</el-menu-item>
                 <el-menu-item index="/articles">{{ t('articles') }}</el-menu-item>
                 <el-menu-item index="/traveling">{{ t('traveling') }}</el-menu-item>
+                <el-menu-item index="/dating">{{ t('dating') }}</el-menu-item>
             </el-menu>
             <!-- 退出登录按钮 -->
             <el-button v-if="isLoggedIn && !isMobileRef" class="logout-button" type="danger" size="small"
@@ -68,6 +69,7 @@ const translations = reactive({
         articles: '文章',
         daily: '日常',
         traveling: '旅行',
+        dating: '恋爱',
         logout: '退出登录',
         logoutSuccess: '已成功退出登录'
     },
@@ -76,6 +78,7 @@ const translations = reactive({
         articles: 'Articles',
         daily: 'Daily',
         traveling: 'Traveling',
+        dating: 'Dating',
         logout: 'Logout',
         logoutSuccess: 'Successfully logged out'
     }
