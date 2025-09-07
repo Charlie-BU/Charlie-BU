@@ -3,8 +3,8 @@
         <!-- 左侧导航栏 -->
         <div class="dating-sidebar">
             <div class="dating-logo">
-                <div class="heart-icon">❤️</div>
-                <h3>甜蜜空间</h3>
+                <div class="heart-icon">💞</div>
+                <h3>{{ t("weTwo") }}</h3>
             </div>
             <div class="dating-tabs">
                 <div v-for="(tab, index) in tabs" :key="index" class="dating-tab-item"
@@ -27,6 +27,31 @@
 <script setup>
 import { ref, computed, defineAsyncComponent } from 'vue';
 
+// 多语言支持
+const LANG = localStorage.getItem("LANG") || "Chinese";
+const translations = {
+    Chinese: {
+        weTwo: "我们俩",
+        activities: "100件小事",
+        anniversaryies: "纪念日",
+        album: "恋爱相册",
+        diary: "心情日记",
+        period: "经期记录",
+    },
+    English: {
+        weTwo: "Space for us",
+        activities: "100 things",
+        anniversaryies: "Anniversaries",
+        album: "Album",
+        diary: "Diary",
+        period: "Period Tracker",
+    }
+}
+// 翻译函数
+const t = (key) => {
+    return translations[LANG][key] || key
+}
+
 // 异步加载子组件
 const Activities = defineAsyncComponent(() => import('./Activities.vue'));
 const Anniversary = defineAsyncComponent(() => import('./Anniversary.vue'));
@@ -36,11 +61,11 @@ const PeriodTracker = defineAsyncComponent(() => import('./PeriodTracker.vue'));
 
 // 定义标签页
 const tabs = [
-    { name: 'activities', label: '一起做的事', icon: '🎯', component: Activities },
-    { name: 'anniversary', label: '纪念日', icon: '🎂', component: Anniversary },
-    { name: 'gallery', label: '恋爱相册', icon: '📷', component: Gallery },
-    { name: 'diary', label: '心情日记', icon: '📝', component: Diary },
-    { name: 'period', label: '经期记录', icon: '📅', component: PeriodTracker },
+    { name: 'activities', label: t('activities'), icon: '🎯', component: Activities },
+    { name: 'anniversary', label: t('anniversaryies'), icon: '🎂', component: Anniversary },
+    { name: 'gallery', label: t('album'), icon: '📷', component: Gallery },
+    { name: 'diary', label: t('diary'), icon: '📝', component: Diary },
+    { name: 'period', label: t('period'), icon: '📅', component: PeriodTracker },
 ];
 
 // 当前激活的标签页
