@@ -39,7 +39,7 @@ import Cookies from 'js-cookie'
 import { ElMessage } from 'element-plus'
 
 import { request } from '../api/request'
-import { getFingerprint, isMobile } from '../utils/utils'
+import { checkSessionId, getFingerprint, isMobile } from '../utils/utils'
 
 const router = useRouter()
 const route = useRoute()
@@ -50,7 +50,7 @@ const isLoggedIn = ref(false)
 const isMobileRef = ref(isMobile())
 
 onMounted(async () => {
-    checkLoginStatus()
+    isLoggedIn.value = await checkSessionId() ? true : false;
     await newVisitor()
 })
 
@@ -86,13 +86,6 @@ const translations = reactive({
 // 翻译函数
 const t = (key) => {
     return translations[LANG.value][key] || key
-}
-
-const checkLoginStatus = () => {
-    const sessionid = Cookies.get('sessionid')
-    if (sessionid && sessionid.length > 20) {
-        isLoggedIn.value = true
-    }
 }
 
 const newVisitor = async () => {

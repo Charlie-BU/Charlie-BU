@@ -2,70 +2,37 @@
     <el-main class="main-content">
         <section class="activities-section">
             <div class="section-title">
-                <h2>100 件小事 <span class="emoji">🎯</span>
-                    <span class="corner-count">已完成 {{ completedActivities.length }}/{{ activities.length }} 件</span>
+                <h2>{{ t('activities') }} <span class="emoji">🎯</span>
+                    <span class="corner-count">{{ t('completed') }} {{activities.filter(item =>
+                        item.imageUrl).length}}/{{ activities.length }} {{ t('items') }}</span>
                 </h2>
             </div>
-            <!-- 添加新活动表单 -->
-            <!-- <div class="add-activity-form">
-            <h3>添加新活动</h3>
-            <el-form :model="newActivity" label-position="top">
-                <el-form-item label="活动名称">
-                    <el-input v-model="newActivity.title" placeholder="例如：一起去看电影"></el-input>
-                </el-form-item>
-
-                <el-form-item label="活动描述">
-                    <el-input v-model="newActivity.description" type="textarea" placeholder="描述一下这个活动..."
-                        :rows="3"></el-input>
-                </el-form-item>
-
-                <el-form-item label="活动日期">
-                    <el-date-picker v-model="newActivity.date" type="date" placeholder="选择日期" format="YYYY/MM/DD"
-                        value-format="YYYY-MM-DD"></el-date-picker>
-                </el-form-item>
-
-                <el-form-item label="活动图片">
-                    <el-upload class="activity-uploader" action="#" :auto-upload="false" :on-change="handleImageChange"
-                        :limit="1" list-type="picture-card">
-                        <el-icon>
-                            <Plus />
-                        </el-icon>
-                        <template #file="{ file }">
-                            <div class="upload-image-preview">
-                                <img class="upload-image" :src="file.url" alt="活动图片" />
-                            </div>
-                        </template>
-</el-upload>
-</el-form-item>
-
-<el-form-item label="完成状态">
-    <el-switch v-model="newActivity.completed" active-text="已完成" inactive-text="计划中" inline-prompt></el-switch>
-</el-form-item>
-
-<el-form-item>
-    <el-button type="primary" @click="addActivity" :disabled="!newActivity.title">
-        <el-icon>
-            <Plus />
-        </el-icon> 添加活动
-    </el-button>
-</el-form-item>
-</el-form>
-</div> -->
 
             <el-row :gutter="24" class="activities-grid">
                 <el-col :xs="24" :sm="12" :md="6" v-for="(activity, index) in activities" :key="index"
                     style="margin-top: 50px;">
-                    <el-card class="activity-card" shadow="hover" @click.stop="showActivityDetails(activity)"
-                        ref="activityCards">
+                    <el-card class="activity-card" shadow="hover" ref="activityCards">
                         <div class="activity-header">
                             <h3>{{ activity.title }}</h3>
-                            <div class="activity-date">{{ formatDateRange(activity.date, null, LANG) }}</div>
+                            <div v-if="activity.date" class="activity-date">{{ formatDateRange(activity.date, null,
+                                LANG) }}</div>
+                            <div v-else class="activity-date">{{ t("futureDay") }}</div>
                         </div>
-                        <p class="activity-description">{{ activity.description }}</p>
-                        <div class="activity-photos" v-if="activity.image"
+                        <p v-if="activity.description" class="activity-description">{{ activity.description }}</p>
+                        <p v-else class="activity-description">{{ t("waiting") }}</p>
+                        <div class="activity-photos" v-if="activity.imageUrl"
                             :style="{ padding: isMobileRef ? '0 25px' : '0 35px', display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }">
-                            <el-image :key="activity.image" :src="activity.image" fit="cover" class="activity-photo"
-                                lazy @click.stop="openPhotoPreview(activity, 0)"></el-image>
+                            <el-image :key="activity.thumb_url" :src="activity.thumb_url" fit="cover"
+                                class="activity-photo" lazy @click.stop="openPhotoPreview(activity, 0)"></el-image>
+                        </div>
+                        <div class="activity-photos" v-else
+                            :style="{ padding: isMobileRef ? '0 25px' : '0 35px', display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }">
+                            <div class="activity-photo placeholder" @click.stop="openAddModal(activity)">
+                                <el-icon :size="48">
+                                    <Unlock />
+                                </el-icon>
+                                <div class="placeholder-text">{{ t('clickToUnlock') }}</div>
+                            </div>
                         </div>
                     </el-card>
                 </el-col>
@@ -77,18 +44,41 @@
             :showCancel="false" :showConfirm="false">
             <div class="photo-preview-container">
                 <div class="photo-preview-image-container">
-                    <img v-if="currentActivity && currentActivity.image" :src="currentActivity.image"
+                    <img v-if="currentActivity && currentActivity.imageUrl" :src="currentActivity.imageUrl"
                         class="preview-image" />
                 </div>
             </div>
+        </Modal>
+
+        <!-- 添加图片/信息表单弹窗 -->
+        <Modal v-model:visible="addFormVisible" type="form" :title="currentActivityTitle" :confirm-text="t('unlock')"
+            @confirm="handleAddConfirm">
+            <template #form>
+                <el-form :model="addForm">
+                    <el-form-item :label="t('date')">
+                        <el-date-picker v-model="addForm.date" type="date" :placeholder="t('datePlaceholder')"
+                            format="YYYY/MM/DD" value-format="YYYY-MM-DD" />
+                    </el-form-item>
+                    <el-form-item :label="t('description')">
+                        <el-input v-model="addForm.description" type="textarea" :rows="3"
+                            :placeholder="t('descriptionPlaceholder')" />
+                    </el-form-item>
+                    <el-form-item :label="t('image')">
+                        <el-upload class="activity-uploader" action="#" :auto-upload="false"
+                            :on-change="handleAddImageChange" :limit="1" list-type="picture-card">
+                        </el-upload>
+                    </el-form-item>
+                </el-form>
+            </template>
         </Modal>
     </el-main>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
-import { Plus, ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
+import { Unlock } from '@element-plus/icons-vue'
+import { request } from '../../api/request'
 import { isMobile, formatDateRange, getDate } from '../../utils/utils';
 import Modal from '../Modal.vue';
 
@@ -96,6 +86,58 @@ const isMobileRef = ref(isMobile());
 
 // 语言设置
 const LANG = localStorage.getItem("LANG") || "Chinese";
+
+// 多语言支持
+const translations = {
+    Chinese: {
+        futureDay: "未来的某天",
+        waiting: "待解锁",
+        activities: "100 件小事",
+        completed: "已完成",
+        items: "件",
+        date: "日期",
+        datePlaceholder: "选择日期",
+        description: "留言",
+        descriptionPlaceholder: "一些甜蜜瞬间...",
+        image: "图片",
+        unlock: "解锁",
+        cancel: "取消",
+        clickToUnlock: "点击解锁",
+        pleaseCompleteForm: "请填写完整",
+        unlockSuccess: "解锁成功"
+    },
+    English: {
+        futureDay: "Some Day in the Future",
+        waiting: "Waiting to Unlock",
+        activities: "100 Moments",
+        completed: "Completed",
+        items: "",
+        date: "Date",
+        datePlaceholder: "Pick a date",
+        description: "Description",
+        descriptionPlaceholder: "Some sweet moments...",
+        image: "Image",
+        unlock: "Unlock",
+        cancel: "Cancel",
+        clickToUnlock: "Click to Unlock",
+        pleaseCompleteForm: "Please complete the form",
+        unlockSuccess: "Unlock Success"
+    }
+}
+
+// 翻译函数
+const t = (key) => {
+    return translations[LANG][key] || key
+}
+
+onMounted(async () => {
+    // 获取活动数据
+    await getAllActivities();
+    // 在下一个tick中设置观察者，确保DOM已经更新
+    observeActivityCards();
+});
+
+const activities = ref([]);
 
 // 创建一个Map来存储已经观察的元素，避免重复观察
 const observedActivities = new Map();
@@ -137,79 +179,15 @@ const observeActivityCards = () => {
     if (activityObserver) {
         activityObserver.disconnect();
     }
-
     // 创建新的observer
     activityObserver = createObserver();
     const activityCardElements = document.querySelectorAll('.activity-card');
-
     activityCardElements.forEach((card, index) => {
         // 为每个card添加索引属性，用于在回调中找到对应的activity数据
         card.dataset.index = index;
         activityObserver.observe(card);
     });
 };
-
-onMounted(() => {
-    // 获取活动数据
-    fetchActivities();
-
-    // 在下一个tick中设置观察者，确保DOM已经更新
-    setTimeout(() => {
-        observeActivityCards();
-    }, 100);
-});
-
-// 状态管理
-const activities = ref([
-    {
-        id: 1,
-        title: '一起去看日出',
-        description: '在海边看日出，感受新的一天开始',
-        date: '2023-05-20',
-        image: 'https://picsum.photos/id/110/800/400',
-        completed: true
-    },
-    {
-        id: 2,
-        title: '一起做一顿晚餐',
-        description: '尝试做意大利面和沙拉',
-        date: '2023-06-15',
-        image: 'https://picsum.photos/id/292/800/400',
-        completed: true
-    },
-    {
-        id: 3,
-        title: '去环球影城',
-        description: '体验各种刺激的游乐设施',
-        date: '2023-12-25',
-        image: null,
-        completed: false
-    },
-    {
-        id: 4,
-        title: '一起去爬山',
-        description: '登上山顶，俯瞰城市美景',
-        date: '2024-01-15',
-        image: 'https://picsum.photos/id/29/800/400',
-        completed: false
-    },
-    {
-        id: 5,
-        title: '去海边度假',
-        description: '享受阳光、沙滩和海浪',
-        date: '2024-02-10',
-        image: 'https://picsum.photos/id/42/800/400',
-        completed: false
-    },
-    {
-        id: 6,
-        title: '一起学做甜点',
-        description: '尝试制作马卡龙和提拉米苏',
-        date: '2024-03-05',
-        image: 'https://picsum.photos/id/431/800/400',
-        completed: false
-    }
-]);
 
 // 监听activities数组变化，当有新的活动数据加载时重新设置观察者
 watch(() => activities.value.length, async (newLength, oldLength) => {
@@ -220,12 +198,6 @@ watch(() => activities.value.length, async (newLength, oldLength) => {
         observeActivityCards();
     }
 });
-
-// 显示活动详情
-const showActivityDetails = (activity) => {
-    console.log('Activity details:', activity);
-    // 这里可以添加显示详情的逻辑，比如打开一个对话框
-};
 
 // 图片预览相关
 const photoPreviewVisible = ref(false);
@@ -269,13 +241,15 @@ onBeforeUnmount(() => {
 });
 
 // 获取活动数据的函数，实际项目中可以从API获取
-const fetchActivities = async () => {
+const getAllActivities = async () => {
     try {
-        // 模拟API请求
-        // const response = await request.post("/api/dating/getActivities", {
-        //     lang: LANG,
-        // });
-        // activities.value = response.data.activities || [];
+        const res = await request.post("/dating/getAllActivities", {
+            lang: LANG,
+        });
+        activities.value = res.data.activities.map((item) => ({
+            ...item,
+            thumb_url: item.imageUrl ? `${item.imageUrl}?x-oss-process=image/resize,w_300` : ''
+        })) || [];
 
         // 这里使用的是静态数据，实际项目中应该替换为API调用
         console.log('Activities loaded:', activities.value.length);
@@ -285,10 +259,55 @@ const fetchActivities = async () => {
     }
 };
 
+// 添加图片/信息 - 弹窗与表单
+const addFormVisible = ref(false)
+const selectedActivity = ref(null)
+const addForm = ref({
+    date: '',
+    description: '',
+    imageFile: null,
+})
+
+const currentActivityTitle = ref("")
+const openAddModal = (activity) => {
+    selectedActivity.value = activity
+    addForm.value = {
+        date: activity.date || '',
+        description: activity.description || '',
+        imageFile: null,
+    }
+    currentActivityTitle.value = activity.title
+    addFormVisible.value = true
+}
+
+const handleAddImageChange = (file) => {
+    addForm.value.imageFile = file?.raw || null
+}
+
+const handleAddConfirm = async () => {
+    if (!addForm.value.date || !addForm.value.description || !addForm.value.imageFile) {
+        ElMessage.warning(t('pleaseCompleteForm'))
+        return
+    }
+    // 本地更新，后续可接入后端保存
+    const idx = activities.value.findIndex(a => a.id === selectedActivity.value.id)
+    if (idx !== -1) {
+        const previewUrl = URL.createObjectURL(addForm.value.imageFile)
+        const updated = {
+            ...activities.value[idx],
+            date: addForm.value.date,
+            description: addForm.value.description,
+            imageUrl: previewUrl,
+            thumb_url: previewUrl,
+        }
+        activities.value.splice(idx, 1, updated)
+    }
+    addFormVisible.value = false
+    ElMessage.success(t('unlockSuccess'))
+}
+
 // 计算属性：过滤活动列表
-const allActivities = computed(() => activities.value);
 const completedActivities = computed(() => activities.value.filter(item => item.completed));
-const plannedActivities = computed(() => activities.value.filter(item => !item.completed));
 </script>
 
 <style scoped>
@@ -416,6 +435,22 @@ const plannedActivities = computed(() => activities.value.filter(item => !item.c
     transform: scale(1.05);
 }
 
+.activity-photo.placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.placeholder-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
 /* 图片预览样式 */
 .photo-preview-container {
     display: flex;
@@ -472,6 +507,19 @@ const plannedActivities = computed(() => activities.value.filter(item => !item.c
 .photo-preview-counter {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.7);
+}
+
+/* 使添加图片上传区域背景透明 */
+.activity-uploader :deep(.el-upload--picture-card) {
+    background-color: transparent;
+}
+
+.activity-uploader :deep(.el-upload-list__item) {
+    background-color: transparent;
+}
+
+.activity-uploader :deep(.el-upload-list__item-thumbnail) {
+    background-color: transparent;
 }
 
 /* 响应式调整 */

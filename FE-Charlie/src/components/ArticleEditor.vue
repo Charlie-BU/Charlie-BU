@@ -144,6 +144,7 @@ import { request } from '../api/request'
 import MarkdownIt from 'markdown-it'
 import Cookies from 'js-cookie'
 import { markdownSign } from '../utils/markdown'
+import { checkSessionId } from '../utils/utils'
 
 // 初始化markdown-it
 const markdown = new MarkdownIt()
@@ -518,16 +519,8 @@ const publishArticle = async () => {
 
 // 检查管理员权限
 const checkAdminPermission = async () => {
-    try {
-        const res = await request.post('/api/check_sessionid', {
-            sessionid: Cookies.get('sessionid')
-        })
-        if (res.data.status !== 200 || !res.data.admin_id) {
-            ElMessage.error(t('unauthorized'))
-            router.push('/articles')
-        }
-    } catch (error) {
-        console.error('检查管理员权限失败:', error)
+    const admin_id = await checkSessionId()
+    if (!admin_id) {
         ElMessage.error(t('unauthorized'))
         router.push('/articles')
     }

@@ -367,6 +367,37 @@ class TravelPhoto(Base):
         return data
 
 
+class Activity(Base):
+    __tablename__ = "activity"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(Text)
+    title_ENG = Column(Text)
+    description = Column(Text)
+    description_ENG = Column(Text)
+    date = Column(Date)
+    imageUrl = Column(Text)
+
+    def to_json(self):
+        data = {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "date": self.date,
+            "imageUrl": self.imageUrl,
+        }
+        return data
+
+    def to_json_ENG(self):
+        data = {
+            "id": self.id,
+            "title": self.title_ENG,
+            "description": self.description_ENG,
+            "date": self.date,
+            "imageUrl": self.imageUrl,
+        }
+        return data
+
+
 # 创建所有表（被alembic替代）
 if __name__ == "__main__":
     Base.metadata.create_all(bind=engine)
