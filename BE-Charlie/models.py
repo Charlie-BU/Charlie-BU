@@ -18,7 +18,7 @@ engine = create_engine(
 )
 # 数据库表基类
 Base = declarative_base()
-naming_convention = {
+naming_convention = { 
     "ix": 'ix_%(column_0_label)s',
     "uq": "uq_%(table_name)s_%(column_0_name)s",
     "ck": "ck_%(table_name)s_%(column_0_name)s",

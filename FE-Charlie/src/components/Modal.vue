@@ -189,7 +189,7 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: 10;
     animation: overlay-enter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 

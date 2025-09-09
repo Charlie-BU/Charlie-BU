@@ -1,7 +1,6 @@
 import base64
 import hashlib
 import hmac
-import re
 import time
 from datetime import date
 import oss2
@@ -12,6 +11,10 @@ import uuid
 from config import LOGIN_SECRET, SESSION_EXPIRE_SECONDS, OSS_ACCESS_KEY_ID, OSS_ENDPOINT, OSS_BUCKET_NAME, OSS_ACCESS_KEY_SECRET, PREFIX
 from models import Session, PlaceBeenTo, TravelPhoto
 from redis_settings import redis_client
+
+
+AUTH = oss2.Auth(OSS_ACCESS_KEY_ID, OSS_ACCESS_KEY_SECRET)
+BUCKET = oss2.Bucket(AUTH, OSS_ENDPOINT, OSS_BUCKET_NAME)
 
 
 def generate_sessionid(user_id):
@@ -150,13 +153,12 @@ def get_footprint_from_ctrip():
         print(e)
 
 
+# 获取阿里云OSS中的旅行照片，并存到数据库
 def store_photos_from_oss_by_travelId(travelId: int):
     session = Session()
     travel = session.get(PlaceBeenTo, travelId)
     city = travel.city_ENG
     pref = f'images/travel/{city.lower().replace(" ", "")}/'
-    AUTH = oss2.Auth(OSS_ACCESS_KEY_ID, OSS_ACCESS_KEY_SECRET)
-    BUCKET = oss2.Bucket(AUTH, OSS_ENDPOINT, OSS_BUCKET_NAME)
     for obj in oss2.ObjectIterator(BUCKET, prefix=pref):
         url = PREFIX + obj.key
         if url.endswith('.jpg') or url.endswith('.png') or url.endswith('.jpeg'):
@@ -182,6 +184,22 @@ def store_all_photos():
             print(f"Failed to store photos for travel {travel_id}")
             continue
     session.close()
+
+
+def upload_file_to_OSS(file, folder: str):
+    temp_dir = os.path.join(os.getcwd(), 'tmp')  # 工作目录创建 'tmp' 文件夹
+    os.makedirs(temp_dir, exist_ok=True)
+    temp_path = os.path.join(temp_dir, file.filename)  # 临时文件路径
+    file.save(temp_path)
+
+    oss_path = f'{folder}/{file.filename}'
+    with open(temp_path, 'rb') as fileobj:
+        BUCKET.put_object(oss_path, fileobj)
+    # 文件URL
+    file_url = f'https://{OSS_BUCKET_NAME}.{OSS_ENDPOINT}/{oss_path}'
+    # 删除临时文件
+    os.remove(temp_path)
+    return file_url
 
 
 if __name__ == '__main__':

@@ -23,3 +23,10 @@ async def getAllActivities(request):
             "activities": [activity.to_json() if lang == "Chinese" else activity.to_json_ENG() for activity in activities]
         })
 
+
+@datingRouter.post("/unlockActivity")
+async def unlockActivity(request):
+    file = request.files.get('file')  # 获取上传的文件对象
+    if file:
+        file_url = upload_file_to_OSS(file, "uploads")
+        return {"file_url": file_url}
