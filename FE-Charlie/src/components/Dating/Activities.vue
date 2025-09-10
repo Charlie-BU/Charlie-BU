@@ -52,20 +52,21 @@
 
         <!-- 添加图片/信息表单弹窗 -->
         <Modal v-model:visible="addFormVisible" type="form" :title="currentActivityTitle" :confirm-text="t('unlock')"
-            @confirm="handleAddConfirm">
+            @confirm="handleConfirm">
             <template #form>
-                <el-form :model="addForm">
+                <el-form :model="unlockForm">
                     <el-form-item :label="t('date')">
-                        <el-date-picker v-model="addForm.date" type="date" :placeholder="t('datePlaceholder')"
+                        <el-date-picker v-model="unlockForm.date" type="date" :placeholder="t('datePlaceholder')"
                             format="YYYY/MM/DD" value-format="YYYY-MM-DD" />
                     </el-form-item>
                     <el-form-item :label="t('description')">
-                        <el-input v-model="addForm.description" type="textarea" :rows="3"
+                        <el-input v-model="unlockForm.description" type="textarea" :rows="3"
                             :placeholder="t('descriptionPlaceholder')" />
                     </el-form-item>
                     <el-form-item :label="t('image')">
                         <el-upload class="activity-uploader" action="#" :auto-upload="false"
-                            :on-change="handleAddImageChange" :limit="1" list-type="picture-card">
+                            :on-change="handleAddImageChange" :limit="1" list-type="picture-card" 
+                            accept="image/*" :before-upload="beforeImageUpload">
                         </el-upload>
                     </el-form-item>
                 </el-form>
@@ -104,7 +105,8 @@ const translations = {
         cancel: "取消",
         clickToUnlock: "点击解锁",
         pleaseCompleteForm: "请填写完整",
-        unlockSuccess: "解锁成功"
+        unlockSuccess: "解锁成功",
+        unlockFailed: "解锁失败"
     },
     English: {
         futureDay: "Some Day in the Future",
@@ -121,7 +123,8 @@ const translations = {
         cancel: "Cancel",
         clickToUnlock: "Click to Unlock",
         pleaseCompleteForm: "Please complete the form",
-        unlockSuccess: "Unlock Success"
+        unlockSuccess: "Unlock Success",
+        unlockFailed: "Unlock Failed"
     }
 }
 
@@ -165,7 +168,6 @@ const createObserver = () => {
                     // 这里可以添加加载图片或其他资源的逻辑
                     // 例如: fetchActivityImages(activity);
                 }
-
                 // 停止观察该元素
                 observer.unobserve(entry.target);
             }
@@ -243,7 +245,7 @@ onBeforeUnmount(() => {
 // 获取活动数据的函数，实际项目中可以从API获取
 const getAllActivities = async () => {
     try {
-        const res = await request.post("/dating/getAllActivities", {
+        const res = await request.post("/dating/get_all_activities", {
             lang: LANG,
         });
         activities.value = res.data.activities.map((item) => ({
@@ -262,7 +264,7 @@ const getAllActivities = async () => {
 // 添加图片/信息 - 弹窗与表单
 const addFormVisible = ref(false)
 const selectedActivity = ref(null)
-const addForm = ref({
+const unlockForm = ref({
     date: '',
     description: '',
     imageFile: null,
@@ -271,7 +273,7 @@ const addForm = ref({
 const currentActivityTitle = ref("")
 const openAddModal = (activity) => {
     selectedActivity.value = activity
-    addForm.value = {
+    unlockForm.value = {
         date: activity.date || '',
         description: activity.description || '',
         imageFile: null,
@@ -280,30 +282,53 @@ const openAddModal = (activity) => {
     addFormVisible.value = true
 }
 
-const handleAddImageChange = (file) => {
-    addForm.value.imageFile = file?.raw || null
+const beforeImageUpload = (file) => {
+    const isImage = file.type.startsWith('image/')
+    if (!isImage) {
+        ElMessage.error('只能上传图片文件！')
+        return false
+    }
+    return true
 }
 
-const handleAddConfirm = async () => {
-    if (!addForm.value.date || !addForm.value.description || !addForm.value.imageFile) {
+const handleAddImageChange = (file) => {
+    if (file?.raw && file.raw.type.startsWith('image/')) {
+        unlockForm.value.imageFile = file.raw
+    } else {
+        unlockForm.value.imageFile = null
+    }
+}
+
+const handleConfirm = async () => {
+    if (!unlockForm.value.date || !unlockForm.value.description || !unlockForm.value.imageFile) {
         ElMessage.warning(t('pleaseCompleteForm'))
         return
     }
-    // 本地更新，后续可接入后端保存
-    const idx = activities.value.findIndex(a => a.id === selectedActivity.value.id)
-    if (idx !== -1) {
-        const previewUrl = URL.createObjectURL(addForm.value.imageFile)
-        const updated = {
-            ...activities.value[idx],
-            date: addForm.value.date,
-            description: addForm.value.description,
-            imageUrl: previewUrl,
-            thumb_url: previewUrl,
+    try {
+        const formData = new FormData()
+        formData.append('activity_id', selectedActivity.value.id)
+        formData.append('date', unlockForm.value.date)
+        formData.append('description', unlockForm.value.description)
+        formData.append('image', unlockForm.value.imageFile)
+        
+        const res = await request.post('/dating/unlock_activity', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+
+        if (res.data.status === 200) {
+            ElMessage.success(t('unlockSuccess'))
+            getAllActivities()
+        } else {
+            ElMessage.error(res.data.message || t('unlockFailed'))
         }
-        activities.value.splice(idx, 1, updated)
+    } catch (error) {
+        console.error('解锁失败:', error)
+        ElMessage.error(t('unlockFailed'))
+    } finally {
+        addFormVisible.value = false
     }
-    addFormVisible.value = false
-    ElMessage.success(t('unlockSuccess'))
 }
 
 // 计算属性：过滤活动列表
