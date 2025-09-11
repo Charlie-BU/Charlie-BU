@@ -381,7 +381,9 @@ class Activity(Base):
         data = {
             "id": self.id,
             "title": self.title,
+            "title_ENG": self.title_ENG,
             "description": self.description,
+            "description_ENG": self.description_ENG,
             "date": self.date,
             "imageUrl": self.imageUrl,
         }
@@ -391,7 +393,9 @@ class Activity(Base):
         data = {
             "id": self.id,
             "title": self.title_ENG,
+            "title_ENG": self.title,
             "description": self.description_ENG,
+            "description_ENG": self.description,
             "date": self.date,
             "imageUrl": self.imageUrl,
         }

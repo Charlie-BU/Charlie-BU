@@ -302,12 +302,13 @@ const upcomingAnniversaries = computed(() => {
 }
 
 .section-title {
-  color: #be185d;
+  color: #ec4899;
   font-size: 2rem;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .emoji {
@@ -325,21 +326,24 @@ const upcomingAnniversaries = computed(() => {
 }
 
 .add-anniversary-form h3 {
-  color: #be185d;
+  color: #ec4899;
   margin-top: 0;
   margin-bottom: 20px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .anniversary-list h3 {
-  color: #be185d;
+  color: #ec4899;
   margin-bottom: 20px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .anniversary-list h4 {
-  color: #be185d;
+  color: #ec4899;
   margin-top: 30px;
   margin-bottom: 15px;
   font-size: 1.2rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .anniversary-cards {
@@ -384,8 +388,9 @@ const upcomingAnniversaries = computed(() => {
 .anniversary-content h4 {
   margin-top: 0;
   margin-bottom: 10px;
-  color: #be185d;
+  color: #ec4899;
   font-size: 1.2rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .anniversary-date {
@@ -409,7 +414,8 @@ const upcomingAnniversaries = computed(() => {
 .countdown-value {
   font-size: 2rem;
   font-weight: bold;
-  color: #be185d;
+  color: #ec4899;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .countdown-label {
@@ -426,7 +432,8 @@ const upcomingAnniversaries = computed(() => {
 
 .table-countdown {
   font-weight: bold;
-  color: #be185d;
+  color: #ec4899;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* 类型颜色 */

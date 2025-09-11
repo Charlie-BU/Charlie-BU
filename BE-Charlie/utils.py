@@ -7,6 +7,7 @@ import oss2
 import requests 
 import json
 import uuid
+import os
 
 from config import LOGIN_SECRET, SESSION_EXPIRE_SECONDS, OSS_ACCESS_KEY_ID, OSS_ENDPOINT, OSS_BUCKET_NAME, OSS_ACCESS_KEY_SECRET, PREFIX
 from models import Session, PlaceBeenTo, TravelPhoto
@@ -186,19 +187,34 @@ def store_all_photos():
     session.close()
 
 
-def upload_file_to_OSS(file, folder: str):
-    temp_dir = os.path.join(os.getcwd(), 'tmp')  # 工作目录创建 'tmp' 文件夹
-    os.makedirs(temp_dir, exist_ok=True)
-    temp_path = os.path.join(temp_dir, file.filename)  # 临时文件路径
-    file.save(temp_path)
+"""
+优化前的问题：
+- 需要创建临时目录和文件
+- 写入文件到磁盘再读取
+- 需要手动删除临时文件
+- 代码冗长，涉及文件I/O操作
+"""
+# def upload_file_to_OSS(file_name: str, file_binary: bytes, oss_folder: str):
+#     temp_dir = os.path.join(os.getcwd(), 'tmp')  # 工作目录创建 'tmp' 文件夹
+#     os.makedirs(temp_dir, exist_ok=True)
+#     temp_path = os.path.join(temp_dir, file_name)  # 临时文件路径
+#     with open(temp_path, 'wb') as f:
+#         f.write(file_binary)
+#     oss_path = f'/{oss_folder}/{file_name}'
+#     with open(temp_path, 'rb') as fileobj:
+#         BUCKET.put_object(oss_path, fileobj)
+#     # 文件URL
+#     file_url = f'https://{OSS_BUCKET_NAME}.{OSS_ENDPOINT}/{oss_path}'
+#     # 删除临时文件
+#     os.remove(temp_path)
+#     return file_url
 
-    oss_path = f'{folder}/{file.filename}'
-    with open(temp_path, 'rb') as fileobj:
-        BUCKET.put_object(oss_path, fileobj)
-    # 文件URL
+
+def upload_file_to_OSS(file_name: str, file_binary: bytes, oss_folder: str):
+    # 直接传二进制数据即可，无需创建临时文件
+    oss_path = f'{oss_folder}/{file_name}'
+    BUCKET.put_object(oss_path, file_binary)
     file_url = f'https://{OSS_BUCKET_NAME}.{OSS_ENDPOINT}/{oss_path}'
-    # 删除临时文件
-    os.remove(temp_path)
     return file_url
 
 

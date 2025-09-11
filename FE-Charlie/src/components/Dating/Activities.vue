@@ -40,7 +40,7 @@
         </section>
 
         <!-- 图片预览模态弹框 -->
-        <Modal v-model:visible="photoPreviewVisible" type="custom" :title="currentActivity?.title || ''"
+        <Modal v-model:visible="photoPreviewVisible" type="custom" :title="currentActivity?.title + ' | ' + currentActivity?.title_ENG || ''"
             :showCancel="false" :showConfirm="false">
             <div class="photo-preview-container">
                 <div class="photo-preview-image-container">
@@ -59,9 +59,13 @@
                         <el-date-picker v-model="unlockForm.date" type="date" :placeholder="t('datePlaceholder')"
                             format="YYYY/MM/DD" value-format="YYYY-MM-DD" />
                     </el-form-item>
-                    <el-form-item :label="t('description')">
+                    <el-form-item label="留言">
                         <el-input v-model="unlockForm.description" type="textarea" :rows="3"
-                            :placeholder="t('descriptionPlaceholder')" />
+                            placeholder="一些甜蜜瞬间..." />
+                    </el-form-item>
+                    <el-form-item label="(ENG)">
+                        <el-input v-model="unlockForm.description_ENG" type="textarea" :rows="3"
+                            placeholder="Some sweet moments..." />
                     </el-form-item>
                     <el-form-item :label="t('image')">
                         <el-upload class="activity-uploader" action="#" :auto-upload="false"
@@ -267,18 +271,14 @@ const selectedActivity = ref(null)
 const unlockForm = ref({
     date: '',
     description: '',
+    description_ENG: '',
     imageFile: null,
 })
 
 const currentActivityTitle = ref("")
 const openAddModal = (activity) => {
     selectedActivity.value = activity
-    unlockForm.value = {
-        date: activity.date || '',
-        description: activity.description || '',
-        imageFile: null,
-    }
-    currentActivityTitle.value = activity.title
+    currentActivityTitle.value = activity.title + " | " + activity.title_ENG
     addFormVisible.value = true
 }
 
@@ -300,7 +300,7 @@ const handleAddImageChange = (file) => {
 }
 
 const handleConfirm = async () => {
-    if (!unlockForm.value.date || !unlockForm.value.description || !unlockForm.value.imageFile) {
+    if (!unlockForm.value.date || !unlockForm.value.description || !unlockForm.value.description_ENG || !unlockForm.value.imageFile) {
         ElMessage.warning(t('pleaseCompleteForm'))
         return
     }
@@ -309,6 +309,7 @@ const handleConfirm = async () => {
         formData.append('activity_id', selectedActivity.value.id)
         formData.append('date', unlockForm.value.date)
         formData.append('description', unlockForm.value.description)
+        formData.append('description_ENG', unlockForm.value.description_ENG)
         formData.append('image', unlockForm.value.imageFile)
         
         const res = await request.post('/dating/unlock_activity', formData, {

@@ -385,12 +385,13 @@ const filteredDiaries = computed(() => {
 }
 
 .section-title {
-  color: #be185d;
+  color: #ec4899;
   font-size: 2rem;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .emoji {
@@ -408,9 +409,10 @@ const filteredDiaries = computed(() => {
 }
 
 .add-diary-form h3 {
-  color: #be185d;
+  color: #ec4899;
   margin-top: 0;
   margin-bottom: 20px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .mood-selector {
@@ -437,10 +439,10 @@ const filteredDiaries = computed(() => {
 
 .mood-item.active {
   background: rgba(255, 255, 255, 0.08);
-  border-color: #be185d;
+  border-color: #ec4899;
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
 }
 
 .mood-emoji {
@@ -453,8 +455,9 @@ const filteredDiaries = computed(() => {
 }
 
 .diary-list h3 {
-  color: #be185d;
+  color: #ec4899;
   margin-bottom: 20px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .diary-filter {
@@ -505,7 +508,8 @@ const filteredDiaries = computed(() => {
 .diary-title-section h4 {
   margin: 0;
   font-size: 1.1rem;
-  color: #be185d;
+  color: #ec4899;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .diary-mood-emoji {
@@ -540,9 +544,9 @@ const filteredDiaries = computed(() => {
 }
 
 .diary-tag {
-  background-color: #fdf2f8;
-  color: #be185d;
-  border-color: #fbcfe8;
+  background-color: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
+  border-color: rgba(236, 72, 153, 0.3);
 }
 
 /* 日记详情 */

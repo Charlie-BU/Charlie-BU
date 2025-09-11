@@ -341,12 +341,13 @@ const filteredPhotos = computed(() => {
 }
 
 .section-title {
-  color: #be185d;
+  color: #ec4899;
   font-size: 2rem;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .emoji {
@@ -364,9 +365,10 @@ const filteredPhotos = computed(() => {
 }
 
 .add-photo-form h3 {
-  color: #be185d;
+  color: #ec4899;
   margin-top: 0;
   margin-bottom: 20px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .photo-uploader {
@@ -393,8 +395,9 @@ const filteredPhotos = computed(() => {
 }
 
 .gallery-filter h3 {
-  color: #be185d;
+  color: #ec4899;
   margin-bottom: 15px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .filter-controls {
@@ -524,10 +527,10 @@ const filteredPhotos = computed(() => {
 }
 
 .photo-tag {
-  background: rgba(255, 255, 255, 0.08);
-  color: #be185d;
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(236, 72, 153, 0.3);
 }
 
 .photo-detail-actions {

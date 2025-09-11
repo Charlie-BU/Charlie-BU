@@ -491,12 +491,13 @@ const daysUntilNextPeriod = computed(() => {
 }
 
 .section-title {
-  color: #be185d;
+  color: #ec4899;
   font-size: 2rem;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .emoji {
@@ -539,8 +540,9 @@ const daysUntilNextPeriod = computed(() => {
 .overview-value {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #be185d;
+  color: #ec4899;
   margin-bottom: 5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .overview-subtitle {
@@ -569,8 +571,9 @@ const daysUntilNextPeriod = computed(() => {
 }
 
 .period-calendar h3 {
-  color: #be185d;
+  color: #ec4899;
   margin-bottom: 15px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .calendar-cell {
@@ -629,9 +632,10 @@ const daysUntilNextPeriod = computed(() => {
 }
 
 .record-period h3 {
-  color: #be185d;
+  color: #ec4899;
   margin-top: 0;
   margin-bottom: 20px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* 历史记录 */
@@ -640,22 +644,24 @@ const daysUntilNextPeriod = computed(() => {
 }
 
 .period-history h3 {
-  color: #be185d;
+  color: #ec4899;
   margin-bottom: 15px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .cycle-number {
   font-weight: bold;
-  color: #be185d;
+  color: #ec4899;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .symptom-tag {
   margin-right: 5px;
   margin-bottom: 5px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #be185d;
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(236, 72, 153, 0.3);
 }
 
 /* 响应式调整 */
