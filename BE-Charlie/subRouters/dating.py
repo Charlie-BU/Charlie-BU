@@ -27,11 +27,11 @@ async def unlock_activity(request):
     headers = request.headers
     cookie = utils.parse_cookie_string(headers.get("cookie"))
     sessionid = cookie.get("sessionid")
-    # if not cookie or not sessionid or not utils.check_sessionid(sessionid):
-    #     return jsonify({
-    #         "status": 403,
-    #         "message": "No permission",
-    #     })
+    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+        return jsonify({
+            "status": 403,
+            "message": "No permission",
+        })
 
     with Session() as session:
         # multipart/form-data 下，用 form_data 获取文本字段
@@ -73,11 +73,11 @@ async def delete_activity(request):
     headers = request.headers
     cookie = utils.parse_cookie_string(headers.get("cookie"))
     sessionid = cookie.get("sessionid")
-    # if not cookie or not sessionid or not utils.check_sessionid(sessionid):
-    #     return jsonify({
-    #         "status": 403,
-    #         "message": "No permission",
-    #     })
+    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+        return jsonify({
+            "status": 403,
+            "message": "No permission",
+        })
 
     with Session() as session:
         data = request.json()
