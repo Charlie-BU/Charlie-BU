@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import time
 from datetime import date
+from tkinter import SE
 import oss2
 import requests 
 import json
@@ -217,6 +218,40 @@ def upload_file_to_OSS(file_name: str, file_binary: bytes, oss_folder: str):
     file_url = f'https://{OSS_BUCKET_NAME}.{OSS_ENDPOINT}/{oss_path}'
     return file_url
 
+
+def add_activitys():
+    activities = [
+        {
+            "name": "一起去游乐园",
+            "name_ENG": "Go to the playground",
+        },
+        {
+            "name": "一起去博物馆",
+            "name_ENG": "Go to the museum",
+        },
+        {
+            "name": "一起去水族馆",
+            "name_ENG": "Go to the aquarium",
+        },
+        {
+            "name": "一起去动物园",
+            "name_ENG": "Go to the zoo",
+        },
+        {
+            "name": "一起去植物园",
+            "name_ENG": "Go to the botanical garden",
+        },
+    ]
+    with Session() as session:
+        for activity in activities:
+            new_activity = Activity(
+                name=activity["name"],
+                name_ENG=activity["name_ENG"],
+            )
+            session.add(new_activity)
+        session.commit()
+        print("Activities added")
+        
 
 if __name__ == '__main__':
     # get_footprint_from_ctrip()
