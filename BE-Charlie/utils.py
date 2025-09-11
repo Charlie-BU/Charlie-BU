@@ -255,4 +255,5 @@ def add_activitys():
 
 if __name__ == '__main__':
     # get_footprint_from_ctrip()
-    store_all_photos()
+    # store_all_photos()
+    add_activitys()
