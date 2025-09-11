@@ -8,10 +8,9 @@ import oss2
 import requests 
 import json
 import uuid
-import os
 
 from config import LOGIN_SECRET, SESSION_EXPIRE_SECONDS, OSS_ACCESS_KEY_ID, OSS_ENDPOINT, OSS_BUCKET_NAME, OSS_ACCESS_KEY_SECRET, PREFIX
-from models import Session, PlaceBeenTo, TravelPhoto
+from models import *
 from redis_settings import redis_client
 
 
