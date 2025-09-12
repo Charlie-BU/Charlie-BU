@@ -2,7 +2,7 @@
     <el-main class="main-content">
         <section class="activities-section">
             <div class="section-title">
-                <h2>{{ t('activities') }} <span class="emoji">🎯</span>
+                <h2>{{ activities.length }}{{ t('activities') }} <img :src="activityIcon" alt="" class="emoji" />
                     <span class="corner-count">{{ t('completed') }} {{activities.filter(item =>
                         item.imageUrl).length}}/{{ activities.length }} {{ t('items') }}</span>
                 </h2>
@@ -54,18 +54,21 @@
         <Modal v-model:visible="addFormVisible" type="form" :title="currentActivityTitle" :confirm-text="t('unlock')"
             @confirm="handleConfirm">
             <template #form>
-                <el-form :model="unlockForm">
+                <el-form :model="unlockForm" class="activity-form" :label-width="'80px'">
                     <el-form-item :label="t('date')">
                         <el-date-picker v-model="unlockForm.date" type="date" :placeholder="t('datePlaceholder')"
                             format="YYYY/MM/DD" value-format="YYYY-MM-DD" />
                     </el-form-item>
                     <el-form-item label="留言">
-                        <el-input v-model="unlockForm.description" type="textarea" :rows="3"
-                            placeholder="一些甜蜜瞬间..." />
+                        <div class="input-container">
+                            <el-input v-model="unlockForm.description" type="textarea" :rows="3"
+                                placeholder="一些甜蜜瞬间..." :disabled="isGeneratingDescription" />
+                            <img :src="aiIcon" class="ai-icon" @click="generateActivityDescription" />
+                        </div>
                     </el-form-item>
                     <el-form-item label="(ENG)">
                         <el-input v-model="unlockForm.description_ENG" type="textarea" :rows="3"
-                            placeholder="Some sweet moments..." />
+                            placeholder="Some sweet moments..." :disabled="isGeneratingDescription" />
                     </el-form-item>
                     <el-form-item :label="t('image')">
                         <el-upload class="activity-uploader" action="#" :auto-upload="false"
@@ -87,6 +90,9 @@ import { request } from '../../api/request'
 import { isMobile, formatDateRange, getDate } from '../../utils/utils';
 import Modal from '../Modal.vue';
 
+import aiIcon from '@/assets/ai.png';
+import activityIcon from '@/assets/activities.png';
+
 const isMobileRef = ref(isMobile());
 
 onMounted(async () => {
@@ -106,7 +112,7 @@ const translations = {
     Chinese: {
         futureDay: "未来的某天",
         waiting: "待解锁",
-        activities: `${activities.value.length}件小事`,
+        activities: `件小事`,
         completed: "已完成",
         items: "件",
         date: "日期",
@@ -124,7 +130,7 @@ const translations = {
     English: {
         futureDay: "Some Day in the Future",
         waiting: "Waiting to Unlock",
-        activities: `${activities.value.length} Moments`,
+        activities: ` Moments`,
         completed: "Completed",
         items: "",
         date: "Date",
@@ -269,13 +275,22 @@ const unlockForm = ref({
     date: '',
     description: '',
     description_ENG: '',
-    imageFile: null,
+    imageFile: null
 })
+
+// AI生成描述的加载状态
+const isGeneratingDescription = ref(false)
 
 const currentActivityTitle = ref("")
 const openAddModal = (activity) => {
     selectedActivity.value = activity
     currentActivityTitle.value = activity.title + " | " + activity.title_ENG
+    unlockForm.value = {
+        date: '',
+        description: '',
+        description_ENG: '',
+        imageFile: null,
+    }
     addFormVisible.value = true
 }
 
@@ -293,6 +308,44 @@ const handleAddImageChange = (file) => {
         unlockForm.value.imageFile = file.raw
     } else {
         unlockForm.value.imageFile = null
+    }
+}
+
+// 生成活动留言
+const generateActivityDescription = async () => {
+    if (!selectedActivity.value) {
+        ElMessage.warning('请先选择活动')
+        return
+    }
+    if (isGeneratingDescription.value) {
+        return
+    }
+    
+    isGeneratingDescription.value = true
+    unlockForm.value.description = "生成中..."
+    unlockForm.value.description_ENG = "Generating..."
+
+    try {
+        const res = await request.post('/dating/generate_activity_description', {
+            title: selectedActivity.value.title
+        })
+        
+        if (res.data.status === 200) {
+            unlockForm.value.description = res.data.description || ''
+            unlockForm.value.description_ENG = res.data.description_ENG || ''
+            ElMessage.success('AI留言生成成功')
+        } else {
+            unlockForm.value.description = ""
+            unlockForm.value.description_ENG = ""
+            ElMessage.error(res.data.message || 'AI留言生成失败')
+        }
+    } catch (error) {
+        unlockForm.value.description = ""
+        unlockForm.value.description_ENG = ""
+        console.error('生成留言失败:', error)
+        ElMessage.error('AI留言生成失败，请稍后重试')
+    } finally {
+        isGeneratingDescription.value = false
     }
 }
 
@@ -325,6 +378,12 @@ const handleConfirm = async () => {
         console.error('解锁失败:', error)
         ElMessage.error(t('unlockFailed'))
     } finally {
+        unlockForm.value = {
+            date: '',
+            description: '',
+            description_ENG: '',
+            imageFile: null,
+        }
         addFormVisible.value = false
     }
 }
@@ -355,7 +414,8 @@ const completedActivities = computed(() => activities.value.filter(item => item.
 }
 
 .emoji {
-    font-size: 1.8rem;
+    width: 20px;
+    height: 20px;
 }
 
 .section-title h2 .corner-count {
@@ -530,6 +590,73 @@ const completedActivities = computed(() => activities.value.filter(item => item.
 .photo-preview-counter {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.7);
+}
+
+.activity-form {
+    padding: 0;
+    margin-left: -20px;
+}
+
+.activity-form :deep(.el-form-item) {
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.activity-form :deep(.el-form-item__label) {
+    line-height: 32px;
+    font-weight: 500;
+    text-align: right;
+    padding-right: 12px;
+}
+
+.activity-form :deep(.el-form-item__content) {
+    line-height: 32px;
+    flex: 1;
+}
+
+.activity-form :deep(.el-date-editor) {
+    width: 100%;
+}
+
+.activity-form :deep(.el-textarea) {
+    width: 100%;
+}
+
+.activity-form :deep(.el-upload--picture-card) {
+    width: 100px;
+    height: 100px;
+    border: 2px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+
+.activity-form :deep(.el-upload--picture-card:hover) {
+    border-color: #409eff;
+}
+
+.input-container {
+    position: relative;
+    width: 100%;
+}
+
+.ai-icon {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.ai-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
 }
 
 /* 使添加图片上传区域背景透明 */

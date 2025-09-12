@@ -80,21 +80,20 @@ async def unlock_activity(request):
         })
 
 
-@datingRouter.post("/get_activity_description")
-async def get_activity_description(request):
-    headers = request.headers
-    cookie = utils.parse_cookie_string(headers.get("cookie"))
-    sessionid = cookie.get("sessionid")
-    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
-        return jsonify({
-            "status": 403,
-            "message": "No permission",
-        })
+@datingRouter.post("/generate_activity_description")
+async def generate_activity_description(request):
+    # headers = request.headers
+    # cookie = utils.parse_cookie_string(headers.get("cookie"))
+    # sessionid = cookie.get("sessionid")
+    # if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+    #     return jsonify({
+    #         "status": 403,
+    #         "message": "No permission",
+    #     })
 
     data = request.json()
     title = data.get("title")
     res = get_activity_description(title)
-
     return jsonify({
         "status": 200,
         "message": "获取成功",

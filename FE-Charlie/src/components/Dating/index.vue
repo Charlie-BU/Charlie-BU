@@ -82,7 +82,7 @@ onMounted(async () => {
 const LANG = localStorage.getItem("LANG") || "Chinese";
 const translations = {
     Chinese: {
-        activities: `${activityLength.value}件小事`,
+        activities: `件小事`,
         anniversaryies: "纪念日",
         album: "恋爱相册",
         diary: "心情日记",
@@ -92,7 +92,7 @@ const translations = {
         featureInDevelopment: "功能开发中"
     },
     English: {
-        activities: `${activityLength.value} Moments`,
+        activities: ` Moments`,
         anniversaryies: "Anniversaries",
         album: "Album",
         diary: "Diary",
@@ -123,7 +123,7 @@ const waitingMessage = computed(() => t('featureInDevelopment'));
 const tabs = [
     {
         name: 'activities',
-        label: t('activities'),
+        label: `${activityLength.value}${t('activities')}`,
         icon: activitiesIcon,
         component: Activities
     },

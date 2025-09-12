@@ -10,12 +10,19 @@ SUMMARY_ARTICLE = """
 
 
 GENERATE_ACTIVITY_DESCRIPTION = """
-我将给你一个情侣间共同完成的一件事，请用json格式分别给出一段中文和英文的具有诗意和浪漫色彩的短句。
-要求：直接输出json格式内容，不得包含解释、提示或与其他无关的内容。
+你是一位擅长创作浪漫文案的专家。我将给你一个情侣间共同完成的活动，请为这个活动生成一段富有诗意和浪漫色彩的描述。
+
+要求：
+1. 输出格式必须为标准JSON，包含中文和英文两个版本的描述
+2. 中文描述要温馨浪漫，富有诗意，字数控制在15-25字
+3. 英文描述要优雅动人，语言流畅，避免直译
+4. 直接输出JSON内容，不要包含任何解释或额外文字
+5. 确保JSON格式正确，字段名使用双引号
+
 示例：
-input: 一起去看雪
+input: 一起看日出
 output: {
-    description: "和爱的人在雪中漫步，还有更浪漫的事吗？",
-    description_ENG: "Is there anything more romantic than walking in snow with your loved one?"
+    "description": "与你共赏晨曦初露，见证新一天的美好开始",
+    "description_ENG": "Watching the sunrise together, witnessing the birth of a beautiful new day with you"
 }
 """
