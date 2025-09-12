@@ -31,7 +31,7 @@
                                 <el-icon :size="48">
                                     <Unlock />
                                 </el-icon>
-                                <div class="placeholder-text">{{ t('clickToUnlock') }}</div>
+                                <div class="placeholder-text">{{ admin_id ? t('clickToUnlock') : t('comingSoon') }}</div>
                             </div>
                         </div>
                     </el-card>
@@ -87,16 +87,17 @@ import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus';
 import { Unlock } from '@element-plus/icons-vue'
 import { request } from '../../api/request'
-import { isMobile, formatDateRange, getDate } from '../../utils/utils';
+import { checkSessionId, isMobile, formatDateRange, getDate } from '../../utils/utils';
 import Modal from '../Modal.vue';
 
 import aiIcon from '@/assets/ai.png';
 import activityIcon from '@/assets/activities.png';
 
 const isMobileRef = ref(isMobile());
+const admin_id = ref(null)
 
 onMounted(async () => {
-    // 获取活动数据
+    admin_id.value = await checkSessionId()
     await getAllActivities();
     // 在下一个tick中设置观察者，确保DOM已经更新
     observeActivityCards();
@@ -123,6 +124,7 @@ const translations = {
         unlock: "解锁",
         cancel: "取消",
         clickToUnlock: "点击解锁",
+        comingSoon: "敬请期待",
         pleaseCompleteForm: "请填写完整",
         unlockSuccess: "解锁成功",
         unlockFailed: "解锁失败"
@@ -141,6 +143,7 @@ const translations = {
         unlock: "Unlock",
         cancel: "Cancel",
         clickToUnlock: "Click to Unlock",
+        comingSoon: "Coming Soon",
         pleaseCompleteForm: "Please complete the form",
         unlockSuccess: "Unlock Success",
         unlockFailed: "Unlock Failed"
@@ -283,6 +286,10 @@ const isGeneratingDescription = ref(false)
 
 const currentActivityTitle = ref("")
 const openAddModal = (activity) => {
+    if (!admin_id.value) {
+        return
+    }
+
     selectedActivity.value = activity
     currentActivityTitle.value = activity.title + " | " + activity.title_ENG
     unlockForm.value = {

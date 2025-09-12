@@ -331,6 +331,14 @@ def add_activitys():
         print("Activities added")
         
 
+def add_():
+    with Session() as session:
+        user = Admin(name="小迪", password=Admin.hash_password("wangdi20050202"))
+        session.add(user)
+        session.commit()
+        print("success")
+        
+
 if __name__ == '__main__':
     # get_footprint_from_ctrip()
     # store_all_photos()
