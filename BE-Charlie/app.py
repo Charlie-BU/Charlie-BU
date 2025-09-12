@@ -1,9 +1,11 @@
 from robyn import Robyn, ALLOW_CORS
 
 from subRouters.api import apiRouter
+from subRouters.dating import datingRouter
 
 app = Robyn(__file__)
 app.include_router(apiRouter)
+app.include_router(datingRouter)
 # 生产环境需要注释：使用nginx解决跨域
 ALLOW_CORS(app, origins=["http://localhost:5173"])
 

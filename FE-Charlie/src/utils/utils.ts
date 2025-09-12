@@ -1,3 +1,21 @@
+import { request } from "../api/request";
+import Cookies from "js-cookie";
+
+export const checkSessionId = async () => {
+    try {
+        const res = await request.post("/api/check_sessionid", {
+            sessionid: Cookies.get("sessionid"),
+        });
+        if (!res.data.admin_id) {
+            Cookies.remove("sessionid");
+            return null;
+        }
+        return res.data.admin_id;
+    } catch (error) {
+        console.error("检查管理员权限失败:", error);
+    }
+};
+
 export const calcHashForArticleId = (articleId: number) => {
     // 添加一个密钥和偏移量增加安全性
     const secretKey = "Charlie'sArticles";

@@ -18,7 +18,7 @@ engine = create_engine(
 )
 # 数据库表基类
 Base = declarative_base()
-naming_convention = {
+naming_convention = { 
     "ix": 'ix_%(column_0_label)s',
     "uq": "uq_%(table_name)s_%(column_0_name)s",
     "ck": "ck_%(table_name)s_%(column_0_name)s",
@@ -363,6 +363,41 @@ class TravelPhoto(Base):
             "url": self.url,
             "travelId": self.travelId,
             "isShown": self.isShown,
+        }
+        return data
+
+
+class Activity(Base):
+    __tablename__ = "activity"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(Text)
+    title_ENG = Column(Text)
+    description = Column(Text)
+    description_ENG = Column(Text)
+    date = Column(Date)
+    imageUrl = Column(Text)
+
+    def to_json(self):
+        data = {
+            "id": self.id,
+            "title": self.title,
+            "title_ENG": self.title_ENG,
+            "description": self.description,
+            "description_ENG": self.description_ENG,
+            "date": self.date,
+            "imageUrl": self.imageUrl,
+        }
+        return data
+
+    def to_json_ENG(self):
+        data = {
+            "id": self.id,
+            "title": self.title_ENG,
+            "title_ENG": self.title,
+            "description": self.description_ENG,
+            "description_ENG": self.description,
+            "date": self.date,
+            "imageUrl": self.imageUrl,
         }
         return data
 

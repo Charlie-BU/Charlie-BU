@@ -189,7 +189,7 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: 10;
     animation: overlay-enter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -340,6 +340,10 @@ onBeforeUnmount(() => {
     box-shadow: none;
 }
 
+.form-content :deep(.el-form-item__label) {
+    color: rgba(255, 255, 255, 0.9);
+}
+
 .form-content :deep(.el-input__wrapper:hover),
 .form-content :deep(.el-input__wrapper.is-focus) {
     background: transparent;
@@ -347,10 +351,38 @@ onBeforeUnmount(() => {
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
-.form-content :deep(.el-textarea__inner),
+.form-content :deep(.el-textarea__inner) {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+}
+
 .form-content :deep(.el-input__inner) {
     background: transparent;
     color: rgba(255, 255, 255, 0.9);
+}
+
+.form-content :deep(.el-upload--picture-card) {
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.form-content :deep(.el-upload--picture-card)::before {
+    content: "+";
+    position: absolute;
+    font-size: 32px;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.form-content :deep(.el-upload-list__item) {
+    width: 100px;
+    height: 100px;
 }
 
 /* 添加el-select透明背景样式 */

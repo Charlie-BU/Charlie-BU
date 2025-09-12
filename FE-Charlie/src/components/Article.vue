@@ -85,14 +85,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                    }} {{ t('minute') }}</span>
+                                }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -246,7 +246,8 @@
                         <div v-if="currentArticle.aiSummary" class="ai-summary">
                             <div class="sidebar-header">
                                 <div class="sidebar-title-row" style="display: flex; justify-content: center; gap: 0;">
-                                    <h3><img src="@/assets/ai.png" alt="AI Icon" class="ai-icon" />{{ t('AISummary') }}</h3>
+                                    <h3><img src="@/assets/ai.png" alt="AI Icon" class="ai-icon" />{{ t('AISummary') }}
+                                    </h3>
                                 </div>
                             </div>
                             <el-scrollbar style="overflow: auto;">
@@ -346,14 +347,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                    }} {{ t('minute') }}</span>
+                                }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -464,7 +465,7 @@ import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js';
 import Cookies from 'js-cookie'
 import { request } from '../api/request'
-import { calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '../utils/utils'
+import { checkSessionId, calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '../utils/utils'
 import Modal from './Modal.vue'
 import { removeMarkdownSymbols } from '../utils/markdown'
 
@@ -474,8 +475,11 @@ import aiIcon from '@/assets/ai.png';
 const route = useRoute()
 const router = useRouter()
 
+// 管理员ID
+const admin_id = ref(null)
+
 onMounted(async () => {
-    await checkAdminPermission()
+    admin_id.value = await checkSessionId()
     await getArticles()
     await routeArticle()
     // 添加键盘事件监听
@@ -599,24 +603,6 @@ const translations = {
 // 翻译函数
 const t = (key) => {
     return translations[LANG][key] || key
-}
-
-// 管理员权限
-const admin_id = ref(false)
-
-// 检查管理员权限
-const checkAdminPermission = async () => {
-    try {
-        const res = await request.post('/api/check_sessionid', {
-            sessionid: Cookies.get('sessionid')
-        })
-        if (!res.data.admin_id) {
-            Cookies.remove('sessionid')
-        }
-        admin_id.value = res.data.admin_id
-    } catch (error) {
-        console.error('检查管理员权限失败:', error)
-    }
 }
 
 // 分类相关

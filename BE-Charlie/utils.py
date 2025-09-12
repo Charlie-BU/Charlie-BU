@@ -1,17 +1,21 @@
 import base64
 import hashlib
 import hmac
-import re
 import time
 from datetime import date
+from tkinter import SE
 import oss2
 import requests 
 import json
 import uuid
 
 from config import LOGIN_SECRET, SESSION_EXPIRE_SECONDS, OSS_ACCESS_KEY_ID, OSS_ENDPOINT, OSS_BUCKET_NAME, OSS_ACCESS_KEY_SECRET, PREFIX
-from models import Session, PlaceBeenTo, TravelPhoto
+from models import *
 from redis_settings import redis_client
+
+
+AUTH = oss2.Auth(OSS_ACCESS_KEY_ID, OSS_ACCESS_KEY_SECRET)
+BUCKET = oss2.Bucket(AUTH, OSS_ENDPOINT, OSS_BUCKET_NAME)
 
 
 def generate_sessionid(user_id):
@@ -150,13 +154,12 @@ def get_footprint_from_ctrip():
         print(e)
 
 
+# 获取阿里云OSS中的旅行照片，并存到数据库
 def store_photos_from_oss_by_travelId(travelId: int):
     session = Session()
     travel = session.get(PlaceBeenTo, travelId)
     city = travel.city_ENG
     pref = f'images/travel/{city.lower().replace(" ", "")}/'
-    AUTH = oss2.Auth(OSS_ACCESS_KEY_ID, OSS_ACCESS_KEY_SECRET)
-    BUCKET = oss2.Bucket(AUTH, OSS_ENDPOINT, OSS_BUCKET_NAME)
     for obj in oss2.ObjectIterator(BUCKET, prefix=pref):
         url = PREFIX + obj.key
         if url.endswith('.jpg') or url.endswith('.png') or url.endswith('.jpeg'):
@@ -184,6 +187,72 @@ def store_all_photos():
     session.close()
 
 
+"""
+优化前的问题：
+- 需要创建临时目录和文件
+- 写入文件到磁盘再读取
+- 需要手动删除临时文件
+- 代码冗长，涉及文件I/O操作
+"""
+# def upload_file_to_OSS(file_name: str, file_binary: bytes, oss_folder: str):
+#     temp_dir = os.path.join(os.getcwd(), 'tmp')  # 工作目录创建 'tmp' 文件夹
+#     os.makedirs(temp_dir, exist_ok=True)
+#     temp_path = os.path.join(temp_dir, file_name)  # 临时文件路径
+#     with open(temp_path, 'wb') as f:
+#         f.write(file_binary)
+#     oss_path = f'/{oss_folder}/{file_name}'
+#     with open(temp_path, 'rb') as fileobj:
+#         BUCKET.put_object(oss_path, fileobj)
+#     # 文件URL
+#     file_url = f'https://{OSS_BUCKET_NAME}.{OSS_ENDPOINT}/{oss_path}'
+#     # 删除临时文件
+#     os.remove(temp_path)
+#     return file_url
+
+
+def upload_file_to_OSS(file_name: str, file_binary: bytes, oss_folder: str):
+    # 直接传二进制数据即可，无需创建临时文件
+    oss_path = f'{oss_folder}/{file_name}'
+    BUCKET.put_object(oss_path, file_binary)
+    file_url = f'https://{OSS_BUCKET_NAME}.{OSS_ENDPOINT}/{oss_path}'
+    return file_url
+
+
+def add_activitys():
+    activities = [
+        {
+            "title": "一起去游乐园",
+            "title_ENG": "Go to the playground",
+        },
+        {
+            "title": "一起去博物馆",
+            "title_ENG": "Go to the museum",
+        },
+        {
+            "title": "一起去水族馆",
+            "title_ENG": "Go to the aquarium",
+        },
+        {
+            "title": "一起去动物园",
+            "title_ENG": "Go to the zoo",   
+        },
+        {
+            "title": "一起去植物园",
+            "title_ENG": "Go to the botanical garden",
+        },
+    ]
+    with Session() as session:
+        for activity in activities:
+            new_activity = Activity(
+                title=activity["title"],
+                title_ENG=activity["title_ENG"],
+            )
+            session.add(new_activity)
+        session.commit()
+        print("Activities added")
+        
+
 if __name__ == '__main__':
     # get_footprint_from_ctrip()
-    store_all_photos()
+    # store_all_photos()
+    add_activitys()

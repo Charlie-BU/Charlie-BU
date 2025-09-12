@@ -192,7 +192,7 @@ import { ElMessage } from 'element-plus';
 import Cookies from 'js-cookie';
 
 import { request } from '../api/request'
-import { isMobile } from '../utils/utils';
+import { checkSessionId, isMobile } from '../utils/utils';
 import Modal from './Modal.vue'
 
 const isMobileRef = ref(isMobile());
@@ -226,28 +226,11 @@ const t = (key) => {
     return translations[LANG][key] || key
 }
 
+const admin_id = ref(null);
 onMounted(async () => {
     await Promise.all([get_charlie(LANG), get_talents(LANG), get_achievements(LANG), get_growthTimeline(LANG), get_bubbles(LANG)]);
-    if (Cookies.get('sessionid')) {
-        await check_sessionid();
-    }
+    admin_id.value = await checkSessionId();
 })
-
-const admin_id = ref(false);
-const check_sessionid = async () => {
-    try {
-        const res = await request.post('/api/check_sessionid', {
-            sessionid: Cookies.get('sessionid')
-        });
-        if (!res.data.admin_id) {
-            Cookies.remove('sessionid');
-            return;
-        }
-        admin_id.value = res.data.admin_id;
-    } catch (error) {
-        console.log(error)
-    }
-}
 
 // 个人信息
 const charlie = ref({});
