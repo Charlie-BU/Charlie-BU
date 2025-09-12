@@ -2,6 +2,7 @@ from robyn import SubRouter, jsonify
 from dateutil import parser
 
 from models import *
+from AI import get_activity_description
 import utils
 
 datingRouter = SubRouter(__file__, prefix="/dating")
@@ -77,6 +78,29 @@ async def unlock_activity(request):
             "status": 200,
             "message": "解锁成功",
         })
+
+
+@datingRouter.post("/get_activity_description")
+async def get_activity_description(request):
+    headers = request.headers
+    cookie = utils.parse_cookie_string(headers.get("cookie"))
+    sessionid = cookie.get("sessionid")
+    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+        return jsonify({
+            "status": 403,
+            "message": "No permission",
+        })
+
+    data = request.json()
+    title = data.get("title")
+    res = get_activity_description(title)
+
+    return jsonify({
+        "status": 200,
+        "message": "获取成功",
+        "description": res.get("description"),
+        "description_ENG": res.get("description_ENG")
+    })
 
 
 @datingRouter.post("/delete_activity")

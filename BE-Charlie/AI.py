@@ -1,8 +1,8 @@
-import os
 from volcenginesdkarkruntime import Ark
+import json
 
 from config import ARK_API_KEY
-from prompts import SUMMARY
+from prompts import SUMMARY_ARTICLE, GENERATE_ACTIVITY_DESCRIPTION
 
 
 client = Ark(
@@ -18,7 +18,7 @@ def get_ark_summary(prompt_prefix, content):
         messages=[
             {
                 "role": "system",
-                "content": SUMMARY
+                "content": SUMMARY_ARTICLE
             },
             {"role": "user", "content": prompt_prefix + content},
         ],
@@ -26,9 +26,18 @@ def get_ark_summary(prompt_prefix, content):
     return completion.choices[0].message.content
 
 
-if __name__ == "__main__":
-    prompt = "你好"
-    print(get_ark_response(prompt))
+def get_activity_description(title):
+    completion = client.chat.completions.create(
+        model="deepseek-v3-250324",
+        messages=[
+            {
+                "role": "system",
+                "content": GENERATE_ACTIVITY_DESCRIPTION
+            },
+            {"role": "user", "content": title},
+        ],
+    )
+    return json.loads(completion.choices[0].message.content)
 
 
 # Streaming:

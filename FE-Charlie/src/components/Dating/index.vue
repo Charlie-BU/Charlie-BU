@@ -29,31 +29,32 @@
             <div class="waiting-modal" @click.stop>
                 <div class="waiting-modal-close" @click="closeWaitingModal">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                     </svg>
                 </div>
-                
+
                 <div class="waiting-modal-content">
                     <div class="waiting-icon-container">
                         <div class="waiting-icon-bg"></div>
                         <!-- <div class="waiting-icon">🚀</div> -->
                         <img :src="inLoveIcon" alt="In Love Icon" class="waiting-icon" />
                     </div>
-                    
+
                     <h3 class="waiting-title">{{ waitingTitle }}</h3>
                     <p class="waiting-subtitle">{{ waitingMessage }}</p>
-                    
+
                     <div class="waiting-progress">
                         <div class="progress-bar">
                             <div class="progress-fill"></div>
                         </div>
                         <span class="progress-text">开发进度 20%</span>
                     </div>
-                                        
+
                     <button class="waiting-notify-btn" @click="closeWaitingModal">
                         <span>我知道了</span>
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
                         </svg>
                     </button>
                 </div>
@@ -73,7 +74,7 @@ import diaryIcon from '@/assets/diary.png';
 import periodIcon from '@/assets/period.png';
 
 const activityLength = ref(100)
-onMounted(async()=>{
+onMounted(async () => {
     await getActivityLength()
 })
 
@@ -116,39 +117,39 @@ const PeriodTracker = defineAsyncComponent(() => import('./PeriodTracker.vue'));
 // 弹窗状态管理
 const showWaitingModal = ref(false);
 const waitingTitle = computed(() => t('comingSoon'));
-const waitingMessage = computed(() => t('featureInDevelopment')); 
+const waitingMessage = computed(() => t('featureInDevelopment'));
 
 // 定义标签页
 const tabs = [
-    { 
+    {
         name: 'activities',
         label: t('activities'),
         icon: activitiesIcon,
         component: Activities
     },
-    { 
+    {
         name: 'anniversary',
         label: t('anniversaryies'),
         icon: anniversaryIcon,
-        component: Anniversary 
+        component: Anniversary
     },
-    { 
+    {
         name: 'gallery',
         label: t('album'),
         icon: galleryIcon,
-        component: Gallery 
+        component: Gallery
     },
-    { 
+    {
         name: 'diary',
         label: t('diary'),
         icon: diaryIcon,
-        component: Diary 
+        component: Diary
     },
-    { 
+    {
         name: 'period',
         label: t('period'),
         icon: periodIcon,
-        component: PeriodTracker 
+        component: PeriodTracker
     },
 ];
 
@@ -388,7 +389,7 @@ const getActivityLength = async () => {
     max-height: 90vh;
     overflow: hidden;
     position: relative;
-    box-shadow: 
+    box-shadow:
         0 25px 80px rgba(0, 0, 0, 0.15),
         0 10px 30px rgba(0, 0, 0, 0.1),
         0 0 0 1px rgba(255, 255, 255, 0.9),
@@ -554,6 +555,7 @@ const getActivityLength = async () => {
         opacity: 0;
         backdrop-filter: blur(0px);
     }
+
     to {
         opacity: 1;
         backdrop-filter: blur(12px);
@@ -565,6 +567,7 @@ const getActivityLength = async () => {
         opacity: 0;
         transform: translateY(40px) scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -572,18 +575,24 @@ const getActivityLength = async () => {
 }
 
 @keyframes iconBgPulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.1);
     }
 }
 
 @keyframes iconFloat {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-8px);
     }
@@ -594,6 +603,7 @@ const getActivityLength = async () => {
         width: 0%;
         opacity: 0.5;
     }
+
     to {
         width: 20%;
         opacity: 1;
@@ -604,6 +614,7 @@ const getActivityLength = async () => {
     0% {
         left: -100%;
     }
+
     100% {
         left: 100%;
     }
@@ -616,46 +627,46 @@ const getActivityLength = async () => {
         margin: 16px;
         border-radius: 20px;
     }
-    
+
     .waiting-modal-content {
         padding: 32px 24px 24px;
     }
-    
+
     .waiting-modal-close {
         top: 16px;
         right: 16px;
         width: 36px;
         height: 36px;
     }
-    
+
     .waiting-icon-bg {
         width: 70px;
         height: 70px;
     }
-    
+
     .waiting-icon {
         font-size: 2rem;
     }
-    
+
     .waiting-title {
         font-size: 1.5rem;
     }
-    
+
     .waiting-subtitle {
         font-size: 0.9rem;
         margin-bottom: 24px;
     }
-    
+
     .waiting-progress {
         margin-bottom: 24px;
     }
-    
+
     .waiting-features {
         grid-template-columns: 1fr;
         gap: 12px;
         margin-bottom: 24px;
     }
-    
+
     .feature-card {
         padding: 16px;
         border-radius: 12px;
@@ -664,12 +675,12 @@ const getActivityLength = async () => {
         gap: 12px;
         text-align: left;
     }
-    
+
     .feature-icon {
         margin-bottom: 0;
         font-size: 1.25rem;
     }
-    
+
     .waiting-notify-btn {
         padding: 14px 28px;
         border-radius: 14px;

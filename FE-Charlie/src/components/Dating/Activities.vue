@@ -89,6 +89,15 @@ import Modal from '../Modal.vue';
 
 const isMobileRef = ref(isMobile());
 
+onMounted(async () => {
+    // 获取活动数据
+    await getAllActivities();
+    // 在下一个tick中设置观察者，确保DOM已经更新
+    observeActivityCards();
+});
+
+const activities = ref([]);
+
 // 语言设置
 const LANG = localStorage.getItem("LANG") || "Chinese";
 
@@ -97,7 +106,7 @@ const translations = {
     Chinese: {
         futureDay: "未来的某天",
         waiting: "待解锁",
-        activities: "100 件小事",
+        activities: `${activities.value.length}件小事`,
         completed: "已完成",
         items: "件",
         date: "日期",
@@ -115,7 +124,7 @@ const translations = {
     English: {
         futureDay: "Some Day in the Future",
         waiting: "Waiting to Unlock",
-        activities: "100 Moments",
+        activities: `${activities.value.length} Moments`,
         completed: "Completed",
         items: "",
         date: "Date",
@@ -136,15 +145,6 @@ const translations = {
 const t = (key) => {
     return translations[LANG][key] || key
 }
-
-onMounted(async () => {
-    // 获取活动数据
-    await getAllActivities();
-    // 在下一个tick中设置观察者，确保DOM已经更新
-    observeActivityCards();
-});
-
-const activities = ref([]);
 
 // 创建一个Map来存储已经观察的元素，避免重复观察
 const observedActivities = new Map();
