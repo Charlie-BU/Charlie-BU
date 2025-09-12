@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineAsyncComponent } from 'vue';
+import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
 
 import inLoveIcon from '@/assets/in-love.png';
 import activitiesIcon from '@/assets/activities.png';
@@ -72,11 +72,16 @@ import galleryIcon from '@/assets/gallery.png';
 import diaryIcon from '@/assets/diary.png';
 import periodIcon from '@/assets/period.png';
 
+const activityLength = ref(100)
+onMounted(async()=>{
+    await getActivityLength()
+})
+
 // 多语言支持
 const LANG = localStorage.getItem("LANG") || "Chinese";
 const translations = {
     Chinese: {
-        activities: "100件小事",
+        activities: `${activityLength.value}件小事`,
         anniversaryies: "纪念日",
         album: "恋爱相册",
         diary: "心情日记",
@@ -86,7 +91,7 @@ const translations = {
         featureInDevelopment: "功能开发中"
     },
     English: {
-        activities: "100 Moments",
+        activities: `${activityLength.value} Moments`,
         anniversaryies: "Anniversaries",
         album: "Album",
         diary: "Diary",
@@ -156,7 +161,6 @@ const waitList = [
 
 // 当前激活的标签页
 const activeTab = ref('activities');
-
 // 处理标签页点击
 const handleTabClick = (tabName) => {
     if (waitList.includes(tabName)) {
@@ -176,6 +180,16 @@ const activeComponent = computed(() => {
     const tab = tabs.find(tab => tab.name === activeTab.value);
     return tab ? tab.component : Activities;
 });
+
+const getActivityLength = async () => {
+    try {
+        const res = await request.post("/dating/get_activity_length");
+        activityLength.value = res.data.activity_length
+    } catch (error) {
+        console.error('Failed to fetch activity length:', error);
+        ElMessage.error('获取活动数量失败');
+    }
+}
 </script>
 
 <style scoped>

@@ -256,9 +256,6 @@ const getAllActivities = async () => {
             ...item,
             thumb_url: item.imageUrl ? `${item.imageUrl}?x-oss-process=image/resize,w_300` : ''
         })) || [];
-
-        // 这里使用的是静态数据，实际项目中应该替换为API调用
-        console.log('Activities loaded:', activities.value.length);
     } catch (error) {
         console.error('Failed to fetch activities data:', error);
         ElMessage.error('获取活动数据失败');

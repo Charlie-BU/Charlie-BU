@@ -7,6 +7,17 @@ import utils
 datingRouter = SubRouter(__file__, prefix="/dating")
 
 
+@datingRouter.post("/get_activity_length")
+async def get_activity_length():
+    with Session() as session:
+        activity_length = session.query(Activity).count()
+        return jsonify({
+            "status": 200,
+            "message": "success",
+            "activity_length": activity_length
+        })
+
+
 @datingRouter.post("/get_all_activities")
 async def get_all_activities(request):
     with Session() as session:
