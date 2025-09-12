@@ -12,7 +12,7 @@
                     <div class="tab-icon">
                         <img :src="tab.icon" :alt="tab.label + ' Icon'" class="tab-icon-img" />
                     </div>
-                    <div class="tab-name">{{ tab.label }}</div>
+                    <div class="tab-name">{{ tab.name === 'activities' ? `${activityLength}${tab.label}` : tab.label }}</div>
                 </div>
             </div>
         </div>
@@ -65,6 +65,8 @@
 
 <script setup>
 import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
+import { request } from '../../api/request'
+import { ElMessage } from 'element-plus';
 
 import inLoveIcon from '@/assets/in-love.png';
 import activitiesIcon from '@/assets/activities.png';
@@ -74,6 +76,7 @@ import diaryIcon from '@/assets/diary.png';
 import periodIcon from '@/assets/period.png';
 
 const activityLength = ref(100)
+
 onMounted(async () => {
     await getActivityLength()
 })
@@ -123,7 +126,7 @@ const waitingMessage = computed(() => t('featureInDevelopment'));
 const tabs = [
     {
         name: 'activities',
-        label: `${activityLength.value}${t('activities')}`,
+        label: t('activities'),
         icon: activitiesIcon,
         component: Activities
     },
@@ -184,8 +187,9 @@ const activeComponent = computed(() => {
 
 const getActivityLength = async () => {
     try {
-        const res = await request.post("/dating/get_activity_length");
+        const res = await request.post("/dating/get_activity_length", {});
         activityLength.value = res.data.activity_length
+        console.log(activityLength.value)
     } catch (error) {
         console.error('Failed to fetch activity length:', error);
         ElMessage.error('获取活动数量失败');
