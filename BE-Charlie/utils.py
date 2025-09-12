@@ -331,7 +331,7 @@ def add_activitys():
         print("Activities added")
         
 
-def add_():
+def add_user():
     with Session() as session:
         user = Admin(name="小迪", password=Admin.hash_password("wangdi20050202"))
         session.add(user)
