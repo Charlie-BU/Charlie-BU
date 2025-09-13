@@ -142,7 +142,7 @@ async def delete_activity(request):
 
     with Session() as session:
         data = request.json()
-        activity_id = data.get("activity_id")
+        activity_id = data.get("id")
         activity = session.get(Activity, activity_id)
         if not activity:
             return jsonify({
