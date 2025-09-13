@@ -227,7 +227,7 @@ const diaries = ref([
   {
     id: 2,
     date: '2023-05-25',
-    mood: 'loved',
+    mood: 'loved', 
     title: '惊喜礼物',
     content: 'TA今天送了我一个惊喜礼物，是我一直想要的那本书。虽然不是什么贵重的东西，但能感受到TA一直在关注我的喜好，很温暖。',
     weather: 'cloudy',

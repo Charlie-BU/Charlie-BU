@@ -102,6 +102,33 @@ async def generate_activity_description(request):
     })
 
 
+@datingRouter.post("/add_activity")
+async def add_activity(request):
+    headers = request.headers
+    cookie = utils.parse_cookie_string(headers.get("cookie"))
+    sessionid = cookie.get("sessionid")
+    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+        return jsonify({
+            "status": 403,
+            "message": "No permission",
+        })
+
+    with Session() as session:
+        data = request.json()
+        title = data.get("title")
+        title_ENG = data.get("title_ENG")
+        new_activity = Activity(
+            title=title,
+            title_ENG=title_ENG,
+        )
+        session.add(new_activity)
+        session.commit()
+        return jsonify({
+            "status": 200,
+            "message": "添加成功",
+        })
+
+ 
 @datingRouter.post("/delete_activity")
 async def delete_activity(request):
     headers = request.headers

@@ -85,7 +85,7 @@ onMounted(async () => {
 const LANG = localStorage.getItem("LANG") || "Chinese";
 const translations = {
     Chinese: {
-        activities: `件小事`,
+        activities: `个瞬间`,
         anniversaryies: "纪念日",
         album: "恋爱相册",
         diary: "心情日记",
@@ -284,6 +284,10 @@ const getActivityLength = async () => {
     object-fit: contain;
 }
 
+.tab-name {
+    white-space: nowrap;
+}
+
 .dating-content {
     flex: 1;
     padding: 30px;
@@ -339,7 +343,6 @@ const getActivityLength = async () => {
 
     .dating-tabs {
         flex-direction: row;
-        width: auto;
     }
 
     .dating-tab-item {
