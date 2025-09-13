@@ -2,9 +2,16 @@
     <el-main class="main-content">
         <section class="activities-section">
             <div class="section-title">
-                <h2>{{ t('activities') }} <span class="emoji">🎯</span>
-                    <span class="corner-count">{{ t('completed') }} {{activities.filter(item =>
-                        item.imageUrl).length}}/{{ activities.length }} {{ t('items') }}</span>
+                <h2>
+                    <el-button v-if="admin_id" class="add-activity-btn" size="small" type="primary"
+                        @click.stop="openAddActivityModal" :icon="Plus" circle>
+                    </el-button>
+                    {{ activities.length }}{{ t('activities') }}
+                    <img :src="activityIcon" alt="" class="emoji" />
+                    <span class="corner-count">
+                        {{ t('completed') }} {{activities.filter(item =>
+                            item.imageUrl).length}}/{{ activities.length }} {{ t('items') }}
+                    </span>
                 </h2>
             </div>
 
@@ -12,6 +19,10 @@
                 <el-col :xs="24" :sm="12" :md="6" v-for="(activity, index) in activities" :key="index"
                     style="margin-top: 50px;">
                     <el-card class="activity-card" shadow="hover" ref="activityCards">
+                        <!-- 删除按钮 -->
+                        <el-button v-if="admin_id" class="delete-activity-btn" size="small" type="danger"
+                            @click.stop="handleDeleteActivity(activity.id)" :icon="Delete" circle>
+                        </el-button>
                         <div class="activity-header">
                             <h3>{{ activity.title }}</h3>
                             <div v-if="activity.date" class="activity-date">{{ formatDateRange(activity.date, null,
@@ -31,7 +42,8 @@
                                 <el-icon :size="48">
                                     <Unlock />
                                 </el-icon>
-                                <div class="placeholder-text">{{ t('clickToUnlock') }}</div>
+                                <div class="placeholder-text">{{ admin_id ? t('clickToUnlock') : t('comingSoon') }}
+                                </div>
                             </div>
                         </div>
                     </el-card>
@@ -40,8 +52,9 @@
         </section>
 
         <!-- 图片预览模态弹框 -->
-        <Modal v-model:visible="photoPreviewVisible" type="custom" :title="currentActivity?.title + ' | ' + currentActivity?.title_ENG || ''"
-            :showCancel="false" :showConfirm="false">
+        <Modal v-model:visible="photoPreviewVisible" type="custom"
+            :title="currentActivity?.title + ' | ' + currentActivity?.title_ENG || ''" :showCancel="false"
+            :showConfirm="false">
             <div class="photo-preview-container">
                 <div class="photo-preview-image-container">
                     <img v-if="currentActivity && currentActivity.imageUrl" :src="currentActivity.imageUrl"
@@ -50,44 +63,79 @@
             </div>
         </Modal>
 
-        <!-- 添加图片/信息表单弹窗 -->
+        <!-- 解锁弹窗 -->
         <Modal v-model:visible="addFormVisible" type="form" :title="currentActivityTitle" :confirm-text="t('unlock')"
             @confirm="handleConfirm">
             <template #form>
-                <el-form :model="unlockForm">
+                <el-form :model="unlockForm" class="activity-form" :label-width="'80px'">
                     <el-form-item :label="t('date')">
                         <el-date-picker v-model="unlockForm.date" type="date" :placeholder="t('datePlaceholder')"
                             format="YYYY/MM/DD" value-format="YYYY-MM-DD" />
                     </el-form-item>
                     <el-form-item label="留言">
-                        <el-input v-model="unlockForm.description" type="textarea" :rows="3"
-                            placeholder="一些甜蜜瞬间..." />
+                        <div class="input-container">
+                            <el-input v-model="unlockForm.description" type="textarea" :rows="3" placeholder="一些甜蜜瞬间..."
+                                :disabled="isGeneratingDescription" />
+                            <img :src="aiIcon" class="ai-icon" @click="generateActivityDescription" />
+                        </div>
                     </el-form-item>
                     <el-form-item label="(ENG)">
                         <el-input v-model="unlockForm.description_ENG" type="textarea" :rows="3"
-                            placeholder="Some sweet moments..." />
+                            placeholder="Some sweet moments..." :disabled="isGeneratingDescription" />
                     </el-form-item>
                     <el-form-item :label="t('image')">
                         <el-upload class="activity-uploader" action="#" :auto-upload="false"
-                            :on-change="handleAddImageChange" :limit="1" list-type="picture-card" 
-                            accept="image/*" :before-upload="beforeImageUpload">
+                            :on-change="handleAddImageChange" :limit="1" list-type="picture-card" accept="image/*"
+                            :before-upload="beforeImageUpload">
                         </el-upload>
                     </el-form-item>
                 </el-form>
             </template>
         </Modal>
+
+        <!-- 添加瞬间弹窗 -->
+        <Modal v-model:visible="addActivityFormVisible" type="form" :title="t('addActivity')" :confirm-text="t('add')"
+            @confirm="handleAddActivity">
+            <template #form>
+                <el-form :model="addActivityForm" class="activity-form" :label-width="'80px'">
+                    <el-form-item :label="t('title')">
+                        <el-input v-model="addActivityForm.title" placeholder="请输入标题..." />
+                    </el-form-item>
+                    <el-form-item label="(ENG)">
+                        <el-input v-model="addActivityForm.title_ENG" placeholder="English title..." />
+                    </el-form-item>
+                </el-form>
+            </template>
+        </Modal>
+
+        <!-- 删除确认弹窗 -->
+        <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteActivity')"
+            :content="t('deleteConfirm')" @confirm="confirmDelete" @cancel="cancelDelete" />
     </el-main>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
-import { Unlock } from '@element-plus/icons-vue'
+import { Unlock, Delete, Plus } from '@element-plus/icons-vue'
 import { request } from '../../api/request'
-import { isMobile, formatDateRange, getDate } from '../../utils/utils';
+import { checkSessionId, isMobile, formatDateRange, getDate } from '../../utils/utils';
 import Modal from '../Modal.vue';
 
+import aiIcon from '@/assets/ai.png';
+import activityIcon from '@/assets/activities.png';
+
 const isMobileRef = ref(isMobile());
+const admin_id = ref(null)
+
+onMounted(async () => {
+    admin_id.value = await checkSessionId()
+    await getAllActivities();
+    // 在下一个tick中设置观察者，确保DOM已经更新
+    observeActivityCards();
+});
+
+const activities = ref([]);
 
 // 语言设置
 const LANG = localStorage.getItem("LANG") || "Chinese";
@@ -97,7 +145,7 @@ const translations = {
     Chinese: {
         futureDay: "未来的某天",
         waiting: "待解锁",
-        activities: "100 件小事",
+        activities: `个瞬间`,
         completed: "已完成",
         items: "件",
         date: "日期",
@@ -108,14 +156,24 @@ const translations = {
         unlock: "解锁",
         cancel: "取消",
         clickToUnlock: "点击解锁",
+        comingSoon: "敬请期待",
         pleaseCompleteForm: "请填写完整",
         unlockSuccess: "解锁成功",
-        unlockFailed: "解锁失败"
+        unlockFailed: "解锁失败",
+        deleteActivity: "删除瞬间",
+        deleteConfirm: "确定要删除这个瞬间吗？此操作不可撤销。",
+        deleteSuccess: "删除成功",
+        deleteFailed: "删除失败",
+        addActivity: "添加瞬间",
+        title: "标题",
+        add: "添加",
+        addSuccess: "添加成功",
+        addFailed: "添加失败"
     },
     English: {
         futureDay: "Some Day in the Future",
         waiting: "Waiting to Unlock",
-        activities: "100 Moments",
+        activities: ` Moments`,
         completed: "Completed",
         items: "",
         date: "Date",
@@ -126,9 +184,19 @@ const translations = {
         unlock: "Unlock",
         cancel: "Cancel",
         clickToUnlock: "Click to Unlock",
+        comingSoon: "Coming Soon",
         pleaseCompleteForm: "Please complete the form",
         unlockSuccess: "Unlock Success",
-        unlockFailed: "Unlock Failed"
+        unlockFailed: "Unlock Failed",
+        deleteActivity: "Delete Moment",
+        deleteConfirm: "Are you sure you want to delete this moment? This action cannot be undone.",
+        deleteSuccess: "Delete Success",
+        deleteFailed: "Delete Failed",
+        addActivity: "Add Moment",
+        title: "Title",
+        add: "Add",
+        addSuccess: "Add Success",
+        addFailed: "Add Failed"
     }
 }
 
@@ -136,15 +204,6 @@ const translations = {
 const t = (key) => {
     return translations[LANG][key] || key
 }
-
-onMounted(async () => {
-    // 获取活动数据
-    await getAllActivities();
-    // 在下一个tick中设置观察者，确保DOM已经更新
-    observeActivityCards();
-});
-
-const activities = ref([]);
 
 // 创建一个Map来存储已经观察的元素，避免重复观察
 const observedActivities = new Map();
@@ -195,7 +254,7 @@ const observeActivityCards = () => {
     });
 };
 
-// 监听activities数组变化，当有新的活动数据加载时重新设置观察者
+// 监听activities数组变化，当有新的瞬间数据加载时重新设置观察者
 watch(() => activities.value.length, async (newLength, oldLength) => {
     if (newLength > oldLength) {
         // 等待DOM更新
@@ -246,7 +305,7 @@ onBeforeUnmount(() => {
     }
 });
 
-// 获取活动数据的函数，实际项目中可以从API获取
+// 获取瞬间数据的函数，实际项目中可以从API获取
 const getAllActivities = async () => {
     try {
         const res = await request.post("/dating/get_all_activities", {
@@ -256,12 +315,9 @@ const getAllActivities = async () => {
             ...item,
             thumb_url: item.imageUrl ? `${item.imageUrl}?x-oss-process=image/resize,w_300` : ''
         })) || [];
-
-        // 这里使用的是静态数据，实际项目中应该替换为API调用
-        console.log('Activities loaded:', activities.value.length);
     } catch (error) {
         console.error('Failed to fetch activities data:', error);
-        ElMessage.error('获取活动数据失败');
+        ElMessage.error('获取瞬间数据失败');
     }
 };
 
@@ -272,13 +328,26 @@ const unlockForm = ref({
     date: '',
     description: '',
     description_ENG: '',
-    imageFile: null,
+    imageFile: null
 })
+
+// AI生成描述的加载状态
+const isGeneratingDescription = ref(false)
 
 const currentActivityTitle = ref("")
 const openAddModal = (activity) => {
+    if (!admin_id.value) {
+        return
+    }
+
     selectedActivity.value = activity
     currentActivityTitle.value = activity.title + " | " + activity.title_ENG
+    unlockForm.value = {
+        date: '',
+        description: '',
+        description_ENG: '',
+        imageFile: null,
+    }
     addFormVisible.value = true
 }
 
@@ -299,6 +368,44 @@ const handleAddImageChange = (file) => {
     }
 }
 
+// 生成瞬间留言
+const generateActivityDescription = async () => {
+    if (!selectedActivity.value) {
+        ElMessage.warning('请先选择瞬间')
+        return
+    }
+    if (isGeneratingDescription.value) {
+        return
+    }
+
+    isGeneratingDescription.value = true
+    unlockForm.value.description = "生成中..."
+    unlockForm.value.description_ENG = "Generating..."
+
+    try {
+        const res = await request.post('/dating/generate_activity_description', {
+            title: selectedActivity.value.title
+        })
+
+        if (res.data.status === 200) {
+            unlockForm.value.description = res.data.description || ''
+            unlockForm.value.description_ENG = res.data.description_ENG || ''
+            ElMessage.success('AI留言生成成功')
+        } else {
+            unlockForm.value.description = ""
+            unlockForm.value.description_ENG = ""
+            ElMessage.error(res.data.message || 'AI留言生成失败')
+        }
+    } catch (error) {
+        unlockForm.value.description = ""
+        unlockForm.value.description_ENG = ""
+        console.error('生成留言失败:', error)
+        ElMessage.error('AI留言生成失败，请稍后重试')
+    } finally {
+        isGeneratingDescription.value = false
+    }
+}
+
 const handleConfirm = async () => {
     if (!unlockForm.value.date || !unlockForm.value.description || !unlockForm.value.description_ENG || !unlockForm.value.imageFile) {
         ElMessage.warning(t('pleaseCompleteForm'))
@@ -311,7 +418,7 @@ const handleConfirm = async () => {
         formData.append('description', unlockForm.value.description)
         formData.append('description_ENG', unlockForm.value.description_ENG)
         formData.append('image', unlockForm.value.imageFile)
-        
+
         const res = await request.post('/dating/unlock_activity', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
@@ -328,11 +435,107 @@ const handleConfirm = async () => {
         console.error('解锁失败:', error)
         ElMessage.error(t('unlockFailed'))
     } finally {
+        unlockForm.value = {
+            date: '',
+            description: '',
+            description_ENG: '',
+            imageFile: null,
+        }
         addFormVisible.value = false
     }
 }
 
-// 计算属性：过滤活动列表
+// 添加瞬间相关变量
+const addActivityFormVisible = ref(false)
+const addActivityForm = ref({
+    title: '',
+    title_ENG: ''
+})
+
+// 打开添加瞬间弹窗
+const openAddActivityModal = () => {
+    if (!admin_id.value) return
+    addActivityForm.value = {
+        title: '',
+        title_ENG: ''
+    }
+    addActivityFormVisible.value = true
+}
+
+// 添加瞬间
+const handleAddActivity = async () => {
+    if (!addActivityForm.value.title || !addActivityForm.value.title_ENG) {
+        ElMessage.warning(t('pleaseCompleteForm'))
+        return
+    }
+    try {
+        const res = await request.post('/dating/add_activity', {
+            title: addActivityForm.value.title,
+            title_ENG: addActivityForm.value.title_ENG
+        })
+
+        if (res.data.status === 200) {
+            ElMessage.success(t('addSuccess'))
+            // 重新获取瞬间列表
+            await getAllActivities()
+        } else {
+            ElMessage.error(res.data.message || t('addFailed'))
+        }
+    } catch (error) {
+        ElMessage.error(t('addFailed'))
+        console.error('添加瞬间失败:', error)
+    } finally {
+        addActivityForm.value = {
+            title: '',
+            title_ENG: ''
+        }
+        addActivityFormVisible.value = false
+    }
+}
+
+// 删除相关变量
+const deleteDialogVisible = ref(false)
+const currentDeleteActivityId = ref(null)
+
+// 删除瞬间
+const handleDeleteActivity = (activityId) => {
+    if (!admin_id.value) return
+    currentDeleteActivityId.value = activityId
+    deleteDialogVisible.value = true
+}
+
+// 确认删除
+const confirmDelete = async () => {
+    if (!currentDeleteActivityId.value) return
+    try {
+        // 调用删除API
+        const res = await request.post('/dating/delete_activity', {
+            id: currentDeleteActivityId.value
+        })
+
+        if (res.data.status === 200) {
+            ElMessage.success(t('deleteSuccess'))
+            // 重新获取瞬间列表
+            await getAllActivities()
+        } else {
+            ElMessage.error(res.data.message || t('deleteFailed'))
+        }
+    } catch (error) {
+        ElMessage.error(t('deleteFailed'))
+        console.error('删除瞬间失败:', error)
+    } finally {
+        currentDeleteActivityId.value = null
+        deleteDialogVisible.value = false
+    }
+}
+
+// 取消删除
+const cancelDelete = () => {
+    currentDeleteActivityId.value = null
+    deleteDialogVisible.value = false
+}
+
+// 计算属性：过滤瞬间列表
 const completedActivities = computed(() => activities.value.filter(item => item.completed));
 </script>
 
@@ -346,6 +549,7 @@ const completedActivities = computed(() => activities.value.filter(item => item.
 .section-title {
     margin-bottom: 2rem;
     text-align: center;
+    position: relative;
 }
 
 .section-title h2 {
@@ -358,7 +562,8 @@ const completedActivities = computed(() => activities.value.filter(item => item.
 }
 
 .emoji {
-    font-size: 1.8rem;
+    width: 20px;
+    height: 20px;
 }
 
 .section-title h2 .corner-count {
@@ -387,6 +592,28 @@ const completedActivities = computed(() => activities.value.filter(item => item.
     border-radius: 3px;
 }
 
+.add-activity-btn {
+    position: absolute;
+    top: 0;
+    right: -40px;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background-color: rgba(64, 158, 255, 0.8);
+    border: none;
+    width: 32px;
+    height: 32px;
+}
+
+.add-activity-btn:hover {
+    background-color: rgba(64, 158, 255, 1);
+    transform: scale(1.1);
+}
+
+.section-title:hover .add-activity-btn {
+    opacity: 1;
+}
+
 .activities-section {
     margin-bottom: 4rem;
 }
@@ -409,11 +636,34 @@ const completedActivities = computed(() => activities.value.filter(item => item.
     overflow: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    position: relative;
 }
 
 .activity-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.delete-activity-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background-color: rgba(220, 38, 127, 0.8);
+    border: none;
+    width: 28px;
+    height: 28px;
+}
+
+.delete-activity-btn:hover {
+    background-color: rgba(220, 38, 127, 1);
+    transform: scale(1.1);
+}
+
+.activity-card:hover .delete-activity-btn {
+    opacity: 1;
 }
 
 .activity-header {
@@ -533,6 +783,73 @@ const completedActivities = computed(() => activities.value.filter(item => item.
 .photo-preview-counter {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.7);
+}
+
+.activity-form {
+    padding: 0;
+    margin-left: -20px;
+}
+
+.activity-form :deep(.el-form-item) {
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.activity-form :deep(.el-form-item__label) {
+    line-height: 32px;
+    font-weight: 500;
+    text-align: right;
+    padding-right: 12px;
+}
+
+.activity-form :deep(.el-form-item__content) {
+    line-height: 32px;
+    flex: 1;
+}
+
+.activity-form :deep(.el-date-editor) {
+    width: 100%;
+}
+
+.activity-form :deep(.el-textarea) {
+    width: 100%;
+}
+
+.activity-form :deep(.el-upload--picture-card) {
+    width: 100px;
+    height: 100px;
+    border: 2px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+
+.activity-form :deep(.el-upload--picture-card:hover) {
+    border-color: #409eff;
+}
+
+.input-container {
+    position: relative;
+    width: 100%;
+}
+
+.ai-icon {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.ai-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
 }
 
 /* 使添加图片上传区域背景透明 */

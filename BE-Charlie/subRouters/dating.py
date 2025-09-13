@@ -2,9 +2,21 @@ from robyn import SubRouter, jsonify
 from dateutil import parser
 
 from models import *
+from AI import get_activity_description
 import utils
 
 datingRouter = SubRouter(__file__, prefix="/dating")
+
+
+@datingRouter.post("/get_activity_length")
+async def get_activity_length():
+    with Session() as session:
+        activity_length = session.query(Activity).count()
+        return jsonify({
+            "status": 200,
+            "message": "success",
+            "activity_length": activity_length
+        })
 
 
 @datingRouter.post("/get_all_activities")
@@ -68,6 +80,55 @@ async def unlock_activity(request):
         })
 
 
+@datingRouter.post("/generate_activity_description")
+async def generate_activity_description(request):
+    headers = request.headers
+    cookie = utils.parse_cookie_string(headers.get("cookie"))
+    sessionid = cookie.get("sessionid")
+    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+        return jsonify({
+            "status": 403,
+            "message": "No permission",
+        })
+
+    data = request.json()
+    title = data.get("title")
+    res = get_activity_description(title)
+    return jsonify({
+        "status": 200,
+        "message": "获取成功",
+        "description": res.get("description"),
+        "description_ENG": res.get("description_ENG")
+    })
+
+
+@datingRouter.post("/add_activity")
+async def add_activity(request):
+    headers = request.headers
+    cookie = utils.parse_cookie_string(headers.get("cookie"))
+    sessionid = cookie.get("sessionid")
+    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+        return jsonify({
+            "status": 403,
+            "message": "No permission",
+        })
+
+    with Session() as session:
+        data = request.json()
+        title = data.get("title")
+        title_ENG = data.get("title_ENG")
+        new_activity = Activity(
+            title=title,
+            title_ENG=title_ENG,
+        )
+        session.add(new_activity)
+        session.commit()
+        return jsonify({
+            "status": 200,
+            "message": "添加成功",
+        })
+
+ 
 @datingRouter.post("/delete_activity")
 async def delete_activity(request):
     headers = request.headers
@@ -81,7 +142,7 @@ async def delete_activity(request):
 
     with Session() as session:
         data = request.json()
-        activity_id = data.get("activity_id")
+        activity_id = data.get("id")
         activity = session.get(Activity, activity_id)
         if not activity:
             return jsonify({

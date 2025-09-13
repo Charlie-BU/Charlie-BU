@@ -141,9 +141,7 @@ watch(() => props.visible, (newVal) => {
 // 取消操作 - 添加关闭动画
 const handleCancel = () => {
     if (isClosing.value) return // 防止重复触发
-
     isClosing.value = true
-
     // 延迟关闭，等待动画完成
     setTimeout(() => {
         emit('update:visible', false)
