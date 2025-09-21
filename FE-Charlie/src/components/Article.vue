@@ -49,7 +49,7 @@
             </transition>
 
             <!-- 文章内容 -->
-            <div class="article-main">
+            <div class="article-main" style="max-height: 800px;">
                 <div class="article-header">
                     <div class="article-title-row">
                         <h1 class="article-title">{{ currentArticle.title }}</h1>
@@ -1360,7 +1360,6 @@ onBeforeUnmount(() => {
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     padding: 30px;
-    max-height: 800px;
     overflow: auto;
     overflow-y: auto;
 }
