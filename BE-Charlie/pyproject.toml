@@ -1,0 +1,18 @@
+[project]
+name = "be-charlie"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.16.5",
+    "bcrypt>=4.3.0",
+    "oss2>=2.19.1",
+    "pycountry>=24.6.1",
+    "python-dateutil>=2.9.0.post0",
+    "redis>=6.4.0",
+    "requests>=2.32.5",
+    "robyn>=0.72.2",
+    "sqlalchemy>=2.0.43",
+    "volcengine-python-sdk[ark]>=4.0.21",
+]
