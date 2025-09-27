@@ -608,7 +608,7 @@ const handlePaste = async (event) => {
 
                 if (res.data.status === 200) {
                     const image_url = res.data.image_url
-                    insertAtCursor(`![${file.name}](${image_url})`)
+                    insertAtCursor(`![${file.name}](${image_url}?x-oss-process=image/resize,w_800)`)
                 } else {
                     alert(res.data.message || "上传失败")
                 }
