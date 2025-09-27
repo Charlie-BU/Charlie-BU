@@ -774,7 +774,7 @@ const searchArticles = async () => {
     if (keyword) {
         selectedCategory.value = ''
         try {
-            const res = await request.post('/api/search_article', {
+            const res = await request.post('/article/search_article', {
                 lang: LANG,
                 keyword: keyword
             })
@@ -859,7 +859,7 @@ const formatTime = (timestamp) => {
 // 获取文章列表
 const getArticles = async () => {
     try {
-        const res = await request.post('/api/get_articles', {
+        const res = await request.post('/article/get_articles', {
             lang: LANG
         })
         if (res.data.status !== 200) {
@@ -875,7 +875,7 @@ const getArticles = async () => {
 
 const getArticleContent = async () => {
     try {
-        const res = await request.post('/api/get_article_content', {
+        const res = await request.post('/article/get_article_content', {
             id: currentArticleId.value,
             lang: LANG
         })
@@ -915,7 +915,7 @@ const confirmDelete = async () => {
     if (!currentDeleteArticleId.value) return
     try {
         // 调用删除API
-        const res = await request.post('/api/delete_article', {
+        const res = await request.post('/article/delete_article', {
             id: currentDeleteArticleId.value
         })
 
@@ -960,7 +960,7 @@ const handleDraftOrReleased = async (articleId) => {
         if (!article) return
 
         // 调用更新API，切换isReleased状态
-        const res = await request.post('/api/change_article_status', {
+        const res = await request.post('/article/change_article_status', {
             id: articleId
         })
 
@@ -1075,7 +1075,7 @@ const regenerate_article_AISummary = async () => {
     stopAISummaryRender()
     isGeneratingSummary.value = true
     try {
-        const res = await request.post('/api/regenerate_article_AISummary', {
+        const res = await request.post('/article/regenerate_article_AISummary', {
             id: currentArticle.value.id
         })
         if (res.data.status === 200 || res.data.status === 201) {

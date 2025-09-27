@@ -181,7 +181,7 @@ const handleKeyDown = async (event) => {
             }
 
             try {
-                const apiUrl = '/api/update_article'
+                const apiUrl = '/article/update_article'
                 const requestData = {
                     ...articleForm,
                     isReleased: false,
@@ -456,7 +456,7 @@ const saveAsDraft = async () => {
 
         saving.value = true
         try {
-            const apiUrl = isEdit.value ? '/api/update_article' : '/api/add_article'
+            const apiUrl = isEdit.value ? '/article/update_article' : '/article/add_article'
             const requestData = {
                 ...articleForm,
                 isReleased: false,
@@ -492,7 +492,7 @@ const publishArticle = async () => {
 
         saving.value = true
         try {
-            const apiUrl = isEdit.value ? '/api/update_article' : '/api/add_article'
+            const apiUrl = isEdit.value ? '/article/update_article' : '/article/add_article'
             const requestData = {
                 ...articleForm,
                 isReleased: true,
@@ -529,7 +529,7 @@ const checkAdminPermission = async () => {
 // 获取文章详情（编辑模式）
 const getArticleDetail = async (id) => {
     try {
-        const res = await request.post('/api/get_article_detail', {
+        const res = await request.post('/article/get_article_detail', {
             id,
         })
         if (res.data.status === 200) {
