@@ -450,13 +450,19 @@ async def upload_image(request):
             }
         )
 
-    # multipart/form-data 下，用 form_data 获取文本字段
     files = request.files
     if files:
         # 键为文件名，值为文件二进制数据
         # 直接使用 next() 获取第一个键值对
         image_name, image_binary = next(iter(files.items()))
-        image_name_with_nonce = f"{image_name}_{utils.generate_nonce()}"
+
+        # 正确处理文件名和扩展名，将nonce插入到扩展名之前
+        if "." in image_name:
+            name_part, ext_part = image_name.rsplit(".", 1)
+            image_name_with_nonce = f"{name_part}_{utils.generate_nonce()}.{ext_part}"
+        else:
+            image_name_with_nonce = f"{image_name}_{utils.generate_nonce()}"
+
         image_url = utils.upload_file_to_OSS(
             image_name_with_nonce, image_binary, "images/article"
         )
