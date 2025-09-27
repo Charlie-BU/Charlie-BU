@@ -9,7 +9,7 @@ import utils
 articleRouter = SubRouter(__file__, prefix="/article")
 
 
-@apiRouter.post("/get_articles")
+@articleRouter.post("/get_articles")
 async def get_articles(request):
     session = Session()
     headers = request.headers
@@ -50,7 +50,7 @@ async def get_articles(request):
     return jsonify({"status": 200, "message": "success", "articles": articles})
 
 
-@apiRouter.post("/get_article_content")
+@articleRouter.post("/get_article_content")
 async def get_article_content(request):
     session = Session()
     headers = request.headers
@@ -78,7 +78,7 @@ async def get_article_content(request):
     return jsonify({"status": 200, "message": "success", "article": article})
 
 
-@apiRouter.post("/change_article_status")
+@articleRouter.post("/change_article_status")
 async def change_article_status(request):
     session = Session()
     headers = request.headers
@@ -112,7 +112,7 @@ async def change_article_status(request):
     )
 
 
-@apiRouter.post("/get_article_detail/")
+@articleRouter.post("/get_article_detail/")
 async def get_article_detail(request):
     session = Session()
     headers = request.headers
@@ -151,7 +151,7 @@ async def get_article_detail(request):
     return jsonify({"status": 200, "message": "success", "article": article})
 
 
-@apiRouter.post("/search_article")
+@articleRouter.post("/search_article")
 async def search_article(request):
     session = Session()
     data = request.json()
@@ -231,7 +231,7 @@ async def search_article(request):
     return jsonify({"status": 200, "message": "success", "result": result})
 
 
-@apiRouter.post("/add_article")
+@articleRouter.post("/add_article")
 async def add_article(request):
     session = Session()
     headers = request.headers
@@ -281,7 +281,7 @@ async def add_article(request):
     )
 
 
-@apiRouter.post("/update_article")
+@articleRouter.post("/update_article")
 async def update_article(request):
     session = Session()
     headers = request.headers
@@ -356,7 +356,7 @@ async def update_article(request):
     )
 
 
-@apiRouter.post("/regenerate_article_AISummary")
+@articleRouter.post("/regenerate_article_AISummary")
 async def regenerate_article_AISummary(request):
     session = Session()
     headers = request.headers
@@ -403,7 +403,7 @@ async def regenerate_article_AISummary(request):
     )
 
 
-@apiRouter.post("/delete_article")
+@articleRouter.post("/delete_article")
 async def delete_article(request):
     session = Session()
     headers = request.headers
@@ -433,5 +433,38 @@ async def delete_article(request):
         {
             "status": 200,
             "message": "success",
+        }
+    )
+
+
+@articleRouter.post("/upload_image")
+async def upload_image(request):
+    headers = request.headers
+    cookie = utils.parse_cookie_string(headers.get("cookie"))
+    sessionid = cookie.get("sessionid")
+    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+        return jsonify(
+            {
+                "status": 403,
+                "message": "No permission",
+            }
+        )
+
+    # multipart/form-data 下，用 form_data 获取文本字段
+    files = request.files
+    if files:
+        # 键为文件名，值为文件二进制数据
+        # 直接使用 next() 获取第一个键值对
+        image_name, image_binary = next(iter(files.items()))
+        image_name_with_nonce = f"{image_name}_{utils.generate_nonce()}"
+        image_url = utils.upload_file_to_OSS(
+            image_name_with_nonce, image_binary, "images/article"
+        )
+
+    return jsonify(
+        {
+            "status": 200,
+            "message": "上传成功",
+            "image_url": image_url,
         }
     )

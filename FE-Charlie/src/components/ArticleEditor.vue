@@ -70,7 +70,7 @@
                                         </el-button>
                                     </el-tooltip>
                                 </div>
-                                <el-input ref="contentInputRef" v-model="articleForm.content" type="textarea" :rows="33"
+                                <el-input ref="contentInputRef" v-model="articleForm.content" type="textarea" :rows="33" @paste="handlePaste"
                                     :placeholder="t('contentPlaceholder')"></el-input>
                             </el-form-item>
                         </el-form>
@@ -101,7 +101,7 @@
                                 </el-tooltip>
                             </div>
                             <el-form-item prop="content_ENG">
-                                <el-input ref="contentENGInputRef" v-model="articleForm.content_ENG" type="textarea"
+                                <el-input ref="contentENGInputRef" v-model="articleForm.content_ENG" type="textarea" @paste="handlePaste"
                                     :rows="33" :placeholder="t('contentPlaceholder')"></el-input>
                             </el-form-item>
                         </el-form>
@@ -265,18 +265,53 @@ const t = (key) => {
 const contentInputRef = useTemplateRef("contentInputRef")
 const contentENGInputRef = useTemplateRef("contentENGInputRef")
 
-const insertMarkdown = (field, type) => {
-    const textareaRef = field === 'content_ENG' ? contentENGInputRef : contentInputRef
-    const textarea = textareaRef.value
+// 在光标位置插入文本的通用函数
+const insertAtCursor = (text, field = null) => {
+    // 如果没有指定field，则根据当前语言设置自动判断
+    let targetField = field
+    if (!targetField) {
+        // 根据当前激活的输入框来判断
+        const activeElement = document.activeElement
+        if (activeElement === contentENGInputRef.value?.$el?.querySelector('textarea')) {
+            targetField = 'content_ENG'
+        } else {
+            targetField = 'content'
+        }
+    }
+    
+    const textareaRef = targetField === 'content_ENG' ? contentENGInputRef : contentInputRef
+    const textarea = textareaRef.value?.$el?.querySelector('textarea') || textareaRef.value
+    
     if (!textarea) return
-    // 根据类型插入不同的Markdown标记
-    let insertion = markdownSign[type].sign
-    // 更新文本内容
-    articleForm[field] += insertion
-
-    // 设置光标位置
+    
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const currentValue = articleForm[targetField] || ''
+    
+    // 在光标位置插入文本
+    const newValue = currentValue.substring(0, start) + text + currentValue.substring(end)
+    articleForm[targetField] = newValue
+    
+    // 设置新的光标位置
     nextTick(() => {
         textarea.focus()
+        const newCursorPos = start + text.length
+        textarea.setSelectionRange(newCursorPos, newCursorPos)
+    })
+}
+
+const insertMarkdown = (field, type) => {
+    const textareaRef = field === 'content_ENG' ? contentENGInputRef : contentInputRef
+    const textarea = textareaRef.value?.$el?.querySelector('textarea') || textareaRef.value
+    if (!textarea) return
+    
+    // 先聚焦到对应的文本框
+    textarea.focus()
+    
+    // 使用insertAtCursor函数插入Markdown标记
+    nextTick(() => {
+        const insertion = markdownSign[type].sign
+        insertAtCursor(insertion, field)
     })
 }
 
@@ -553,6 +588,38 @@ const getArticleDetail = async (id) => {
         ElMessage.error(error.message || '获取文章详情失败')
     }
 }
+
+
+// 图片插入逻辑
+const handlePaste = async (event) => {
+    const items = event.clipboardData?.items || []
+
+    for (const item of items) {
+        // 检测粘贴内容是否为图片类型
+        if (item.type.indexOf("image") !== -1) {
+            event.preventDefault()
+            const file = item.getAsFile()
+            if (!file) return
+
+            const formData = new FormData()
+            formData.append("image", file)
+            try {
+                const res = await request.post("/article/upload_image", formData)
+
+                if (res.data.status === 200) {
+                    const image_url = res.data.image_url
+                    insertAtCursor(`![${file.name}](${image_url})`)
+                } else {
+                    alert(res.data.message || "上传失败")
+                }
+            } catch (err) {
+                console.error(err)
+                alert("上传出错")
+            }
+        }
+    }
+}
+
 </script>
 
 <style scoped>
