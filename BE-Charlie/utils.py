@@ -3,13 +3,21 @@ import hashlib
 import hmac
 import time
 from datetime import date
-from tkinter import SE
+import os
 import oss2
-import requests 
+import requests
 import json
 import uuid
 
-from config import LOGIN_SECRET, SESSION_EXPIRE_SECONDS, OSS_ACCESS_KEY_ID, OSS_ENDPOINT, OSS_BUCKET_NAME, OSS_ACCESS_KEY_SECRET, PREFIX
+from config import (
+    LOGIN_SECRET,
+    SESSION_EXPIRE_SECONDS,
+    OSS_ACCESS_KEY_ID,
+    OSS_ENDPOINT,
+    OSS_BUCKET_NAME,
+    OSS_ACCESS_KEY_SECRET,
+    PREFIX,
+)
 from models import *
 from redis_settings import redis_client
 
@@ -29,7 +37,7 @@ def generate_sessionid(user_id):
         "session_uuid": session_uuid,
         "algorithm": "sha512",
     }
-    payload_str = json.dumps(payload, separators=(',', ':'))
+    payload_str = json.dumps(payload, separators=(",", ":"))
     signature = hmac.new(LOGIN_SECRET, payload_str.encode(), hashlib.sha512).hexdigest()
     sessionid = base64.urlsafe_b64encode(f"{payload_str}.{signature}".encode()).decode()
     return sessionid
@@ -38,13 +46,15 @@ def generate_sessionid(user_id):
 def check_sessionid(sessionid):
     try:
         decoded = base64.urlsafe_b64decode(sessionid.encode()).decode()
-        payload_str, signature = decoded.rsplit('.', 1)
-        expected_sig = hmac.new(LOGIN_SECRET, payload_str.encode(), hashlib.sha512).hexdigest()
-       
+        payload_str, signature = decoded.rsplit(".", 1)
+        expected_sig = hmac.new(
+            LOGIN_SECRET, payload_str.encode(), hashlib.sha512
+        ).hexdigest()
+
         if not hmac.compare_digest(signature, expected_sig):
             return {}  # 签名无效
         payload = json.loads(payload_str)
-        
+
         if not {"user_id", "timestamp", "session_uuid", "algorithm"} <= payload.keys():
             print("字段缺失")
             return {}
@@ -61,10 +71,10 @@ def check_sessionid(sessionid):
             print("session_uuid 不存在")
             return {}
         session_uuid = redis_client.get(nonce_key).decode()
-        if session_uuid != payload['session_uuid']:
+        if session_uuid != payload["session_uuid"]:
             print("session_uuid 不匹配")
             return {}
-        
+
         # nonce 防重放：不能加，会导致sessionid变为一次性
         # nonce_key = f"nonce:{payload['nonce']}"
         # if redis_client.exists(nonce_key):
@@ -83,7 +93,7 @@ def check_sessionid(sessionid):
             "user_id": int(payload["user_id"]),
             "timestamp": payload["timestamp"],
         }
-    
+
     except Exception:
         return {}
 
@@ -99,20 +109,20 @@ def parse_cookie_string(cookie_string):
 
 
 def normalize_city_name(name):
-    if not name.endswith('市') and name not in ['香港', '澳门', '台湾']:
-        return name + '市'
+    if not name.endswith("市") and name not in ["香港", "澳门", "台湾"]:
+        return name + "市"
     return name
 
 
 def extract_date(visitDate):
-    return date(visitDate['year'], visitDate['month'], visitDate['day'])
+    return date(visitDate["year"], visitDate["month"], visitDate["day"])
 
 
 def insert_new_places(data: dict):
     session = Session()
     seen_cities = set()
-    for trip in data.get('userTripList', []):
-        city_raw = trip['destinationName']
+    for trip in data.get("userTripList", []):
+        city_raw = trip["destinationName"]
         city = normalize_city_name(city_raw)
 
         # 去重：有的城市会出现多次
@@ -124,15 +134,11 @@ def insert_new_places(data: dict):
         if exists:
             continue
 
-        visit_date = extract_date(trip['visitDate'])
+        visit_date = extract_date(trip["visitDate"])
         # country = get_country_by_city(city_raw)
         # country_ENG = pycountry.countries.get(name=country).name if pycountry.countries.get(name=country) else "Unknown"
 
-        new_place = PlaceBeenTo(
-            city=city,
-            city_ENG="",
-            dateStart=visit_date
-        )
+        new_place = PlaceBeenTo(city=city, city_ENG="", dateStart=visit_date)
         session.add(new_place)
 
     session.commit()
@@ -144,7 +150,7 @@ def get_footprint_from_ctrip():
     body = {
         "head": {
             "auth": "828F72FBB789F6AEF3DD602E8D8C1DB96294D94B665569837B50B93F6B8A7D2D",
-            "extension": []
+            "extension": [],
         }
     }
     try:
@@ -152,6 +158,10 @@ def get_footprint_from_ctrip():
         insert_new_places(res.json())
     except Exception as e:
         print(e)
+
+
+def generate_nonce():
+    return hashlib.md5(os.urandom(16)).hexdigest()[:10]
 
 
 # 获取阿里云OSS中的旅行照片，并存到数据库
@@ -162,7 +172,7 @@ def store_photos_from_oss_by_travelId(travelId: int):
     pref = f'images/travel/{city.lower().replace(" ", "")}/'
     for obj in oss2.ObjectIterator(BUCKET, prefix=pref):
         url = PREFIX + obj.key
-        if url.endswith('.jpg') or url.endswith('.png') or url.endswith('.jpeg'):
+        if url.endswith(".jpg") or url.endswith(".png") or url.endswith(".jpeg"):
             exist_count = session.query(TravelPhoto).filter_by(url=url).count()
             if exist_count >= 1:
                 continue
@@ -176,7 +186,9 @@ def store_all_photos():
     session = Session()
     travel_ids = [tid for (tid,) in session.query(PlaceBeenTo.id)]
     for travel_id in travel_ids:
-        photo_count = session.query(TravelPhoto).filter(TravelPhoto.travelId == travel_id).count()
+        photo_count = (
+            session.query(TravelPhoto).filter(TravelPhoto.travelId == travel_id).count()
+        )
         if photo_count >= 1:
             continue
         try:
@@ -212,9 +224,9 @@ def store_all_photos():
 
 def upload_file_to_OSS(file_name: str, file_binary: bytes, oss_folder: str):
     # 直接传二进制数据即可，无需创建临时文件
-    oss_path = f'{oss_folder}/{file_name}'
+    oss_path = f"{oss_folder}/{file_name}"
     BUCKET.put_object(oss_path, file_binary)
-    file_url = f'https://{OSS_BUCKET_NAME}.{OSS_ENDPOINT}/{oss_path}'
+    file_url = f"https://{OSS_BUCKET_NAME}.{OSS_ENDPOINT}/{oss_path}"
     return file_url
 
 
@@ -230,16 +242,28 @@ def add_activitys():
         {"title": "一起进鬼屋", "title_ENG": "Enter a Haunted House Together"},
         {"title": "吃同一杯冰淇淋", "title_ENG": "Share the Same Ice Cream"},
         {"title": "一起搬东西", "title_ENG": "Move Things Together"},
-        {"title": "一起布置我们的小窝", "title_ENG": "Decorate Our Little Nest Together"},
+        {
+            "title": "一起布置我们的小窝",
+            "title_ENG": "Decorate Our Little Nest Together",
+        },
         {"title": "一起看日出", "title_ENG": "Watch the Sunrise Together"},
-        {"title": "半夜一起看恐怖片", "title_ENG": "Watch Horror Movies Together at Midnight"},
+        {
+            "title": "半夜一起看恐怖片",
+            "title_ENG": "Watch Horror Movies Together at Midnight",
+        },
         {"title": "送我一束花", "title_ENG": "Give Me a Bouquet of Flowers"},
         {"title": "为我做顿饭", "title_ENG": "Cook a Meal for Me"},
-        {"title": "牵着我的手过马路", "title_ENG": "Hold My Hand While Crossing the Street"},
+        {
+            "title": "牵着我的手过马路",
+            "title_ENG": "Hold My Hand While Crossing the Street",
+        },
         {"title": "一起看日落", "title_ENG": "Watch the Sunset Together"},
         {"title": "一起数星星", "title_ENG": "Count Stars Together"},
         {"title": "一起洗衣服", "title_ENG": "Do Laundry Together"},
-        {"title": "背靠背听同一首曲子", "title_ENG": "Listen to the Same Song Back to Back"},
+        {
+            "title": "背靠背听同一首曲子",
+            "title_ENG": "Listen to the Same Song Back to Back",
+        },
         {"title": "在朋友面前介绍我", "title_ENG": "Introduce Me to Friends"},
         {"title": "把肩膀借给我靠", "title_ENG": "Let Me Lean on Your Shoulder"},
         {"title": "为我擦眼泪", "title_ENG": "Wipe Away My Tears"},
@@ -255,8 +279,14 @@ def add_activitys():
         {"title": "比赛喝酒", "title_ENG": "Have a Drinking Contest"},
         {"title": "早晨一起刷牙", "title_ENG": "Brush Teeth Together in the Morning"},
         {"title": "一起发呆", "title_ENG": "Zone Out Together"},
-        {"title": "一起过我们的纪念日", "title_ENG": "Celebrate Our Anniversary Together"},
-        {"title": "一起对着流星许相同的愿望", "title_ENG": "Make the Same Wish on a Shooting Star"},
+        {
+            "title": "一起过我们的纪念日",
+            "title_ENG": "Celebrate Our Anniversary Together",
+        },
+        {
+            "title": "一起对着流星许相同的愿望",
+            "title_ENG": "Make the Same Wish on a Shooting Star",
+        },
         {"title": "一起折许愿星", "title_ENG": "Fold Wishing Stars Together"},
         {"title": "一起做蛋糕", "title_ENG": "Bake a Cake Together"},
         {"title": "学对方说话", "title_ENG": "Imitate Each Other's Speech"},
@@ -279,46 +309,82 @@ def add_activitys():
         {"title": "一起晨练", "title_ENG": "Do Morning Exercises Together"},
         {"title": "一起傻笑", "title_ENG": "Laugh Silly Together"},
         {"title": "一起吃路边摊", "title_ENG": "Eat Street Food Together"},
-        {"title": "一起去孤儿院送礼物", "title_ENG": "Visit Orphanage and Give Gifts Together"},
+        {
+            "title": "一起去孤儿院送礼物",
+            "title_ENG": "Visit Orphanage and Give Gifts Together",
+        },
         {"title": "穿情侣装显摆", "title_ENG": "Wear Matching Outfits and Show Off"},
         {"title": "一起玩牌", "title_ENG": "Play Cards Together"},
         {"title": "一起吃米线到吐", "title_ENG": "Eat Rice Noodles Until We're Sick"},
-        {"title": "一起踩马路到脚软", "title_ENG": "Walk the Streets Until Our Feet Hurt"},
-        {"title": "一起去医院看婴儿", "title_ENG": "Visit Hospital to See Babies Together"},
-        {"title": "一起去海南的天涯海角", "title_ENG": "Visit Tianya Haijiao in Hainan Together"},
+        {
+            "title": "一起踩马路到脚软",
+            "title_ENG": "Walk the Streets Until Our Feet Hurt",
+        },
+        {
+            "title": "一起去医院看婴儿",
+            "title_ENG": "Visit Hospital to See Babies Together",
+        },
+        {
+            "title": "一起去海南的天涯海角",
+            "title_ENG": "Visit Tianya Haijiao in Hainan Together",
+        },
         {"title": "咬一下你的脸颊", "title_ENG": "Bite Your Cheek Gently"},
         {"title": "每天说晚安", "title_ENG": "Say Good Night Every Day"},
         {"title": "一起看电影", "title_ENG": "Watch Movies Together"},
         {"title": "一起种花", "title_ENG": "Plant Flowers Together"},
         {"title": "比赛吹牛", "title_ENG": "Have a Bragging Contest"},
-        {"title": "一起见对方的朋友", "title_ENG": "Meet Each Other's Friends Together"},
+        {
+            "title": "一起见对方的朋友",
+            "title_ENG": "Meet Each Other's Friends Together",
+        },
         {"title": "一起吃自助餐", "title_ENG": "Eat at a Buffet Together"},
         {"title": "一起荡秋千", "title_ENG": "Swing on Swings Together"},
         {"title": "一起做鬼脸", "title_ENG": "Make Funny Faces Together"},
         {"title": "一起走遍世界各地", "title_ENG": "Travel Around the World Together"},
         {"title": "一起数钱", "title_ENG": "Count Money Together"},
-        {"title": "一起扎气球赢奖品", "title_ENG": "Pop Balloons to Win Prizes Together"},
-        {"title": "站在马路的两侧大喊", "title_ENG": "Shout from Opposite Sides of the Street"},
+        {
+            "title": "一起扎气球赢奖品",
+            "title_ENG": "Pop Balloons to Win Prizes Together",
+        },
+        {
+            "title": "站在马路的两侧大喊",
+            "title_ENG": "Shout from Opposite Sides of the Street",
+        },
         {"title": "看你打场球赛", "title_ENG": "Watch You Play a Game"},
         {"title": "一起看演唱会", "title_ENG": "Attend Concerts Together"},
         {"title": "一起沿铁轨", "title_ENG": "Walk Along Railway Tracks Together"},
         {"title": "一起挤公车", "title_ENG": "Squeeze into Crowded Buses Together"},
         {"title": "一起放风筝", "title_ENG": "Fly Kites Together"},
-        {"title": "一起去普罗旺斯看花田", "title_ENG": "Visit Provence Flower Fields Together"},
-        {"title": "趁你睡觉偷亲你一下", "title_ENG": "Steal a Kiss While You're Sleeping"},
+        {
+            "title": "一起去普罗旺斯看花田",
+            "title_ENG": "Visit Provence Flower Fields Together",
+        },
+        {
+            "title": "趁你睡觉偷亲你一下",
+            "title_ENG": "Steal a Kiss While You're Sleeping",
+        },
         {"title": "一起放孔明灯", "title_ENG": "Release Sky Lanterns Together"},
         {"title": "起钓鱼", "title_ENG": "Go Fishing Together"},
         {"title": "一起下棋", "title_ENG": "Play Chess Together"},
-        {"title": "一起在烈日下暴晒", "title_ENG": "Bask in the Scorching Sun Together"},
-        {"title": "手机铃声设置成对方的声音", "title_ENG": "Set Phone Ringtone to Each Other's Voice"},
+        {
+            "title": "一起在烈日下暴晒",
+            "title_ENG": "Bask in the Scorching Sun Together",
+        },
+        {
+            "title": "手机铃声设置成对方的声音",
+            "title_ENG": "Set Phone Ringtone to Each Other's Voice",
+        },
         {"title": "每天为对方留言", "title_ENG": "Leave Messages for Each Other Daily"},
         {"title": "一起捏对方的脸", "title_ENG": "Pinch Each Other's Cheeks"},
         {"title": "比赛各种各样的事", "title_ENG": "Compete in All Kinds of Things"},
         {"title": "一起看烟火", "title_ENG": "Watch Fireworks Together"},
         {"title": "在树下埋下我们的约定", "title_ENG": "Bury Our Promise Under a Tree"},
-        {"title": "去海边放漂流瓶", "title_ENG": "Release Message Bottles at the Beach"},
+        {
+            "title": "去海边放漂流瓶",
+            "title_ENG": "Release Message Bottles at the Beach",
+        },
         {"title": "拍一次婚纱照", "title_ENG": "Take Wedding Photos Once"},
-        {"title": "白头偕老", "title_ENG": "Grow Old Together"}
+        {"title": "白头偕老", "title_ENG": "Grow Old Together"},
     ]
     with Session() as session:
         for activity in activities:
@@ -329,7 +395,7 @@ def add_activitys():
             session.add(new_activity)
         session.commit()
         print("Activities added")
-        
+
 
 def add_user():
     with Session() as session:
@@ -337,9 +403,9 @@ def add_user():
         session.add(user)
         session.commit()
         print("success")
-        
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # get_footprint_from_ctrip()
     # store_all_photos()
     add_activitys()
