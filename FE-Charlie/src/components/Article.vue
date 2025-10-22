@@ -85,14 +85,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                    }} {{ t('minute') }}</span>
+                                }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -347,14 +347,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                    }} {{ t('minute') }}</span>
+                                }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -459,8 +459,7 @@
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { Plus, Delete, Edit, CollectionTag, Clock, Search, Close, CircleClose } from '@element-plus/icons-vue'
 import { ElTree, ElMessage } from 'element-plus'
-import { useRoute } from 'vue-router'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
 import { useMarkdown } from '../hooks/useMarkdown'
 import { request } from '../api/request'
