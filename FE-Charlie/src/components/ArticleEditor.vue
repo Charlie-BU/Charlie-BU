@@ -141,13 +141,10 @@ import { ref, reactive, onMounted, onBeforeUnmount, nextTick, useTemplateRef } f
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { request } from '../api/request'
-import MarkdownIt from 'markdown-it'
+import { useMarkdown } from '../hooks/useMarkdown'
 import Cookies from 'js-cookie'
 import { markdownSign } from '../utils/markdown'
 import { checkSessionId } from '../utils/utils'
-
-// 初始化markdown-it
-const markdown = new MarkdownIt()
 
 // 路由
 const route = useRoute()
@@ -167,6 +164,8 @@ onMounted(async () => {
     // 添加键盘事件监听
     document.addEventListener('keydown', handleKeyDown)
 })
+
+const { renderMarkdown } = useMarkdown()
 
 // Command(Ctrl)+S 保存
 const handleKeyDown = async (event) => {
@@ -467,11 +466,6 @@ const removeTag = (tag) => {
 // 移除英文标签
 const removeTagENG = (tag) => {
     articleForm.tag_ENG = articleForm.tag_ENG.filter(t => t !== tag)
-}
-
-// Markdown渲染函数
-const renderMarkdown = (content) => {
-    return markdown.render(content || '')
 }
 
 // 返回文章列表

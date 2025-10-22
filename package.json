@@ -1,0 +1,7 @@
+{
+	"dependencies": {
+		"@types/markdown-it": "^14.1.2",
+		"@types/markdown-it-container": "^2.0.10",
+		"markdown-it-container": "^4.0.0"
+	}
+}

@@ -85,14 +85,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
+                                    }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -347,14 +347,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
+                                    }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -461,9 +461,8 @@ import { Plus, Delete, Edit, CollectionTag, Clock, Search, Close, CircleClose } 
 import { ElTree, ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
-import MarkdownIt from 'markdown-it'
-import hljs from 'highlight.js';
 import Cookies from 'js-cookie'
+import { useMarkdown } from '../hooks/useMarkdown'
 import { request } from '../api/request'
 import { checkSessionId, calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '../utils/utils'
 import Modal from './Modal.vue'
@@ -489,6 +488,8 @@ onMounted(async () => {
 const isSidebarCollapsed = ref(false)
 const isMobileRef = ref(isMobile())
 
+const { renderMarkdown } = useMarkdown()
+
 // Command(Ctrl)+F 查找
 const handleKeyDown = async (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
@@ -513,25 +514,6 @@ watch(() => route.params.id, (newId, oldId) => {
         routeArticle()
     }
 })
-
-// 初始化markdown-it，添加代码高亮
-const markdown = new MarkdownIt({
-    highlight: (str, lang) => {
-        if (lang && hljs.getLanguage(lang)) {
-            try {
-                return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang, ignoreIllegals: true }).value}</code></pre>`;
-            } catch (_) { }
-        }
-        // 语言未知时自动识别或转义
-        const safeHtml = hljs.highlightAuto(str).value;
-        return `<pre class="hljs"><code>${safeHtml}</code></pre>`;
-    }
-});
-
-// Markdown渲染函数
-const renderMarkdown = (content) => {
-    return markdown.render(content || '')
-}
 
 // 多语言支持
 const LANG = localStorage.getItem("LANG") || "Chinese";
