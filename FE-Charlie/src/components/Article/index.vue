@@ -46,7 +46,6 @@
                     </el-scrollbar>
                 </div>
             </transition>
-
             <!-- 文章内容 -->
             <div class="article-main">
                 <div class="article-header">
@@ -84,14 +83,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
+                                    }} {{ t('minute') }}</span>
                             </div>
                         </div>
                         <div class="article-tags">
@@ -113,78 +112,84 @@
             </div>
 
             <!-- 摘要 -->
-            <transition name="sidebar-collapse">
-                <div class="article-sidebar-right" v-if="summaryDialogVisible" style="overflow: auto;">
-                    <div class="ai-summary">
-                        <div class="sidebar-header">
-                            <div class="sidebar-title-row" style="display: flex; justify-content: center; gap: 0;">
-                                <img src="@/assets/ai.png" alt="AI Icon" class="ai-icon" />
-                                <h3>{{ t('AISummary') }}</h3>
+            <a-drawer :width="340" :visible="summaryDialogVisible" @ok="handleOk" @cancel="summaryDialogVisible = false"
+                unmountOnClose>
+                <transition name="sidebar-collapse">
+                    <div class="article-sidebar-right" style="overflow: auto;">
+                        <!-- AI 总结 -->
+                        <div class="ai-summary">
+                            <div class="sidebar-header">
+                                <div class="sidebar-title-row" style="display: flex; justify-content: center; gap: 0;">
+                                    <img src="@/assets/ai.png" alt="AI Icon" class="ai-icon" />
+                                    <h3>{{ t('AISummary') }}</h3>
+                                </div>
                             </div>
-                        </div>
-                        <el-scrollbar style="overflow: auto;">
-                            <div class="article-summary">
-                                <div v-if="currentArticle">
-                                    <div class="ai-summary-content-wrapper">
-                                        <div v-if="aiSummary || isGeneratingSummary || isTyping"
-                                            class="ai-summary-content" :class="{ 'streaming': isGeneratingSummary }">
-                                            <span v-if="isGeneratingSummary && !aiSummary"
-                                                class="generating-placeholder">
-                                                {{ t('isGeneratingSummary') }}
-                                            </span>
-                                            <span v-else v-html="formattedSummary" class="summary-text"></span>
-                                            <span v-if="isGeneratingSummary" class="cursor">|</span>
-                                        </div>
-                                        <div
-                                            style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
-                                            <el-button v-if="isTyping" class="add-article-btn" size="small"
-                                                type="danger" style="background: red;"
-                                                @click="stopAISummaryRender(false)" icon="CircleClose">
-                                                {{ t('stopGenerating') }}
-                                            </el-button>
-                                            <el-button v-else class="add-article-btn" size="small" type="primary"
-                                                :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
-                                                @click="regenerate_article_AISummary" icon="Refresh">
-                                                {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
-                                                    ? t('regenerateSummary') : t('generateSummary')
-                                                }}
-                                            </el-button>
+                            <el-scrollbar style="overflow: auto;">
+                                <div class="article-summary">
+                                    <div v-if="currentArticle">
+                                        <div class="ai-summary-content-wrapper">
+                                            <div v-if="aiSummary || isGeneratingSummary || isTyping"
+                                                class="ai-summary-content"
+                                                :class="{ 'streaming': isGeneratingSummary }">
+                                                <span v-if="isGeneratingSummary && !aiSummary"
+                                                    class="generating-placeholder">
+                                                    {{ t('isGeneratingSummary') }}
+                                                </span>
+                                                <span v-else v-html="formattedSummary" class="summary-text"></span>
+                                                <span v-if="isGeneratingSummary" class="cursor">|</span>
+                                            </div>
+                                            <div
+                                                style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
+                                                <el-button v-if="isTyping" class="add-article-btn" size="small"
+                                                    type="danger" style="background: red;"
+                                                    @click="stopAISummaryRender(false)" icon="CircleClose">
+                                                    {{ t('stopGenerating') }}
+                                                </el-button>
+                                                <el-button v-else class="add-article-btn" size="small" type="primary"
+                                                    :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
+                                                    @click="regenerate_article_AISummary" icon="Refresh">
+                                                    {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
+                                                        ? t('regenerateSummary') : t('generateSummary')
+                                                    }}
+                                                </el-button>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div v-else class="summary-empty">
+                                        <p>{{ t('selectArticle') }}</p>
+                                    </div>
                                 </div>
-                                <div v-else class="summary-empty">
-                                    <p>{{ t('selectArticle') }}</p>
-                                </div>
-                            </div>
-                        </el-scrollbar>
-                    </div>
-                    <div class="summary-tree">
-                        <div class="sidebar-header">
-                            <div class="sidebar-title-row">
-                                <h3>{{ t('summary') }}</h3>
-                            </div>
+                            </el-scrollbar>
                         </div>
-                        <el-scrollbar style="overflow: auto;">
-                            <div class="article-summary">
-                                <el-tree v-if="treeData && treeData.length > 0" :data="treeData" :props="{
-                                    children: 'children',
-                                    label: 'label'
-                                }" @node-click="handleNodeClick" node-key="id" default-expand-all highlight-current
-                                    class="summary-tree" />
-                                <div v-else class="summary-empty">
-                                    <p>{{ t('selectArticle') }}</p>
+                        <!-- 摘要 -->
+                        <div class="summary-tree">
+                            <div class="sidebar-header">
+                                <div class="sidebar-title-row">
+                                    <h3>{{ t('summary') }}</h3>
                                 </div>
                             </div>
-                        </el-scrollbar>
+                            <el-scrollbar style="overflow: auto;">
+                                <div class="article-summary">
+                                    <el-tree v-if="treeData && treeData.length > 0" :data="treeData" :props="{
+                                        children: 'children',
+                                        label: 'label'
+                                    }" @node-click="handleNodeClick" node-key="id" default-expand-all highlight-current
+                                        class="summary-tree" />
+                                    <div v-else class="summary-empty">
+                                        <p>{{ t('selectArticle') }}</p>
+                                    </div>
+                                </div>
+                            </el-scrollbar>
+                        </div>
                     </div>
-                </div>
-            </transition>
+                </transition>
+            </a-drawer>
 
             <!-- 左侧折叠按钮 -->
             <!-- <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" style="left: 10px;" circle
                 @click="isSidebarCollapsed = !isSidebarCollapsed" icon="Expand" /> -->
             <!-- 右侧折叠按钮 -->
-            <el-button class="collapse-btn" :class="{ 'collapsed': summaryDialogVisible }"
+            <el-button :class="{ 'collapsed': summaryDialogVisible }"
                 :style="summaryDialogVisible ? 'right: 10px;' : 'right: 25px;'" circle
                 @click="summaryDialogVisible = !summaryDialogVisible" icon="Expand" />
         </div>
@@ -268,11 +273,12 @@ import { Plus, Delete, Edit, CollectionTag, Clock, Search, Close, CircleClose } 
 import { ElTree, ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
-import { useMarkdown } from '../hooks/useMarkdown'
-import { request } from '../api/request'
-import { checkSessionId, calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '../utils/utils'
-import Modal from './Modal.vue'
-import { removeMarkdownSymbols } from '../utils/markdown'
+
+import { useMarkdown } from '@/hooks/useMarkdown'
+import { request } from '@/api/request'
+import { checkSessionId, calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '@/utils/utils'
+import Modal from '@/components/Modal.vue'
+import { removeMarkdownSymbols } from '@/utils/markdown'
 
 import aiIcon from '@/assets/ai.png';
 
@@ -889,835 +895,5 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.article-content {
-    max-width: 1500px;
-    margin: 0 auto;
-}
-
-.article-container {
-    position: relative;
-    display: flex;
-    gap: 30px;
-    min-height: calc(100vh - 200px);
-    /* height: 90vh; */
-}
-
-/* 左侧菜单样式 */
-.sidebar-collapse-enter-active,
-.sidebar-collapse-leave-active {
-    transition: all 0.3s ease;
-    overflow: hidden;
-}
-
-.sidebar-collapse-enter-from,
-.sidebar-collapse-leave-to {
-    opacity: 0;
-    transform: translateX(-20px);
-}
-
-.sidebar-collapse-enter-to,
-.sidebar-collapse-leave-from {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.collapse-btn {
-    transition: transform 0.3s ease;
-    position: absolute;
-    top: 10px;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-}
-
-.collapse-btn.collapsed {
-    transform: rotate(-180deg);
-}
-
-.article-sidebar-left {
-    position: fixed;
-    flex: 0 0 300px;
-    /* background: rgba(255, 255, 255, 0.08); */
-    /* backdrop-filter: blur(20px); */
-    /* border-radius: 16px; */
-    /* border: 1px solid rgba(255, 255, 255, 0.15); */
-    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
-    width: 330px;
-    max-height: 100vh;
-    overflow: auto;
-    /* 不显示滚动条 */
-    /* Firefox */
-    scrollbar-width: none;
-    /* IE/Edge 旧版 */
-    -ms-overflow-style: none;
-}
-
-.article-sidebar-right {
-    /* background: rgba(255, 255, 255, 0.08); */
-    /* backdrop-filter: blur(20px); */
-    /* border-radius: 16px; */
-    /* border: 1px solid rgba(255, 255, 255, 0.15); */
-    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
-    width: 330px;
-    height: 100%;
-    overflow-y: auto;
-    /* 不显示滚动条 */
-    /* Firefox */
-    scrollbar-width: none;
-    /* IE/Edge 旧版 */
-    -ms-overflow-style: none;
-}
-
-.sidebar-header {
-    position: sticky;
-    padding: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-/* 添加过渡动画 */
-.fade-dropdown-enter-active,
-.fade-dropdown-leave-active {
-    transition: opacity 0.3s, transform 0.3s;
-}
-
-.fade-dropdown-enter-from,
-.fade-dropdown-leave-to {
-    opacity: 0;
-    transform: translateY(-10px);
-}
-
-.category-menu {
-    background: transparent;
-    border-right: none;
-}
-
-.category-title {
-    margin: 0 0 10px 0;
-    font-size: 1rem;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 600;
-}
-
-:deep(.el-menu-item) {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 40px;
-    line-height: 40px;
-    color: rgba(255, 255, 255, 0.8);
-    padding: 0 15px;
-    border-radius: 8px;
-    margin-bottom: 5px;
-}
-
-:deep(.el-menu-item:hover) {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-:deep(.el-menu-item.is-active) {
-    background-color: rgba(139, 92, 246, 0.2);
-    color: #A78BFA;
-}
-
-:deep(.el-menu--horizontal>.el-menu-item.is-active) {
-    border-bottom: none;
-}
-
-:deep(.el-menu-item:focus) {
-    background-color: rgba(139, 92, 246, 0.2);
-}
-
-.category-count {
-    background: rgba(139, 92, 246, 0.2);
-    border-color: rgba(139, 92, 246, 0.3);
-    color: #A78BFA;
-    margin-left: 8px;
-}
-
-.sidebar-title-row {
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-}
-
-.sidebar-header h3 {
-    margin: 0;
-    color: #ffffff;
-    font-size: 1.3rem;
-    font-weight: 600;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.add-article-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    transition: all 0.3s ease;
-}
-
-.add-article-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.article-menu {
-    padding: 10px;
-}
-
-.article-menu-item {
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.article-menu-item:hover {
-    background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-2px);
-}
-
-.article-menu-item.active {
-    background: rgba(139, 92, 246, 0.2);
-    border-color: rgba(139, 92, 246, 0.5);
-    box-shadow: 0 5px 15px rgba(139, 92, 246, 0.2);
-}
-
-.article-item-header {
-    margin-bottom: 5px;
-}
-
-.article-menu-title {
-    font-weight: 600;
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    width: 100%;
-}
-
-.delete-article-btn {
-    position: absolute;
-    /* 绝对定位 */
-    right: 0;
-    /* 靠右对齐 */
-    top: 0;
-    /* 靠顶部对齐 */
-    background: rgba(245, 101, 101, 0.8);
-    border: none;
-    width: 24px;
-    height: 24px;
-    min-height: 24px;
-    padding: 0;
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.article-menu-item:hover .delete-article-btn {
-    opacity: 1;
-}
-
-.delete-article-btn:hover {
-    background: rgba(245, 101, 101, 1);
-    transform: scale(1.1);
-}
-
-.article-menu-date {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 8px;
-}
-
-.article-menu-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.article-tag {
-    background: rgba(245, 158, 11, 0.2);
-    border-color: rgba(245, 158, 11, 0.6);
-    color: #F59E0B;
-}
-
-/* 右侧内容样式 */
-.article-main {
-    flex: 1;
-    /* background: rgba(255, 255, 255, 0.08); */
-    /* backdrop-filter: blur(20px); */
-    /* border-radius: 16px; */
-    /* border: 1px solid rgba(255, 255, 255, 0.15); */
-    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
-    padding: 30px;
-    overflow: auto;
-    overflow-y: auto;
-    margin-left: 330px;
-}
-
-.article-header {
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.article-title-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.article-title {
-    position: relative;
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin: 0;
-    color: #ffffff;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    flex: 1;
-}
-
-.article-actions {
-    position: absolute;
-    display: flex;
-    gap: 10px;
-    right: 30px;
-}
-
-.article-actions .el-button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    transition: all 0.3s ease;
-    color: white;
-}
-
-.article-actions .el-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.article-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.article-time {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.time-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.9rem;
-}
-
-.article-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.ai-icon {
-    width: 24px;
-    height: 24px;
-    margin-right: 8px;
-}
-
-.article-content-body {
-    color: rgba(255, 255, 255, 0.92);
-    line-height: 1.8;
-    font-size: 1.1rem;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    text-align: justify;
-}
-
-/* 添加Markdown样式 */
-.article-content-body :deep(h1),
-.article-content-body :deep(h2),
-.article-content-body :deep(h3),
-.article-content-body :deep(h4),
-.article-content-body :deep(h5),
-.article-content-body :deep(h6) {
-    margin-top: 1.5em;
-    margin-bottom: 0.8em;
-    font-weight: 600;
-    color: #ffffff;
-    text-align: left;
-}
-
-.article-content-body :deep(p) {
-    margin-bottom: 1em;
-    text-align: justify;
-}
-
-.article-content-body :deep(a) {
-    color: #A78BFA;
-    text-decoration: none;
-}
-
-.article-content-body :deep(a:hover) {
-    text-decoration: underline;
-}
-
-.article-content-body :deep(ul),
-.article-content-body :deep(ol) {
-    padding-left: 2em;
-    margin-bottom: 1em;
-}
-
-.article-content-body :deep(blockquote) {
-    border-left: 4px solid rgba(139, 92, 246, 0.5);
-    padding-left: 1em;
-    margin-left: 0;
-    margin-right: 0;
-    font-style: italic;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.article-content-body :deep(code) {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 0.2em 0.4em;
-    border-radius: 3px;
-    font-family: monospace;
-    font-size: 0.9em;
-}
-
-.article-content-body :deep(pre) {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 1em;
-    border-radius: 5px;
-    overflow-x: auto;
-    margin-bottom: 1em;
-}
-
-.article-content-body :deep(pre code) {
-    background: none;
-    padding: 0;
-}
-
-.article-content-body :deep(table) {
-    border-collapse: collapse;
-    width: 100%;
-    margin-bottom: 1em;
-}
-
-.article-content-body :deep(th),
-.article-content-body :deep(td) {
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 0.5em;
-}
-
-.article-content-body :deep(th) {
-    background: rgba(0, 0, 0, 0.2);
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-    .article-container {
-        flex-direction: column;
-    }
-
-    .article-sidebar {
-        flex: none;
-        width: 100%;
-        max-height: 300px;
-    }
-
-    .sidebar-title-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 15px;
-    }
-
-    .article-title-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 15px;
-    }
-
-    .article-item-header {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .delete-article-btn {
-        align-self: flex-end;
-        opacity: 1;
-    }
-}
-
-/* 表单提示样式 */
-.form-tip {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
-    margin-top: 4px;
-}
-
-/* 表单内的输入框样式覆盖 */
-:deep(.el-input__inner),
-:deep(.el-textarea__inner) {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-:deep(.el-input__inner:focus),
-:deep(.el-textarea__inner:focus) {
-    border-color: #A78BFA;
-    box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
-}
-
-:deep(.el-form-item__label) {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.category-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    z-index: 1000;
-}
-
-.category-modal {
-    margin-top: 120px;
-    background: rgba(76, 8, 125, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-}
-
-.category-modal-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.category-modal-title {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.category-modal-close {
-    color: rgba(255, 255, 255, 0.7);
-    cursor: pointer;
-}
-
-.category-modal-close:hover {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.category-modal-body {
-    padding: 15px 20px;
-}
-
-.search-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    z-index: 1000;
-}
-
-.search-modal {
-    margin-top: 120px;
-    background: rgba(76, 8, 125, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-}
-
-.search-modal-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.search-modal-title {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.search-modal-close {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.search-modal-close:hover {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.search-modal-body {
-    padding: 15px 20px;
-}
-
-.search-results {
-    margin-top: 10px;
-    max-height: 500px;
-    overflow: auto;
-}
-
-.search-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    color: rgba(255, 255, 255, 0.8);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    transition: background 0.2s;
-    border-radius: 20px;
-}
-
-.search-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.search-item-title {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.search-item-content {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
-    text-align: left;
-    margin-bottom: 5px;
-}
-
-.search-item-meta {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
-    margin-bottom: 5px;
-    text-align: left;
-}
-
-.search-item-tags .el-tag {
-    margin-right: 5px;
-}
-
-/* 模态动画 */
-.modal-fade-enter-active,
-.modal-fade-leave-active {
-    transition: opacity 0.3s ease;
-}
-
-.modal-fade-enter-from,
-.modal-fade-leave-to {
-    opacity: 0;
-}
-
-.modal-fade-enter-active .search-modal,
-.modal-fade-leave-active .search-modal {
-    transition: transform 0.3s ease;
-}
-
-.modal-fade-enter-from .search-modal,
-.modal-fade-leave-to .search-modal {
-    transform: scale(0.95);
-}
-
-.custom-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 0 15px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: border-color 0.3s;
-}
-
-.custom-input-wrapper:hover {
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-.custom-input-wrapper:focus-within {
-    border-color: #A78BFA;
-    box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
-}
-
-.input-prefix-icon {
-    color: rgba(255, 255, 255, 0.6);
-    margin-right: 10px;
-    margin-top: 5px;
-}
-
-.custom-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 14px;
-    padding: 10px 0;
-    outline: none;
-}
-
-.custom-input::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-}
-
-.input-clear-icon {
-    color: rgba(255, 255, 255, 0.6);
-    cursor: pointer;
-    margin-left: 10px;
-}
-
-.input-clear-icon:hover {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-/* 摘要区域样式 */
-.article-summary {
-    padding: 20px;
-    text-align: justify;
-}
-
-.summary-tree {
-    background: transparent;
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.summary-tree :deep(.el-tree-node__label) {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.summary-tree :deep(.el-tree-node__content) {
-    background: transparent;
-    color: rgba(255, 255, 255, 0.8);
-    margin-bottom: 5px;
-    border-radius: 5px;
-}
-
-.summary-tree :deep(.el-tree-node__content:hover) {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.summary-tree :deep(.el-tree-node.is-current > .el-tree-node__content) {
-    background: rgba(139, 92, 246, 0.2);
-    color: #A78BFA;
-}
-
-.summary-tree :deep(.el-tree-node__expand-icon) {
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.summary-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 200px;
-    color: rgba(255, 255, 255, 0.5);
-    text-align: center;
-    padding: 20px;
-}
-
-/* AI摘要样式 */
-.ai-summary-content-wrapper {
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.3);
-    border-radius: 8px;
-    padding: 15px;
-    position: relative;
-    overflow: hidden;
-}
-
-.ai-summary-content {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 14px;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.ai-summary-content.streaming {
-    animation: pulse 2s ease-in-out infinite;
-}
-
-.cursor {
-    animation: blink 1s infinite;
-    color: #A78BFA;
-    font-weight: bold;
-}
-
-.generating-placeholder {
-    color: rgba(255, 255, 255, 0.6);
-    font-style: italic;
-}
-
-.summary-text {
-    display: block;
-    line-height: 1.8;
-}
-
-.summary-text strong {
-    color: #A78BFA;
-    font-weight: 600;
-}
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.7;
-    }
-}
-
-@keyframes blink {
-
-    0%,
-    50% {
-        opacity: 1;
-    }
-
-    51%,
-    100% {
-        opacity: 0;
-    }
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-    .ai-summary-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-
-    .ai-summary-header .el-button {
-        width: 100%;
-    }
-}
+@import './index.css';
 </style>
