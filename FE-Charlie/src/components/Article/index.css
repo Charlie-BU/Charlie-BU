@@ -11,6 +11,40 @@
     min-height: calc(100vh - 200px);
 }
 
+/* 工具栏样式 */
+.article-toolbar {
+    margin-bottom: 50px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toolbar-buttons {
+    margin-bottom: 5px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.toolbar-buttons .arco-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.toolbar-buttons .arco-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.toolbar-buttons .arco-btn:active {
+    transform: translateY(0);
+}
+
 /* 侧边栏过渡动画 */
 .sidebar-collapse-enter-active,
 .sidebar-collapse-leave-active,
@@ -62,6 +96,7 @@
 }
 
 .article-sidebar-left {
+    margin-top: 6px;
     position: fixed;
     flex: 0 0 300px;
     max-height: 100vh;

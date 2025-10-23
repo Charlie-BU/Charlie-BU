@@ -1,67 +1,127 @@
 <template>
     <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
         <div class="article-container">
-            <!-- 文章列表 -->
+            <!-- AI 总结与目录 -->
             <transition name="sidebar-collapse">
                 <div class="article-sidebar-left" v-if="!isSidebarCollapsed" style="padding-bottom: 100px;">
-                    <div class="sidebar-header">
-                        <div class="sidebar-title-row" style="margin-bottom: 10px;">
-                            <h3>{{ t('articleList') }}</h3>
-                        </div>
-                        <div style="white-space: nowrap;">
-                            <el-button v-if="admin_id" class="add-article-btn" size="small" type="primary"
-                                @click="handleAddArticle" :icon="Plus">
-                                {{ t('addArticle') }}
-                            </el-button>
-                            <el-button class="add-article-btn" size="small" type="primary" @click="handleSearchArticle"
-                                :icon="Search">
-                                {{ t('searchArticle') }}
-                            </el-button>
-                            <el-button class="add-article-btn" size="small" type="primary" @click="toggleCategoryMenu"
-                                :icon="CollectionTag">
-                                {{ selectedCategory || t('allCategories') }}
-                            </el-button>
-                        </div>
-                    </div>
-                    <el-scrollbar style="overflow: auto;">
-                        <div class="article-menu">
-                            <div v-for="(article, index) in filteredArticles" :key="index" class="article-menu-item"
-                                :class="{ 'active': currentArticleId === article.id }"
-                                @click="selectArticle(article.id)">
-                                <div class="article-item-header">
-                                    <div class="article-menu-title">{{ article.title }}</div>
-                                    <el-button v-if="admin_id" class="delete-article-btn" size="small" type="danger"
-                                        @click.stop="handleDeleteArticle(article.id)" :icon="Delete" circle>
-                                    </el-button>
-                                </div>
-                                <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
-                                <div class="article-menu-tags">
-                                    <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
-                                        effect="dark" class="article-tag">
-                                        {{ tag }}
-                                    </el-tag>
-                                </div>
+                    <!-- AI 总结 -->
+                    <div class="ai-summary">
+                        <div class="sidebar-header">
+                            <div class="sidebar-title-row" style="display: flex; justify-content: center; gap: 0;">
+                                <img src="@/assets/ai.png" alt="AI Icon" class="ai-icon" />
+                                <h3>{{ t('AISummary') }}</h3>
                             </div>
                         </div>
-                    </el-scrollbar>
+                        <el-scrollbar style="overflow: auto;">
+                            <div class="article-summary">
+                                <div v-if="currentArticle">
+                                    <div class="ai-summary-content-wrapper">
+                                        <div v-if="aiSummary || isGeneratingSummary || isTyping"
+                                            class="ai-summary-content" :class="{ 'streaming': isGeneratingSummary }">
+                                            <span v-if="isGeneratingSummary && !aiSummary"
+                                                class="generating-placeholder">
+                                                {{ t('isGeneratingSummary') }}
+                                            </span>
+                                            <span v-else v-html="formattedSummary" class="summary-text"></span>
+                                            <span v-if="isGeneratingSummary" class="cursor">|</span>
+                                        </div>
+                                        <div
+                                            style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
+                                            <a-button v-if="isTyping" type="primary" size="small" shape="round"
+                                                status="danger" @click="stopAISummaryRender(false)">
+                                                <template #icon>
+                                                    <icon-close />
+                                                </template>
+                                                {{ t('stopGenerating') }}
+                                            </a-button>
+                                            <a-button v-else type="primary" size="small" shape="round"
+                                                :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
+                                                @click="regenerate_article_AISummary">
+                                                <template #icon>
+                                                    <icon-refresh />
+                                                </template>
+                                                {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
+                                                    ? t('regenerateSummary') : t('generateSummary')
+                                                }}
+                                            </a-button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-else class="summary-empty">
+                                    <p>{{ t('selectArticle') }}</p>
+                                </div>
+                            </div>
+                        </el-scrollbar>
+                    </div>
+                    <!-- 目录 -->
+                    <div class="summary-tree">
+                        <div class="sidebar-header">
+                            <div class="sidebar-title-row">
+                                <h3>{{ t('contents') }}</h3>
+                            </div>
+                        </div>
+                        <el-scrollbar style="overflow: auto;">
+                            <div class="article-summary">
+                                <el-tree v-if="treeData && treeData.length > 0" :data="treeData" :props="{
+                                    children: 'children',
+                                    label: 'label'
+                                }" @node-click="handleNodeClick" node-key="id" default-expand-all highlight-current
+                                    class="summary-tree" />
+                                <div v-else class="summary-empty">
+                                    <p>{{ t('selectArticle') }}</p>
+                                </div>
+                            </div>
+                        </el-scrollbar>
+                    </div>
+
                 </div>
             </transition>
             <!-- 文章内容 -->
             <div class="article-main">
+                <!-- 工具栏 -->
+                <div class="article-toolbar">
+                    <div class="toolbar-buttons">
+                        <a-button type="primary" size="small" shape="round"
+                            @click="summaryDialogVisible = !summaryDialogVisible">
+                            <template #icon>
+                                <icon-book />
+                            </template>
+                            {{ t('articleList') }}
+                        </a-button>
+                        <a-button type="primary" size="small" shape="round" @click="handleSearchArticle">
+                            <template #icon>
+                                <icon-search />
+                            </template>
+                            {{ t('searchArticle') }}
+                        </a-button>
+                        <a-button v-if="admin_id" type="primary" size="small" shape="round" @click="handleAddArticle">
+                            <template #icon>
+                                <icon-plus />
+                            </template>
+                            {{ t('addArticle') }}
+                        </a-button>
+                    </div>
+                </div>
                 <div class="article-header">
                     <div class="article-title-row">
                         <h1 class="article-title">{{ currentArticle.title }}</h1>
                         <div v-if="admin_id" class="article-actions">
-                            <el-button size="medium" type="primary" @click="handleEditArticle(currentArticle.id)"
-                                :icon="Edit">
+                            <a-button type="primary" size="small" shape="round"
+                                @click="handleEditArticle(currentArticle.id)">
+                                <template #icon>
+                                    <icon-edit />
+                                </template>
                                 {{ t('editArticle') }}
-                            </el-button>
-                            <el-button size="medium" type="primary"
+                            </a-button>
+                            <a-button type="primary" size="small" shape="round"
                                 :style="{ background: currentArticle.isReleased ? '' : 'green' }"
-                                @click="handleDraftOrReleased(currentArticle.id)"
-                                :icon="currentArticle.isReleased ? 'MessageBox' : 'Promotion'">
+                                @click="handleDraftOrReleased(currentArticle.id)">
+                                <template #icon>
+                                    <icon-save v-if="currentArticle.isReleased" />
+                                    <icon-send v-else />
+                                </template>
                                 {{ currentArticle.isReleased ? t('setAsDraft') : t('publish') }}
-                            </el-button>
+                            </a-button>
                         </div>
                     </div>
                     <div class="article-meta">
@@ -111,87 +171,57 @@
                 </div>
             </div>
 
-            <!-- 摘要 -->
-            <a-drawer :width="340" :visible="summaryDialogVisible" @ok="handleOk" @cancel="summaryDialogVisible = false"
-                unmountOnClose>
-                <transition name="sidebar-collapse">
-                    <div class="article-sidebar-right" style="overflow: auto;">
-                        <!-- AI 总结 -->
-                        <div class="ai-summary">
-                            <div class="sidebar-header">
-                                <div class="sidebar-title-row" style="display: flex; justify-content: center; gap: 0;">
-                                    <img src="@/assets/ai.png" alt="AI Icon" class="ai-icon" />
-                                    <h3>{{ t('AISummary') }}</h3>
-                                </div>
-                            </div>
-                            <el-scrollbar style="overflow: auto;">
-                                <div class="article-summary">
-                                    <div v-if="currentArticle">
-                                        <div class="ai-summary-content-wrapper">
-                                            <div v-if="aiSummary || isGeneratingSummary || isTyping"
-                                                class="ai-summary-content"
-                                                :class="{ 'streaming': isGeneratingSummary }">
-                                                <span v-if="isGeneratingSummary && !aiSummary"
-                                                    class="generating-placeholder">
-                                                    {{ t('isGeneratingSummary') }}
-                                                </span>
-                                                <span v-else v-html="formattedSummary" class="summary-text"></span>
-                                                <span v-if="isGeneratingSummary" class="cursor">|</span>
-                                            </div>
-                                            <div
-                                                style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
-                                                <el-button v-if="isTyping" class="add-article-btn" size="small"
-                                                    type="danger" style="background: red;"
-                                                    @click="stopAISummaryRender(false)" icon="CircleClose">
-                                                    {{ t('stopGenerating') }}
-                                                </el-button>
-                                                <el-button v-else class="add-article-btn" size="small" type="primary"
-                                                    :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
-                                                    @click="regenerate_article_AISummary" icon="Refresh">
-                                                    {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
-                                                        ? t('regenerateSummary') : t('generateSummary')
-                                                    }}
-                                                </el-button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div v-else class="summary-empty">
-                                        <p>{{ t('selectArticle') }}</p>
-                                    </div>
-                                </div>
-                            </el-scrollbar>
-                        </div>
-                        <!-- 摘要 -->
-                        <div class="summary-tree">
-                            <div class="sidebar-header">
-                                <div class="sidebar-title-row">
-                                    <h3>{{ t('summary') }}</h3>
-                                </div>
-                            </div>
-                            <el-scrollbar style="overflow: auto;">
-                                <div class="article-summary">
-                                    <el-tree v-if="treeData && treeData.length > 0" :data="treeData" :props="{
-                                        children: 'children',
-                                        label: 'label'
-                                    }" @node-click="handleNodeClick" node-key="id" default-expand-all highlight-current
-                                        class="summary-tree" />
-                                    <div v-else class="summary-empty">
-                                        <p>{{ t('selectArticle') }}</p>
-                                    </div>
-                                </div>
-                            </el-scrollbar>
+            <!-- 文章列表 -->
+            <a-drawer :width="400" :visible="summaryDialogVisible" @cancel="summaryDialogVisible = false"
+                :header="false" :footer="false" :drawer-style="{
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                }" unmountOnClose>
+                <div class="article-sidebar-right" style="overflow: auto;">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title-row" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <h3>{{ t('articleList') }}</h3>
+                            <a-button type="primary" size="small" shape="round" @click="toggleCategoryMenu"> 
+                                <template #icon> 
+                                    <icon-tags /> 
+                                </template> 
+                                {{ selectedCategory || t('allCategories') }} 
+                            </a-button>
                         </div>
                     </div>
-                </transition>
+                    <el-scrollbar style="overflow: auto;">
+                        <div class="article-menu">
+                            <div v-for="(article, index) in filteredArticles" :key="index" class="article-menu-item"
+                                :class="{ 'active': currentArticleId === article.id }"
+                                @click="selectArticle(article.id)">
+                                <div class="article-item-header">
+                                    <div class="article-menu-title">{{ article.title }}</div>
+                                    <a-button v-if="admin_id" type="primary" size="small" shape="round" status="danger"
+                                        class="delete-article-btn" @click.stop="handleDeleteArticle(article.id)" circle>
+                                        <template #icon>
+                                            <icon-delete />
+                                        </template>
+                                    </a-button>
+                                </div>
+                                <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
+                                <div class="article-menu-tags">
+                                    <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
+                                        effect="dark" class="article-tag">
+                                        {{ tag }}
+                                    </el-tag>
+                                </div>
+                            </div>
+                        </div>
+                    </el-scrollbar>
+                </div>
             </a-drawer>
 
             <!-- 左侧折叠按钮 -->
             <!-- <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" style="left: 10px;" circle
                 @click="isSidebarCollapsed = !isSidebarCollapsed" icon="Expand" /> -->
             <!-- 右侧折叠按钮 -->
-            <el-button :class="{ 'collapsed': summaryDialogVisible }"
+            <!-- <el-button :class="{ 'collapsed': summaryDialogVisible }"
                 :style="summaryDialogVisible ? 'right: 10px;' : 'right: 25px;'" circle
-                @click="summaryDialogVisible = !summaryDialogVisible" icon="Expand" />
+                @click="summaryDialogVisible = !summaryDialogVisible" icon="Expand" /> -->
         </div>
     </el-main>
 
@@ -269,7 +299,6 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
-import { Plus, Delete, Edit, CollectionTag, Clock, Search, Close, CircleClose } from '@element-plus/icons-vue'
 import { ElTree, ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
@@ -350,7 +379,7 @@ const translations = {
         categories: '分类',
         searchArticle: '搜索',
         searchArticlePlaceholder: '输入文章标题或内容',
-        summary: '摘要',
+        contents: '目录',
         AISummary: 'AI 总结',
         generateSummaryFailed: '生成 AI 总结失败',
         noContent: '文章内容为空',
@@ -381,7 +410,7 @@ const translations = {
         categories: 'Categories',
         searchArticle: 'Search',
         searchArticlePlaceholder: 'Search articles by title or content',
-        summary: 'Summary',
+        contents: 'Contents',
         AISummary: 'AI Summary',
         generateSummaryFailed: 'Failed to generate summary',
         noContent: 'Article content is empty',
@@ -636,6 +665,7 @@ const selectArticle = async (id) => {
         const articleHash = calcHashForArticleId(id)
         router.push(`/articles/${articleHash}`)
     }
+    summaryDialogVisible.value = false
 }
 
 // 格式化日期
@@ -700,6 +730,7 @@ const currentDeleteArticleId = ref(null)
 // 删除文章
 const handleDeleteArticle = (articleId) => {
     if (!admin_id.value) return
+    summaryDialogVisible.value = false
     currentDeleteArticleId.value = articleId
     deleteDialogVisible.value = true
 }
