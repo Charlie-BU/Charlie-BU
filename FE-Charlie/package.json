@@ -9,6 +9,8 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@arco-design/web-vue": "^2.56.3",
+        "@byted-arch-fe/bam-code-generator": "^1.19.3",
         "@element-plus/icons-vue": "^2.3.1",
         "@fingerprintjs/fingerprintjs": "^4.6.2",
         "axios": "^1.10.0",

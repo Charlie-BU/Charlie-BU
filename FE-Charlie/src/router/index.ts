@@ -6,8 +6,8 @@ import {
 
 import Home from "../components/Home.vue";
 import Login from "../components/Login.vue";
-import Article from "../components/Article.vue";
-import ArticleEditor from "../components/ArticleEditor.vue";
+import Article from "../components/Article/index.vue";
+import ArticleEditor from "../components/Article/ArticleEditor.vue";
 import Traveling from "../components/Traveling.vue";
 import Dating from "../components/Dating/index.vue";
 import { checkSessionId } from "../utils/utils";

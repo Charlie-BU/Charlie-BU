@@ -1,6 +1,7 @@
 import MarkdownIt from "markdown-it";
 import hljs from "highlight.js";
 import markdownItContainer from "markdown-it-container";
+import { replaceMarkdownImages } from "../../utils/markdownImageReplacer";
 import "./index.css";
 
 export const useMarkdown = () => {
@@ -42,26 +43,23 @@ export const useMarkdown = () => {
     });
 
     // 图片宽高自适应、圆角、图注
-    // 重写 image 渲染规则
+    // 重写 image 渲染规则，使用 a-image 组件
     markdown.renderer.rules.image = (tokens, idx) => {
         const token = tokens[idx];
         const src = token.attrGet("src");
         const alt = token.content || "";
         const title = token.attrGet("title") || "";
 
+        // 生成自定义标签，稍后会被 Vue 组件替换
         return `
-    <img 
-      src="${src}" 
-      alt="${alt}" 
-      title="${title}" 
-      style="width:90%;
-        height:auto;
-        display:block;
-        margin: 1em auto;
-        object-fit:contain;
-        border-radius: 0.5em;" 
-    />
-    <figcaption style="text-align: center; color: #929295; margin-top: -12px;">${alt}</figcaption>
+    <div class="markdown-image-container" style="width: 100%; display: flex; flex-direction: column; align-items: center; margin: 1em auto;">
+      <arco-image-placeholder 
+        data-src="${src}" 
+        data-alt="${alt}" 
+        data-title="${title}"
+        style="width: 70%; border-radius: 0.5em;">
+      </arco-image-placeholder>
+    </div>
   `;
     };
 
@@ -69,5 +67,6 @@ export const useMarkdown = () => {
         renderMarkdown: (content: string) => {
             return markdown.render(content || "");
         },
+        replaceImages: replaceMarkdownImages,
     };
 };

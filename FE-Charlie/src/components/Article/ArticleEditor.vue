@@ -140,11 +140,11 @@
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { request } from '../api/request'
-import { useMarkdown } from '../hooks/useMarkdown'
+import { request } from '../../api/request'
+import { useMarkdown } from '../../hooks/useMarkdown'
 import Cookies from 'js-cookie'
-import { markdownSign } from '../utils/markdown'
-import { checkSessionId } from '../utils/utils'
+import { markdownSign } from '../../utils/markdown'
+import { checkSessionId } from '../../utils/utils'
 
 // 路由
 const route = useRoute()
