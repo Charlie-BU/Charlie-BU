@@ -1,9 +1,5 @@
 <template>
     <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
-        <!-- 工具栏 -->
-        <!-- <div class="article-toolbar">
-            
-        </div> -->
         <div class="article-container">
             <!-- AI 总结与目录 -->
             <transition name="sidebar-collapse">
@@ -85,28 +81,10 @@
                 <div class="article-header">
                     <div class="article-title-row">
                         <h1 class="article-title">{{ currentArticle.title }}</h1>
-                        <div v-if="admin_id" class="article-actions">
-                            <a-button type="primary" size="small" shape="round"
-                                @click="handleEditArticle(currentArticle.id)">
-                                <template #icon>
-                                    <icon-edit />
-                                </template>
-                                {{ t('editArticle') }}
-                            </a-button>
-                            <a-button type="primary" size="small" shape="round"
-                                :style="{ background: currentArticle.isReleased ? '' : 'green' }"
-                                @click="handleDraftOrReleased(currentArticle.id)">
-                                <template #icon>
-                                    <icon-save v-if="currentArticle.isReleased" />
-                                    <icon-send v-else />
-                                </template>
-                                {{ currentArticle.isReleased ? t('setAsDraft') : t('publish') }}
-                            </a-button>
-                        </div>
                         <div class="article-tags">
-                            <a-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex">
+                            <a-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" color="#b71de8">
                                 <template #icon>
-                                    <icon-tag />
+                                    <icon-tag style="color: #fff;" />
                                 </template>
                                 {{ tag }}
                             </a-tag>
@@ -133,14 +111,14 @@
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                }} {{ t('minute') }}</span>
+                                    }} {{ t('minute') }}</span>
                             </div>
                         </div>
                     </div>
@@ -156,7 +134,7 @@
             </div>
 
             <!-- 文章列表 -->
-            <a-drawer :width="400" :visible="summaryDialogVisible" @cancel="summaryDialogVisible = false"
+            <a-drawer :width="400" :visible="articleListDrawerVisible" @cancel="articleListDrawerVisible = false"
                 :header="false" :footer="false" :drawer-style="{
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 }" unmountOnClose>
@@ -173,27 +151,21 @@
                                     {{ selectedCategory || t('allCategories') }}
                                 </a-button>
                                 <template #content>
-                                    <div class="category-modal-header">
-                                        <span class="category-modal-title">{{ t('categories') }}</span>
-                                    </div>
-                                    <div class="category-modal-body">
-                                        <el-menu class="category-menu" :default-active="selectedCategory"
-                                            @select="handleCategorySelect">
-                                            <div class="category-menu-items">
-                                                <el-menu-item index="">
-                                                    <span>{{ t('allCategories') }}</span>
-                                                    <el-tag size="small" class="category-count">{{ articles.length
-                                                        }}</el-tag>
-                                                </el-menu-item>
-                                                <el-menu-item v-for="category in categories" :key="category"
-                                                    :index="category">
-                                                    <span>{{ category }}</span>
-                                                    <el-tag size="small" class="category-count">{{
-                                                        getCategoryCount(category) }}</el-tag>
-                                                </el-menu-item>
-                                            </div>
-                                        </el-menu>
-                                    </div>
+                                    <a-doption @click="handleCategorySelect(null)">
+                                        <template #icon>
+                                            <icon-tag />
+                                        </template>
+                                        <span>{{ t('allCategories') }}</span> {{ articles.length
+                                        }}
+                                    </a-doption>
+                                    <a-doption v-for="category in categories" :key="category"
+                                        @click="handleCategorySelect(category)">
+                                        <template #icon>
+                                            <icon-tag />
+                                        </template>
+                                        {{ category }} {{
+                                            getCategoryCount(category) }}
+                                    </a-doption>
                                 </template>
                             </a-popover>
                         </div>
@@ -214,10 +186,6 @@
                                 </div>
                                 <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
                                 <div class="article-menu-tags">
-                                    <!-- <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
-                                        effect="dark" class="article-tag">
-                                        {{ tag }}
-                                    </el-tag> -->
                                     <a-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small">
                                         <template #icon>
                                             <icon-tag />
@@ -230,49 +198,13 @@
                     </el-scrollbar>
                 </div>
             </a-drawer>
-
-            <!-- 左侧折叠按钮 -->
-            <!-- <el-button class="collapse-btn" :class="{ 'collapsed': isSidebarCollapsed }" style="left: 10px;" circle
-                @click="isSidebarCollapsed = !isSidebarCollapsed" icon="Expand" /> -->
-            <!-- 右侧折叠按钮 -->
-            <!-- <el-button :class="{ 'collapsed': summaryDialogVisible }"
-                :style="summaryDialogVisible ? 'right: 10px;' : 'right: 25px;'" circle
-                @click="summaryDialogVisible = !summaryDialogVisible" icon="Expand" /> -->
         </div>
     </el-main>
-
-    <!-- 分类导航菜单 -->
-    <transition name="modal-fade">
-        <div v-if="categoryMenuVisible" class="category-modal-overlay" @click="categoryMenuVisible = false">
-            <div class="category-modal" :style="{ width: isMobileRef ? '50%' : '15%' }" @click.stop>
-                <div class="category-modal-header">
-                    <span class="category-modal-title">{{ t('categories') }}</span>
-                </div>
-                <div class="category-modal-body">
-                    <el-menu class="category-menu" :default-active="selectedCategory" @select="handleCategorySelect">
-                        <div class="category-menu-items">
-                            <el-menu-item index="">
-                                <span>{{ t('allCategories') }}</span>
-                                <el-tag size="small" class="category-count">{{ articles.length }}</el-tag>
-                            </el-menu-item>
-                            <el-menu-item v-for="category in categories" :key="category" :index="category">
-                                <span>{{ category }}</span>
-                                <el-tag size="small" class="category-count">{{ getCategoryCount(category) }}</el-tag>
-                            </el-menu-item>
-                        </div>
-                    </el-menu>
-                </div>
-            </div>
-        </div>
-    </transition>
 
     <!-- 搜索弹窗 -->
     <transition name="modal-fade">
         <div v-if="searchDialogVisible" class="search-modal-overlay" @click="searchDialogVisible = false">
             <div class="search-modal" :style="{ width: isMobileRef ? '80%' : '40%' }" @click.stop>
-                <!-- <div class="search-modal-header">
-                    <span class="search-modal-title">{{ t('searchArticle') }}</span>
-                </div> -->
                 <div class="search-modal-body">
                     <div class="custom-input-wrapper">
                         <span class="input-prefix-icon">
@@ -306,31 +238,36 @@
         @confirm="confirmDelete" @cancel="cancelDelete" />
 
     <!-- 右侧悬浮按钮 -->
-    <a-dropdown trigger="hover">
-        <a-button type="primary" shape="circle" class="floating-add-btn">
+    <a-tooltip :content="t('articleList')" position="left">
+        <a-button type="primary" shape="circle" class="floating-add-btn btn1"
+            @click="articleListDrawerVisible = !articleListDrawerVisible">
             <icon-double-left />
         </a-button>
-        <template #content>
-            <a-doption @click="summaryDialogVisible = !summaryDialogVisible">
-                <template #icon>
-                    <icon-book />
-                </template>
-                {{ t('articleList') }}
-            </a-doption>
-            <a-doption @click="handleSearchArticle">
-                <template #icon>
-                    <icon-search />
-                </template>
-                {{ t('searchArticle') }}
-            </a-doption>
-            <a-doption v-if="admin_id" @click="handleAddArticle">
-                <template #icon>
-                    <icon-plus />
-                </template>
-                {{ t('addArticle') }}
-            </a-doption>
-        </template>
-    </a-dropdown>
+    </a-tooltip>
+    <a-tooltip :content="t('searchArticle')" position="left">
+        <a-button type="primary" shape="circle" class="floating-add-btn btn2" @click="handleSearchArticle">
+            <icon-search />
+        </a-button>
+    </a-tooltip>
+    <a-tooltip :content="t('addArticle')" position="left">
+        <a-button v-if="admin_id" type="primary" shape="circle" class="floating-add-btn btn3" @click="handleAddArticle">
+            <icon-plus />
+        </a-button>
+    </a-tooltip>
+    <a-tooltip :content="t('editArticle')" position="left">
+        <a-button v-if="admin_id" type="primary" shape="circle" class="floating-add-btn btn4"
+            @click="handleEditArticle(currentArticle.id)">
+            <icon-edit />
+        </a-button>
+    </a-tooltip>
+    <a-tooltip :content="currentArticle.isReleased ? t('setAsDraft') : t('publish')" position="left">
+        <a-button v-if="admin_id" type="primary" shape="circle" class="floating-add-btn btn5"
+            :style="{ background: currentArticle.isReleased ? '' : 'green' }"
+            @click="handleDraftOrReleased(currentArticle.id)">
+            <icon-save v-if="currentArticle.isReleased" />
+            <icon-send v-else />
+        </a-button>
+    </a-tooltip>
 </template>
 
 <script setup>
@@ -464,6 +401,8 @@ const t = (key) => {
     return translations[LANG][key] || key
 }
 
+const articleListDrawerVisible = ref(true)
+
 // 分类相关
 // 分类菜单显示控制
 const categoryMenuVisible = ref(false)
@@ -513,12 +452,11 @@ const handleCategorySelect = (index) => {
         if (!currentArticleInFiltered) {
             selectArticle(filteredArticles.value[0].id)
         }
-        categoryMenuVisible.value = false
     }
+    articleListDrawerVisible.value = true
 }
 
 // 摘要相关
-const summaryDialogVisible = ref(true)
 const treeData = ref([])
 
 // 生成文章目录树
@@ -701,7 +639,7 @@ const selectArticle = async (id) => {
         const articleHash = calcHashForArticleId(id)
         router.push(`/articles/${articleHash}`)
     }
-    summaryDialogVisible.value = false
+    articleListDrawerVisible.value = false
 }
 
 // 格式化日期
@@ -766,7 +704,7 @@ const currentDeleteArticleId = ref(null)
 // 删除文章
 const handleDeleteArticle = (articleId) => {
     if (!admin_id.value) return
-    summaryDialogVisible.value = false
+    articleListDrawerVisible.value = false
     currentDeleteArticleId.value = articleId
     deleteDialogVisible.value = true
 }

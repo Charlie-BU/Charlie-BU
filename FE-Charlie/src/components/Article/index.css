@@ -784,338 +784,54 @@
     }
 }
 
-/* 多端适配响应式设计 */
-/* 平板端 (768px - 1024px) */
-@media (max-width: 1024px) {
-    .article-container {
-        gap: 20px;
-        flex-direction: column;
-        min-height: auto;
-    }
-    .article-sidebar-left,
-    .article-sidebar-right {
-        width: 280px;
-    }
-    .article-sidebar-left {
-        position: relative;
-        width: 80%;
-        max-height: 200px;
-        flex: none;
-        margin-bottom: 20px;
-    }
-    .article-main {
-        margin-left: 0;
-        padding: 20px;
-    }
-    .article-sidebar-right {
-        width: 80%;
-        margin-top: 20px;
-    }
-    .article-content {
-        padding: 20px 15px !important;
-    }
-    .collapse-btn {
-        display: none;
-    }
-    .article-title {
-        font-size: 1.8rem;
-    }
-    .article-actions {
-        position: relative;
-        right: auto;
-        margin-top: 15px;
-    }
-}
-
-/* 手机端 (<768px) */
-@media (max-width: 768px) {
-    .article-content {
-        padding: 12px 8px !important;
-    }
-    .article-container {
-        gap: 15px;
-        flex-direction: column;
-    }
-    .sidebar-header {
-        padding: 12px;
-    }
-    .sidebar-title-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 15px;
-    }
-    .sidebar-header h3 {
-        font-size: 1rem;
-        text-align: center;
-    }
-    .add-article-btn {
-        width: 100%;
-        margin-bottom: 8px;
-        justify-content: center;
-        font-size: 0.85rem;
-        padding: 8px 12px;
-    }
-    .article-menu {
-        padding: 8px;
-    }
-    .article-menu-item {
-        padding: 10px;
-        margin-bottom: 8px;
-    }
-    .article-item-header {
-        position: relative;
-        margin-bottom: 8px;
-        flex-direction: column;
-        gap: 8px;
-    }
-    .article-menu-title {
-        font-size: 0.9rem;
-        padding-right: 30px;
-        line-height: 1.3;
-    }
-    .article-menu-date {
-        font-size: 0.75rem;
-    }
-    .delete-article-btn {
-        opacity: 1;
-        right: 5px;
-        top: 5px;
-        align-self: flex-end;
-    }
-    .article-main {
-        padding: 12px;
-    }
-    .article-header {
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-    }
-    .article-title-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 15px;
-    }
-    .article-title {
-        font-size: 1.3rem;
-        line-height: 1.3;
-        margin-bottom: 0;
-    }
-    .article-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-top: 0;
-    }
-    .article-actions .el-button {
-        width: 100%;
-        justify-content: center;
-        font-size: 0.85rem;
-        padding: 8px 12px;
-    }
-    .article-meta {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 15px;
-    }
-    .article-time {
-        gap: 6px;
-    }
-    .time-item {
-        font-size: 0.75rem;
-        gap: 6px;
-    }
-    .article-tags {
-        justify-content: flex-start;
-        gap: 6px;
-    }
-    .article-tag {
-        font-size: 0.75rem;
-    }
-    .article-content-body {
-        font-size: 0.95rem;
-        line-height: 1.6;
-    }
-    .article-content-body :deep(h1) {
-        font-size: 1.3rem;
-    }
-    .article-content-body :deep(h2) {
-        font-size: 1.2rem;
-    }
-    .article-content-body :deep(h3) {
-        font-size: 1.05rem;
-    }
-    .article-content-body :deep(h4),
-    .article-content-body :deep(h5),
-    .article-content-body :deep(h6) {
-        font-size: 1rem;
-    }
-    .article-content-body :deep(pre) {
-        overflow-x: auto;
-        font-size: 0.85rem;
-    }
-    .article-content-body :deep(table) {
-        font-size: 0.9rem;
-        overflow-x: auto;
-        display: block;
-        white-space: nowrap;
-    }
-    .ai-summary-content-wrapper {
-        padding: 10px;
-    }
-    .ai-summary-content {
-        font-size: 0.85rem;
-        line-height: 1.5;
-    }
-    .summary-tree :deep(.el-tree-node__content) {
-        font-size: 0.9rem;
-        padding: 8px 0;
-    }
-    .category-modal {
-        width: 95% !important;
-        margin-top: 60px;
-    }
-    .search-modal {
-        width: 95% !important;
-        margin-top: 60px;
-    }
-    .search-item {
-        padding: 12px;
-    }
-    .search-item-title {
-        font-size: 0.95rem;
-        margin-bottom: 8px;
-    }
-    .search-item-content {
-        font-size: 0.85rem;
-        margin-bottom: 8px;
-    }
-    .search-item-meta {
-        font-size: 0.8rem;
-    }
-    .ai-summary-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    .ai-summary-header .el-button {
-        width: 100%;
-        min-height: 44px;
-        padding: 10px 14px;
-        font-size: 0.85rem;
-    }
-    .ai-summary,
-    .summary-tree,
-    .article-summary {
-        padding: 12px;
-    }
-    .custom-input {
-        font-size: 0.9rem;
-        padding: 8px 0;
-    }
-}
-
-/* 触控优化 */
-@media (hover: none) and (pointer: coarse) {
-    .article-menu-item {
-        min-height: 44px;
-        padding: 15px;
-    }
-    .add-article-btn {
-        min-height: 44px;
-        padding: 12px 16px;
-    }
-    .article-actions .el-button {
-        min-height: 44px;
-        padding: 12px 16px;
-    }
-    .delete-article-btn {
-        width: 32px;
-        height: 32px;
-        min-height: 32px;
-        opacity: 1;
-    }
-    .collapse-btn {
-        width: 44px;
-        height: 44px;
-    }
-    .search-item {
-        min-height: 60px;
-        padding: 15px;
-    }
-    .category-menu :deep(.el-menu-item) {
-        min-height: 44px;
-        height: auto;
-        line-height: 1.4;
-        padding: 12px 15px;
-    }
-}
-
-/* 横屏适配 */
-@media (max-width: 768px) and (orientation: landscape) {
-    .article-sidebar-left {
-        max-height: 40vh;
-    }
-    .article-sidebar-right {
-        max-height: 50vh;
-    }
-    .search-modal,
-    .category-modal {
-        margin-top: 40px;
-        max-height: 80vh;
-        overflow-y: auto;
-    }
-}
-
 /* 右侧悬浮按钮样式 */
 .floating-add-btn {
     position: fixed;
-    right: 5%;
-    top: 15%;
+    right: 4%;
     transform: translateY(-50%);
     z-index: 1000;
     width: 56px;
     height: 56px;
-    background: transparent;
+    background: #121224;
     border: none;
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 16px #ffffff99;
     transition: all 0.3s ease;
+}
+
+.floating-add-btn.btn1 {
+    top: 15%;
+}
+
+.floating-add-btn.btn2 {
+    top: 24%;
+}
+
+.floating-add-btn.btn3 {
+    top: 32%;
+}
+
+.floating-add-btn.btn4 {
+    top: 40%;
+}
+
+.floating-add-btn.btn5 {
+    top: 48%;
 }
 
 .floating-add-btn:hover {
     transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .floating-add-btn:active {
     transform: translateY(-50%) scale(0.95);
 }
 
-/* 下拉菜单样式 - 黑底白字 */
-:deep(.arco-dropdown-list) {
-    background-color: #000000 !important;
-    border: 1px solid #333333 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8) !important;
+.arco-tag {
+    border-radius: 20px;
 }
 
-:deep(.arco-dropdown-option) {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: none !important;
-}
-
-:deep(.arco-dropdown-option:hover) {
-    background-color: #333333 !important;
-    color: #ffffff !important;
-}
-
-:deep(.arco-dropdown-option .arco-icon) {
-    color: #ffffff !important;
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-    .floating-add-btn {
-        right: 20px;
-        width: 48px;
-        height: 48px;
-    }
+.arco-dropdown {
+    width: 120px;
 }
