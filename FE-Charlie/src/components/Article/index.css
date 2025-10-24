@@ -45,13 +45,13 @@
 /* 侧边栏通用样式 */
 .article-sidebar-left,
 .article-sidebar-right {
-    width: 330px;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
 
 .article-sidebar-left {
+    width: 330px;
     position: fixed;
     flex: 0 0 300px;
     max-height: 100vh;
@@ -157,14 +157,11 @@
     gap: 5px;
 }
 
-
-
 /* 主内容区域 */
 .article-main {
     flex: 1;
     padding: 30px;
     overflow-y: auto;
-    margin-left: 330px;
 }
 
 .article-header {
@@ -192,23 +189,19 @@
     flex: 1;
 }
 
-
-
-
-
 .article-meta {
+    margin-top: 40px;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     flex-wrap: wrap;
-    gap: 20px;
 }
 
 .meta-left,
 .meta-right {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     flex: 1;
 }
 

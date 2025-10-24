@@ -2,82 +2,80 @@
     <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
         <div class="article-container">
             <!-- AI 总结与目录 -->
-            <transition name="sidebar-collapse">
-                <div class="article-sidebar-left" v-if="!isSidebarCollapsed" style="padding-bottom: 100px;">
-                    <!-- AI 总结 -->
-                    <div class="ai-summary">
-                        <div class="sidebar-header">
-                            <div class="sidebar-title-row" style="display: flex; justify-content: center; gap: 0;">
-                                <img src="@/assets/ai.png" alt="AI Icon" class="ai-icon" />
-                                <h3>{{ t('AISummary') }}</h3>
-                            </div>
+            <div class="article-sidebar-left" v-if="aiAndContentsBarVisible" style="padding-bottom: 100px;">
+                <!-- AI 总结 -->
+                <div class="ai-summary">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title-row" style="display: flex; justify-content: center; gap: 0;">
+                            <img src="@/assets/ai.png" alt="AI Icon" class="ai-icon" />
+                            <h3>{{ t('AISummary') }}</h3>
                         </div>
-                        <el-scrollbar style="overflow: auto;">
-                            <div class="article-summary">
-                                <div v-if="currentArticle">
-                                    <div class="ai-summary-content-wrapper">
-                                        <div v-if="aiSummary || isGeneratingSummary || isTyping"
-                                            class="ai-summary-content" :class="{ 'streaming': isGeneratingSummary }">
-                                            <span v-if="isGeneratingSummary && !aiSummary"
-                                                class="generating-placeholder">
-                                                {{ t('isGeneratingSummary') }}
-                                            </span>
-                                            <span v-else v-html="formattedSummary" class="summary-text"></span>
-                                            <span v-if="isGeneratingSummary" class="cursor">|</span>
-                                        </div>
-                                        <div
-                                            style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
-                                            <a-button v-if="isTyping" type="primary" size="small" shape="round"
-                                                status="danger" @click="stopAISummaryRender(false)">
-                                                <template #icon>
-                                                    <icon-close />
-                                                </template>
-                                                {{ t('stopGenerating') }}
-                                            </a-button>
-                                            <a-button v-else type="primary" size="small" shape="round"
-                                                :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
-                                                @click="regenerate_article_AISummary">
-                                                <template #icon>
-                                                    <icon-refresh />
-                                                </template>
-                                                {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
-                                                    ? t('regenerateSummary') : t('generateSummary')
-                                                }}
-                                            </a-button>
-                                        </div>
+                    </div>
+                    <el-scrollbar style="overflow: auto;">
+                        <div class="article-summary">
+                            <div v-if="currentArticle">
+                                <div class="ai-summary-content-wrapper">
+                                    <div v-if="aiSummary || isGeneratingSummary || isTyping"
+                                        class="ai-summary-content" :class="{ 'streaming': isGeneratingSummary }">
+                                        <span v-if="isGeneratingSummary && !aiSummary"
+                                            class="generating-placeholder">
+                                            {{ t('isGeneratingSummary') }}
+                                        </span>
+                                        <span v-else v-html="formattedSummary" class="summary-text"></span>
+                                        <span v-if="isGeneratingSummary" class="cursor">|</span>
+                                    </div>
+                                    <div
+                                        style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
+                                        <a-button v-if="isTyping" type="primary" size="small" shape="round"
+                                            status="danger" @click="stopAISummaryRender(false)">
+                                            <template #icon>
+                                                <icon-close />
+                                            </template>
+                                            {{ t('stopGenerating') }}
+                                        </a-button>
+                                        <a-button v-else type="primary" size="small" shape="round"
+                                            :loading="isGeneratingSummary" :disabled="isGeneratingSummary"
+                                            @click="regenerate_article_AISummary">
+                                            <template #icon>
+                                                <icon-refresh />
+                                            </template>
+                                            {{ isGeneratingSummary ? t('isGeneratingSummary') : formattedSummary
+                                                ? t('regenerateSummary') : t('generateSummary')
+                                            }}
+                                        </a-button>
                                     </div>
                                 </div>
-                                <div v-else class="summary-empty">
-                                    <p>{{ t('selectArticle') }}</p>
-                                </div>
                             </div>
-                        </el-scrollbar>
-                    </div>
-                    <!-- 目录 -->
-                    <div class="summary-tree">
-                        <div class="sidebar-header">
-                            <div class="sidebar-title-row">
-                                <h3>{{ t('contents') }}</h3>
+                            <div v-else class="summary-empty">
+                                <p>{{ t('selectArticle') }}</p>
                             </div>
                         </div>
-                        <el-scrollbar style="overflow: auto;">
-                            <div class="article-summary">
-                                <el-tree v-if="treeData && treeData.length > 0" :data="treeData" :props="{
-                                    children: 'children',
-                                    label: 'label'
-                                }" @node-click="handleNodeClick" node-key="id" default-expand-all highlight-current
-                                    class="summary-tree" />
-                                <div v-else class="summary-empty">
-                                    <p>{{ t('selectArticle') }}</p>
-                                </div>
-                            </div>
-                        </el-scrollbar>
-                    </div>
+                    </el-scrollbar>
                 </div>
-            </transition>
+                <!-- 目录 -->
+                <div class="summary-tree">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title-row">
+                            <h3>{{ t('contents') }}</h3>
+                        </div>
+                    </div>
+                    <el-scrollbar style="overflow: auto;">
+                        <div class="article-summary">
+                            <el-tree v-if="treeData && treeData.length > 0" :data="treeData" :props="{
+                                children: 'children',
+                                label: 'label'
+                            }" @node-click="handleNodeClick" node-key="id" default-expand-all highlight-current
+                                class="summary-tree" />
+                            <div v-else class="summary-empty">
+                                <p>{{ t('selectArticle') }}</p>
+                            </div>
+                        </div>
+                    </el-scrollbar>
+                </div>
+            </div>
 
             <!-- 文章内容 -->
-            <div class="article-main">
+            <div v-if="!isMobileRef || !aiAndContentsBarVisible" class="article-main" :style="{ 'margin-left': aiAndContentsBarVisible ? '330px' : '0' }">
                 <div class="article-header">
                     <div class="article-title-row">
                         <h1 class="article-title">{{ currentArticle.title }}</h1>
@@ -128,13 +126,15 @@
                     <template v-if="currentArticle.type === 1">
                         {{ currentArticle.content }}
                     </template>
-                    <div v-else-if="currentArticle.type === 2" v-html="renderMarkdown(currentArticle.content)">
+                    <div v-else-if="currentArticle.type === 2" 
+                         v-html="renderMarkdown(currentArticle.content)"
+                         ref="markdownContainer">
                     </div>
                 </div>
             </div>
 
             <!-- 文章列表 -->
-            <a-drawer :width="400" :visible="articleListDrawerVisible" @cancel="articleListDrawerVisible = false"
+            <a-drawer :width="330" :visible="articleListDrawerVisible" @cancel="articleListDrawerVisible = false"
                 :header="false" :footer="false" :drawer-style="{
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 }" unmountOnClose>
@@ -186,9 +186,9 @@
                                 </div>
                                 <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
                                 <div class="article-menu-tags">
-                                    <a-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small">
+                                    <a-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small" color="#b71de8">
                                         <template #icon>
-                                            <icon-tag />
+                                            <icon-tag style="color: #fff;" />
                                         </template>
                                         {{ tag }}
                                     </a-tag>
@@ -249,19 +249,25 @@
             <icon-search />
         </a-button>
     </a-tooltip>
-    <a-tooltip :content="t('addArticle')" position="left">
-        <a-button v-if="admin_id" type="primary" shape="circle" class="floating-add-btn btn3" @click="handleAddArticle">
+     <a-tooltip v-if="admin_id" :content="t('addArticle')" position="left">
+        <a-button type="primary" shape="circle" class="floating-add-btn btn3" @click="handleAddArticle">
             <icon-plus />
         </a-button>
     </a-tooltip>
-    <a-tooltip :content="t('editArticle')" position="left">
-        <a-button v-if="admin_id" type="primary" shape="circle" class="floating-add-btn btn4"
+    <a-tooltip v-else :content="aiAndContentsBarVisible ? t('backToArticle') : t('aiSummaryAndContents')" position="left">
+        <a-button type="primary" shape="circle" class="floating-add-btn btn3" @click="aiAndContentsBarVisible = !aiAndContentsBarVisible">
+            <icon-mind-mapping v-if="!aiAndContentsBarVisible" />
+            <icon-book v-else />
+        </a-button>
+    </a-tooltip>
+    <a-tooltip v-if="admin_id" :content="t('editArticle')" position="left">
+        <a-button type="primary" shape="circle" class="floating-add-btn btn4"
             @click="handleEditArticle(currentArticle.id)">
             <icon-edit />
         </a-button>
     </a-tooltip>
-    <a-tooltip :content="currentArticle.isReleased ? t('setAsDraft') : t('publish')" position="left">
-        <a-button v-if="admin_id" type="primary" shape="circle" class="floating-add-btn btn5"
+    <a-tooltip v-if="admin_id" :content="currentArticle.isReleased ? t('setAsDraft') : t('publish')" position="left">
+        <a-button type="primary" shape="circle" class="floating-add-btn btn5"
             :style="{ background: currentArticle.isReleased ? '' : 'green' }"
             @click="handleDraftOrReleased(currentArticle.id)">
             <icon-save v-if="currentArticle.isReleased" />
@@ -271,7 +277,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
 import { ElTree, ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
@@ -291,6 +297,9 @@ const router = useRouter()
 // 管理员ID
 const admin_id = ref(null)
 
+// Markdown 容器引用
+const markdownContainer = ref(null)
+
 onMounted(async () => {
     admin_id.value = await checkSessionId()
     await getArticles()
@@ -299,10 +308,13 @@ onMounted(async () => {
     document.addEventListener('keydown', handleKeyDown)
 })
 
-const isSidebarCollapsed = ref(false)
+const aiAndContentsBarVisible = ref(true)
 const isMobileRef = ref(isMobile())
+if (isMobileRef.value) {
+    aiAndContentsBarVisible.value = false
+}
 
-const { renderMarkdown } = useMarkdown()
+const { renderMarkdown, replaceImages } = useMarkdown()
 
 // Command(Ctrl)+F 查找
 const handleKeyDown = async (event) => {
@@ -362,6 +374,8 @@ const translations = {
         regenerateSummary: '重新生成',
         generateSuccess: 'AI 总结生成成功',
         generateFailed: 'AI 总结生成失败',
+        aiSummaryAndContents: 'AI 总结与目录',
+        backToArticle: '返回文章',
     },
     English: {
         articleList: 'Article List',
@@ -393,6 +407,8 @@ const translations = {
         regenerateSummary: 'Regenerate',
         generateSuccess: 'AI Summary Generated',
         generateFailed: 'AI Summary Generation Failed',
+        aiSummaryAndContents: 'AI Summary and Contents',
+        backToArticle: 'Back to Article',
     }
 }
 
@@ -401,7 +417,7 @@ const t = (key) => {
     return translations[LANG][key] || key
 }
 
-const articleListDrawerVisible = ref(true)
+const articleListDrawerVisible = ref(false)
 
 // 分类相关
 // 分类菜单显示控制
@@ -684,6 +700,16 @@ const getArticleContent = async () => {
         currentArticle.value = res.data.article;
         // 生成目录树
         treeData.value = generateToc(currentArticle.value.content, currentArticle.value.type);
+        
+        // 在下一个 tick 中替换图片标签为 a-image 组件
+        if (currentArticle.value.type === 2) {
+            nextTick(() => {
+                if (markdownContainer.value) {
+                    replaceImages(markdownContainer.value);
+                }
+            });
+        }
+        
         // 生成AI摘要
         if (isCancelled.value) {
             setTimeout(async () => {
