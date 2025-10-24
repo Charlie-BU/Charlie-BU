@@ -54,7 +54,7 @@ export const useMarkdown = () => {
       src="${src}" 
       alt="${alt}" 
       title="${title}" 
-      style="width:90%;
+      style="width: 70%;
         height:auto;
         display:block;
         margin: 1em auto;
