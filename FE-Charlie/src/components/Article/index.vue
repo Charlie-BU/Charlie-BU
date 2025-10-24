@@ -1,5 +1,9 @@
 <template>
     <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
+        <!-- 工具栏 -->
+        <!-- <div class="article-toolbar">
+            
+        </div> -->
         <div class="article-container">
             <!-- AI 总结与目录 -->
             <transition name="sidebar-collapse">
@@ -73,35 +77,11 @@
                             </div>
                         </el-scrollbar>
                     </div>
-
                 </div>
             </transition>
+
             <!-- 文章内容 -->
             <div class="article-main">
-                <!-- 工具栏 -->
-                <div class="article-toolbar">
-                    <div class="toolbar-buttons">
-                        <a-button type="primary" size="small" shape="round"
-                            @click="summaryDialogVisible = !summaryDialogVisible">
-                            <template #icon>
-                                <icon-book />
-                            </template>
-                            {{ t('articleList') }}
-                        </a-button>
-                        <a-button type="primary" size="small" shape="round" @click="handleSearchArticle">
-                            <template #icon>
-                                <icon-search />
-                            </template>
-                            {{ t('searchArticle') }}
-                        </a-button>
-                        <a-button v-if="admin_id" type="primary" size="small" shape="round" @click="handleAddArticle">
-                            <template #icon>
-                                <icon-plus />
-                            </template>
-                            {{ t('addArticle') }}
-                        </a-button>
-                    </div>
-                </div>
                 <div class="article-header">
                     <div class="article-title-row">
                         <h1 class="article-title">{{ currentArticle.title }}</h1>
@@ -123,9 +103,17 @@
                                 {{ currentArticle.isReleased ? t('setAsDraft') : t('publish') }}
                             </a-button>
                         </div>
+                        <div class="article-tags">
+                            <a-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex">
+                                <template #icon>
+                                    <icon-tag />
+                                </template>
+                                {{ tag }}
+                            </a-tag>
+                        </div>
                     </div>
                     <div class="article-meta">
-                        <div class="article-time">
+                        <div class="meta-left">
                             <div class="time-item">
                                 <el-icon>
                                     <Calendar />
@@ -138,26 +126,22 @@
                                 </el-icon>
                                 <span>{{ t('updated') }}: {{ formatTime(currentArticle.timeLastUpdated) }}</span>
                             </div>
+                        </div>
+                        <div class="meta-right">
                             <div class="time-item">
                                 <el-icon>
                                     <Document />
                                 </el-icon>
                                 <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="time-item">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                    }} {{ t('minute') }}</span>
+                                }} {{ t('minute') }}</span>
                             </div>
-                        </div>
-                        <div class="article-tags">
-                            <el-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" size="small"
-                                effect="dark" class="article-tag">
-                                {{ tag }}
-                            </el-tag>
                         </div>
                     </div>
                 </div>
@@ -178,14 +162,40 @@
                 }" unmountOnClose>
                 <div class="article-sidebar-right" style="overflow: auto;">
                     <div class="sidebar-header">
-                        <div class="sidebar-title-row" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="sidebar-title-row"
+                            style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <h3>{{ t('articleList') }}</h3>
-                            <a-button type="primary" size="small" shape="round" @click="toggleCategoryMenu"> 
-                                <template #icon> 
-                                    <icon-tags /> 
-                                </template> 
-                                {{ selectedCategory || t('allCategories') }} 
-                            </a-button>
+                            <a-popover position="bottom">
+                                <a-button type="primary" size="small" shape="round">
+                                    <template #icon>
+                                        <icon-tags />
+                                    </template>
+                                    {{ selectedCategory || t('allCategories') }}
+                                </a-button>
+                                <template #content>
+                                    <div class="category-modal-header">
+                                        <span class="category-modal-title">{{ t('categories') }}</span>
+                                    </div>
+                                    <div class="category-modal-body">
+                                        <el-menu class="category-menu" :default-active="selectedCategory"
+                                            @select="handleCategorySelect">
+                                            <div class="category-menu-items">
+                                                <el-menu-item index="">
+                                                    <span>{{ t('allCategories') }}</span>
+                                                    <el-tag size="small" class="category-count">{{ articles.length
+                                                        }}</el-tag>
+                                                </el-menu-item>
+                                                <el-menu-item v-for="category in categories" :key="category"
+                                                    :index="category">
+                                                    <span>{{ category }}</span>
+                                                    <el-tag size="small" class="category-count">{{
+                                                        getCategoryCount(category) }}</el-tag>
+                                                </el-menu-item>
+                                            </div>
+                                        </el-menu>
+                                    </div>
+                                </template>
+                            </a-popover>
                         </div>
                     </div>
                     <el-scrollbar style="overflow: auto;">
@@ -204,10 +214,16 @@
                                 </div>
                                 <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
                                 <div class="article-menu-tags">
-                                    <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
+                                    <!-- <el-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
                                         effect="dark" class="article-tag">
                                         {{ tag }}
-                                    </el-tag>
+                                    </el-tag> -->
+                                    <a-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small">
+                                        <template #icon>
+                                            <icon-tag />
+                                        </template>
+                                        {{ tag }}
+                                    </a-tag>
                                 </div>
                             </div>
                         </div>
@@ -277,12 +293,6 @@
                                 <br />
                                 <span>{{ t('updated') }}: {{ formatTime(article.timeLastUpdated) }}</span>
                             </div>
-                            <!-- <div class="article-tags">
-                                <el-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" size="small"
-                                    effect="dark" class="article-tag">
-                                    {{ tag }}
-                                </el-tag>
-                            </div> -->
                         </div>
                     </div>
                 </div>
@@ -295,6 +305,32 @@
     <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteArticle')" :content="t('deleteConfirm')"
         @confirm="confirmDelete" @cancel="cancelDelete" />
 
+    <!-- 右侧悬浮按钮 -->
+    <a-dropdown trigger="hover">
+        <a-button type="primary" shape="circle" class="floating-add-btn">
+            <icon-double-left />
+        </a-button>
+        <template #content>
+            <a-doption @click="summaryDialogVisible = !summaryDialogVisible">
+                <template #icon>
+                    <icon-book />
+                </template>
+                {{ t('articleList') }}
+            </a-doption>
+            <a-doption @click="handleSearchArticle">
+                <template #icon>
+                    <icon-search />
+                </template>
+                {{ t('searchArticle') }}
+            </a-doption>
+            <a-doption v-if="admin_id" @click="handleAddArticle">
+                <template #icon>
+                    <icon-plus />
+                </template>
+                {{ t('addArticle') }}
+            </a-doption>
+        </template>
+    </a-dropdown>
 </template>
 
 <script setup>
