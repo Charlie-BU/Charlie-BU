@@ -79,7 +79,7 @@
 import { ref, onMounted, computed, onBeforeUnmount, watch, nextTick } from 'vue';
 import Modal from './Modal.vue';
 import * as echarts from 'echarts';
-import { ElMessage } from 'element-plus';
+import { Message } from "@arco-design/web-vue";
 
 import { request } from '../api/request';
 import { getContinentForCountry } from '../utils/map';
@@ -225,7 +225,7 @@ const fetchTravelData = async () => {
         initChinaMap(visitedCities);
     } catch (error) {
         console.error('Failed to fetch travel data:', error);
-        ElMessage.error('获取旅行数据失败');
+        Message.error('获取旅行数据失败');
     }
 };
 
@@ -248,7 +248,7 @@ const fetchTravelPhotos = async (place) => {
         });
     } catch (error) {
         console.error('Failed to fetch travel photos:', error);
-        ElMessage.error('获取旅行图片失败');
+        Message.error('获取旅行图片失败');
     }
 };
 
@@ -519,7 +519,7 @@ const fetchWorldMapData = async () => {
         return await response.json();
     } catch (error) {
         console.error('Failed to load world map data:', error);
-        ElMessage.error('加载世界地图数据失败');
+        Message.error('加载世界地图数据失败');
         return {};
     }
 };
@@ -532,7 +532,7 @@ const fetchChinaMapData = async () => {
         return await response.json();
     } catch (error) {
         console.error('Failed to load China map data:', error);
-        ElMessage.error('加载中国地图数据失败');
+        Message.error('加载中国地图数据失败');
         return {};
     }
 };

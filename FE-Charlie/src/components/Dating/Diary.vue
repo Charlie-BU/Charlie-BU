@@ -199,8 +199,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { Plus, Search } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import { Message } from "@arco-design/web-vue";
 
 // 心情选项
 const moods = [
@@ -268,7 +267,7 @@ const diaryDetailVisible = ref(false);
 // 添加新日记
 const addDiary = () => {
   if (!newDiary.value.title || !newDiary.content || !newDiary.mood) {
-    ElMessage.warning('请填写标题、内容和心情');
+    Message.warning('请填写标题、内容和心情');
     return;
   }
   
@@ -278,7 +277,7 @@ const addDiary = () => {
   };
   
   diaries.value.unshift(diary);
-  ElMessage.success('保存成功!');
+  Message.success('保存成功!');
   
   // 更新可用标签
   updateAvailableTags(diary.tags);
@@ -310,7 +309,7 @@ const deleteDiary = (id) => {
   const index = diaries.value.findIndex(item => item.id === id);
   if (index !== -1) {
     diaries.value.splice(index, 1);
-    ElMessage.success('删除成功!');
+    Message.success('删除成功!');
   }
 };
 

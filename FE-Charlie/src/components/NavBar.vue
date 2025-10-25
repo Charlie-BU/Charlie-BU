@@ -36,7 +36,7 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Cookies from 'js-cookie'
-import { ElMessage } from 'element-plus'
+import { Message } from "@arco-design/web-vue";
 
 import { request } from '../api/request'
 import { checkSessionId, getFingerprint, isMobile } from '../utils/utils'
@@ -107,7 +107,7 @@ const newVisitor = async () => {
 const handleLogout = () => {
     Cookies.remove('sessionid')
     isLoggedIn.value = false
-    ElMessage.success(t('logoutSuccess'))
+    Message.success(t('logoutSuccess'))
     // 刷新页面以更新状态
     window.location.reload()
 }

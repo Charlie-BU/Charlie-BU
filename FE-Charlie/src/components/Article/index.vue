@@ -234,8 +234,8 @@
 
 
     <!-- 删除确认弹窗 -->
-    <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteArticle')" :content="t('deleteConfirm')"
-        @confirm="confirmDelete" @cancel="cancelDelete" />
+    <!-- <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteArticle')" :content="t('deleteConfirm')"
+        @confirm="confirmDelete" @cancel="cancelDelete" /> -->
 
     <!-- 右侧悬浮按钮 -->
     <a-tooltip :content="t('articleList')" position="left">
@@ -278,11 +278,14 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
-import { ElTree, ElMessage } from 'element-plus'
+import { ElTree } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
+import { Message } from "@arco-design/web-vue";
 
 import { useMarkdown } from '@/hooks/useMarkdown'
+import { useModal } from '@/hooks/useModal'
+
 import { request } from '@/api/request'
 import { checkSessionId, calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '@/utils/utils'
 import Modal from '@/components/Modal.vue'
@@ -315,6 +318,7 @@ if (isMobileRef.value) {
 }
 
 const { renderMarkdown, replaceImages } = useMarkdown()
+const { useConfirmModal } = useModal()
 
 // Command(Ctrl)+F 查找
 const handleKeyDown = async (event) => {
@@ -724,7 +728,7 @@ const getArticleContent = async () => {
 }
 
 // 删除相关变量
-const deleteDialogVisible = ref(false)
+// const deleteDialogVisible = ref(false)
 const currentDeleteArticleId = ref(null)
 
 // 删除文章
@@ -732,7 +736,7 @@ const handleDeleteArticle = (articleId) => {
     if (!admin_id.value) return
     articleListDrawerVisible.value = false
     currentDeleteArticleId.value = articleId
-    deleteDialogVisible.value = true
+    useConfirmModal(() => confirmDelete(), t('deleteArticle'))
 }
 
 // 确认删除
@@ -745,14 +749,14 @@ const confirmDelete = async () => {
         })
 
         if (res.data.status === 200) {
-            ElMessage.success(t('deleteSuccess'))
+            Message.success(t('deleteSuccess'))
             // 重新获取文章列表
             await getArticles()
         } else {
-            ElMessage.error(res.data.message || t('deleteFailed'))
+            Message.error(res.data.message || t('deleteFailed'))
         }
     } catch (error) {
-        ElMessage.error(t('deleteFailed'))
+        Message.error(t('deleteFailed'))
         console.error('删除文章失败:', error)
     } finally {
         currentDeleteArticleId.value = null
@@ -792,14 +796,14 @@ const handleDraftOrReleased = async (articleId) => {
         if (res.data.status === 200) {
             // 更新成功，刷新文章列表
             currentArticle.value.isReleased = !currentArticle.value.isReleased
-            ElMessage.success(article.isReleased ? t('setAsDraft') + "成功" : t('publish') + "成功")
+            Message.success(article.isReleased ? t('setAsDraft') + "成功" : t('publish') + "成功")
             await getArticles()
         } else {
-            ElMessage.error(res.data.message || t('saveFailed'))
+            Message.error(res.data.message || t('saveFailed'))
         }
     } catch (error) {
         console.error('更新文章状态失败:', error)
-        ElMessage.error(t('saveFailed'))
+        Message.error(t('saveFailed'))
     }
 }
 
@@ -824,7 +828,7 @@ const formattedSummary = computed(() => {
 // 渲染AI总结
 const renderAISummary = async (AISUMMARY) => {
     if (!currentArticle.value.content) {
-        ElMessage.warning(t('noContent'))
+        Message.warning(t('noContent'))
         return
     }
     isTyping.value = true
@@ -842,7 +846,7 @@ const renderAISummary = async (AISUMMARY) => {
             return
         }
         console.error('生成AI总结失败:', error)
-        ElMessage.error(t('generateSummaryFailed'))
+        Message.error(t('generateSummaryFailed'))
     } finally {
         isTyping.value = false
     }
@@ -904,14 +908,14 @@ const regenerate_article_AISummary = async () => {
             id: currentArticle.value.id
         })
         if (res.data.status === 200 || res.data.status === 201) {
-            ElMessage.success(t('generateSuccess'))
+            Message.success(t('generateSuccess'))
             isGeneratingSummary.value = false
             await renderAISummary(res.data.aiSummary)
         } else {
-            ElMessage.error(res.data.message || t('generateFailed'))
+            Message.error(res.data.message || t('generateFailed'))
         }
     } catch (error) {
-        ElMessage.error(t('generateFailed'))
+        Message.error(t('generateFailed'))
         console.error('重新生成AI总结失败:', error)
     }
 }

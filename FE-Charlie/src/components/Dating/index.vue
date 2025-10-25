@@ -65,9 +65,9 @@
 
 <script setup>
 import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
-import { request } from '../../api/request'
-import { ElMessage } from 'element-plus';
+import { Message } from "@arco-design/web-vue";
 
+import { request } from '@/api/request'
 import inLoveIcon from '@/assets/in-love.png';
 import activitiesIcon from '@/assets/activities.png';
 import anniversaryIcon from '@/assets/anniversary.png';
@@ -192,7 +192,7 @@ const getActivityLength = async () => {
         console.log(activityLength.value)
     } catch (error) {
         console.error('Failed to fetch activity length:', error);
-        ElMessage.error('获取活动数量失败');
+        Message.error('获取活动数量失败');
     }
 }
 </script>

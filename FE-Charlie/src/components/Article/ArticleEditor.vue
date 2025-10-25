@@ -139,12 +139,12 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { request } from '../../api/request'
 import { useMarkdown } from '../../hooks/useMarkdown'
 import Cookies from 'js-cookie'
 import { markdownSign } from '../../utils/markdown'
 import { checkSessionId } from '../../utils/utils'
+import { Message } from '@arco-design/web-vue'
 
 // 路由
 const route = useRoute()
@@ -175,7 +175,7 @@ const handleKeyDown = async (event) => {
         await formRef.value.validate(async (valid) => {
             if (!valid) return
             if (articleForm.content === "" && articleForm.content_ENG === "") {
-                ElMessage.warning("请输入文章内容")
+                Message.warning("请输入文章内容")
                 return
             }
 
@@ -189,15 +189,15 @@ const handleKeyDown = async (event) => {
                 const res = await request.post(apiUrl, requestData)
 
                 if (res.data.status === 200) {
-                    ElMessage.success(t('saveSuccess'))
+                    Message.success(t('saveSuccess'))
                 } else if (res.data.status === -1) {
-                    ElMessage.warning(res.data.message)
+                    Message.warning(res.data.message)
                 } else {
-                    ElMessage.error(res.data.message || t('saveFailed'))
+                    Message.error(res.data.message || t('saveFailed'))
                 }
             } catch (error) {
                 console.error('暂存失败:', error)
-                ElMessage.error(t('saveFailed'))
+                Message.error(t('saveFailed'))
             }
         })
     }
@@ -384,7 +384,7 @@ const addTag = (event) => {
     if (value) {
         // 限制标签长度
         if (value.length > 20) {
-            ElMessage.warning('标签长度不能超过20个字符')
+            Message.warning('标签长度不能超过20个字符')
             inputTagValue.value = value.substring(0, 20)
             return
         }
@@ -392,7 +392,7 @@ const addTag = (event) => {
         if (!articleForm.tags.includes(value)) {
             // 限制标签数量
             if (articleForm.tags.length >= 4) {
-                ElMessage.warning('最多只能添加4个标签')
+                Message.warning('最多只能添加4个标签')
                 inputTagVisible.value = false
                 inputTagValue.value = ''
                 return
@@ -403,7 +403,7 @@ const addTag = (event) => {
             inputTagValue.value = ''
         } else {
             // 提示用户标签已存在
-            ElMessage.warning('标签已存在')
+            Message.warning('标签已存在')
             inputTagValue.value = ''
             nextTick(() => {
                 tagInputRef.value.focus()
@@ -426,7 +426,7 @@ const addTagENG = (event) => {
     if (value) {
         // 限制标签长度
         if (value.length > 20) {
-            ElMessage.warning('Tag length cannot exceed 20 characters')
+            Message.warning('Tag length cannot exceed 20 characters')
             inputTagENGValue.value = value.substring(0, 20)
             return
         }
@@ -434,7 +434,7 @@ const addTagENG = (event) => {
         if (!articleForm.tag_ENG.includes(value)) {
             // 限制标签数量
             if (articleForm.tag_ENG.length >= 4) {
-                ElMessage.warning('You can only add up to 4 tags')
+                Message.warning('You can only add up to 4 tags')
                 inputTagENGVisible.value = false
                 inputTagENGValue.value = ''
                 return
@@ -445,7 +445,7 @@ const addTagENG = (event) => {
             inputTagENGValue.value = ''
         } else {
             // 提示用户标签已存在
-            ElMessage.warning('Tag already exists')
+            Message.warning('Tag already exists')
             inputTagENGValue.value = ''
             nextTick(() => {
                 tagENGInputRef.value.focus()
@@ -479,7 +479,7 @@ const saveAsDraft = async () => {
     await formRef.value.validate(async (valid) => {
         if (!valid) return
         if (articleForm.content === "" && articleForm.content_ENG === "") {
-            ElMessage.warning("请输入文章内容")
+            Message.warning("请输入文章内容")
             return
         }
 
@@ -494,16 +494,16 @@ const saveAsDraft = async () => {
             const res = await request.post(apiUrl, requestData)
 
             if (res.data.status === 200) {
-                ElMessage.success(t('saveSuccess'))
+                Message.success(t('saveSuccess'))
                 router.push('/articles')
             } else if (res.data.status === -1) {
-                ElMessage.warning(res.data.message)
+                Message.warning(res.data.message)
             } else {
-                ElMessage.error(res.data.message || t('saveFailed'))
+                Message.error(res.data.message || t('saveFailed'))
             }
         } catch (error) {
             console.error('保存草稿失败:', error)
-            ElMessage.error(t('saveFailed'))
+            Message.error(t('saveFailed'))
         } finally {
             saving.value = false
         }
@@ -515,7 +515,7 @@ const publishArticle = async () => {
     await formRef.value.validate(async (valid) => {
         if (!valid) return
         if (articleForm.content === "" && articleForm.content_ENG === "") {
-            ElMessage.warning("请输入文章内容")
+            Message.warning("请输入文章内容")
             return
         }
 
@@ -530,16 +530,16 @@ const publishArticle = async () => {
             const res = await request.post(apiUrl, requestData)
 
             if (res.data.status === 200) {
-                ElMessage.success("发布成功")
+                Message.success("发布成功")
                 router.push('/articles')
             } else if (res.data.status === -1) {
-                ElMessage.warning(res.data.message)
+                Message.warning(res.data.message)
             } else {
-                ElMessage.error(res.data.message || "发布失败")
+                Message.error(res.data.message || "发布失败")
             }
         } catch (error) {
             console.error('发布文章失败:', error)
-            ElMessage.error("发布失败")
+            Message.error("发布失败")
         } finally {
             saving.value = false
         }
@@ -550,7 +550,7 @@ const publishArticle = async () => {
 const checkAdminPermission = async () => {
     const admin_id = await checkSessionId()
     if (!admin_id) {
-        ElMessage.error(t('unauthorized'))
+        Message.error(t('unauthorized'))
         router.push('/articles')
     }
 }
@@ -579,7 +579,7 @@ const getArticleDetail = async (id) => {
         }
     } catch (error) {
         console.error('获取文章详情失败:', error)
-        ElMessage.error(error.message || '获取文章详情失败')
+        Message.error(error.message || '获取文章详情失败')
     }
 }
 
