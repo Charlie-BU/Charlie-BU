@@ -289,7 +289,6 @@ import { useModal } from '@/hooks/useModal'
 import { request } from '@/api/request'
 import { checkSessionId, calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '@/utils/utils'
 import Modal from '@/components/Modal.vue'
-import { removeMarkdownSymbols } from '@/utils/markdown'
 
 import aiIcon from '@/assets/ai.png';
 
@@ -309,6 +308,8 @@ onMounted(async () => {
     await routeArticle()
     // 添加键盘事件监听
     document.addEventListener('keydown', handleKeyDown)
+
+    console.log("啊啊啊啊啊啊：\n", formatMarkdownByPrettier)
 })
 
 const aiAndContentsBarVisible = ref(true)
@@ -317,7 +318,7 @@ if (isMobileRef.value) {
     aiAndContentsBarVisible.value = false
 }
 
-const { renderMarkdown, replaceImages } = useMarkdown()
+const { renderMarkdown, replaceImages, removeMarkdownSymbols, formatMarkdownByPrettier } = useMarkdown()
 const { useConfirmModal } = useModal()
 
 // Command(Ctrl)+F 查找
@@ -713,7 +714,7 @@ const getArticleContent = async () => {
                 }
             });
         }
-        
+
         // 生成AI摘要
         if (isCancelled.value) {
             setTimeout(async () => {

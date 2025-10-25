@@ -70,8 +70,8 @@
                                         </el-button>
                                     </el-tooltip>
                                 </div>
-                                <el-input ref="contentInputRef" v-model="articleForm.content" type="textarea" :rows="33" @paste="handlePaste"
-                                    :placeholder="t('contentPlaceholder')"></el-input>
+                                <el-input ref="contentInputRef" v-model="articleForm.content" type="textarea" :rows="33"
+                                    @paste="handlePaste" :placeholder="t('contentPlaceholder')"></el-input>
                             </el-form-item>
                         </el-form>
                     </div>
@@ -101,8 +101,8 @@
                                 </el-tooltip>
                             </div>
                             <el-form-item prop="content_ENG">
-                                <el-input ref="contentENGInputRef" v-model="articleForm.content_ENG" type="textarea" @paste="handlePaste"
-                                    :rows="33" :placeholder="t('contentPlaceholder')"></el-input>
+                                <el-input ref="contentENGInputRef" v-model="articleForm.content_ENG" type="textarea"
+                                    @paste="handlePaste" :rows="33" :placeholder="t('contentPlaceholder')"></el-input>
                             </el-form-item>
                         </el-form>
                     </div>
@@ -142,7 +142,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { request } from '../../api/request'
 import { useMarkdown } from '../../hooks/useMarkdown'
 import Cookies from 'js-cookie'
-import { markdownSign } from '../../utils/markdown'
 import { checkSessionId } from '../../utils/utils'
 import { Message } from '@arco-design/web-vue'
 
@@ -165,7 +164,7 @@ onMounted(async () => {
     document.addEventListener('keydown', handleKeyDown)
 })
 
-const { renderMarkdown } = useMarkdown()
+const { markdownSign, renderMarkdown } = useMarkdown()
 
 // Command(Ctrl)+S 保存
 const handleKeyDown = async (event) => {
@@ -277,20 +276,20 @@ const insertAtCursor = (text, field = null) => {
             targetField = 'content'
         }
     }
-    
+
     const textareaRef = targetField === 'content_ENG' ? contentENGInputRef : contentInputRef
     const textarea = textareaRef.value?.$el?.querySelector('textarea') || textareaRef.value
-    
+
     if (!textarea) return
-    
+
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
     const currentValue = articleForm[targetField] || ''
-    
+
     // 在光标位置插入文本
     const newValue = currentValue.substring(0, start) + text + currentValue.substring(end)
     articleForm[targetField] = newValue
-    
+
     // 设置新的光标位置
     nextTick(() => {
         textarea.focus()
@@ -303,10 +302,10 @@ const insertMarkdown = (field, type) => {
     const textareaRef = field === 'content_ENG' ? contentENGInputRef : contentInputRef
     const textarea = textareaRef.value?.$el?.querySelector('textarea') || textareaRef.value
     if (!textarea) return
-    
+
     // 先聚焦到对应的文本框
     textarea.focus()
-    
+
     // 使用insertAtCursor函数插入Markdown标记
     nextTick(() => {
         const insertion = markdownSign[type].sign
