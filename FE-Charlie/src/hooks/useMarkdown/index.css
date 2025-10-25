@@ -2,8 +2,8 @@
     background-color: #fef3cd;
     border: 1px solid #ffeaa7;
     border-left: 4px solid #fdcb6e;
-    border-radius: 4px;
-    padding: 16px;
+    border-radius: 10px;
+    padding: 0 16px;
     margin: 16px 0;
     color: #856404;
     position: relative;
@@ -13,8 +13,8 @@
     background-color: #e3f2fd;
     border: 1px solid #90caf9;
     border-left: 4px solid #2196f3;
-    border-radius: 4px;
-    padding: 16px;
+    border-radius: 10px;
+    padding: 0 16px;
     margin: 16px 0;
     color: #0d47a1;
     position: relative;
@@ -24,8 +24,8 @@
     background-color: #e8f5e8;
     border: 1px solid #a5d6a7;
     border-left: 4px solid #4caf50;
-    border-radius: 4px;
-    padding: 16px;
+    border-radius: 10px;
+    padding: 0 16px;
     margin: 16px 0;
     color: #1b5e20;
     position: relative;
@@ -35,8 +35,8 @@
     background-color: #ffebee;
     border: 1px solid #ef9a9a;
     border-left: 4px solid #f44336;
-    border-radius: 4px;
-    padding: 16px;
+    border-radius: 10px;
+    padding: 0 16px;
     margin: 16px 0;
     color: #b71c1c;
     position: relative;
@@ -46,8 +46,8 @@
     background-color: #e0f2f1;
     border: 1px solid #80cbc4;
     border-left: 4px solid #00bcd4;
-    border-radius: 4px;
-    padding: 16px;
+    border-radius: 10px;
+    padding: 0 16px;
     margin: 16px 0;
     color: #004d40;
     position: relative;

@@ -12,7 +12,7 @@ export const useModal = () => {
             cancelText: "取消",
             okText: "确认",
             onOk,
-            closable: true,
+            titleAlign: "start",
         });
     };
 
