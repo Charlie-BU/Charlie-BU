@@ -1,3 +1,4 @@
+import { Message } from "@arco-design/web-vue";
 import axios from "axios";
 import type {
     AxiosInstance,
@@ -5,7 +6,7 @@ import type {
     AxiosResponse,
     InternalAxiosRequestConfig,
 } from "axios";
-import { ElMessage } from "element-plus";
+
 
 const isDev = import.meta.env.DEV;
 // @ts-ignore
@@ -34,13 +35,13 @@ service.interceptors.response.use(
         if (response.status === 200) {
             return response;
         } else {
-            ElMessage.error("请求失败：" + response.status);
+            Message.error("请求失败：" + response.status);
             return Promise.reject(response);
         }
     },
     (error: AxiosError) => {
         console.log(error);
-        ElMessage.error(error.message || "请求失败，请稍后重试");
+        Message.error(error.message || "请求失败，请稍后重试");
         return Promise.reject(error);
     }
 );
