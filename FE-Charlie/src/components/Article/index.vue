@@ -15,10 +15,9 @@
                         <div class="article-summary">
                             <div v-if="currentArticle">
                                 <div class="ai-summary-content-wrapper">
-                                    <div v-if="aiSummary || isGeneratingSummary || isTyping"
-                                        class="ai-summary-content" :class="{ 'streaming': isGeneratingSummary }">
-                                        <span v-if="isGeneratingSummary && !aiSummary"
-                                            class="generating-placeholder">
+                                    <div v-if="aiSummary || isGeneratingSummary || isTyping" class="ai-summary-content"
+                                        :class="{ 'streaming': isGeneratingSummary }">
+                                        <span v-if="isGeneratingSummary && !aiSummary" class="generating-placeholder">
                                             {{ t('isGeneratingSummary') }}
                                         </span>
                                         <span v-else v-html="formattedSummary" class="summary-text"></span>
@@ -75,7 +74,8 @@
             </div>
 
             <!-- 文章内容 -->
-            <div v-if="!isMobileRef || !aiAndContentsBarVisible" class="article-main" :style="{ 'margin-left': aiAndContentsBarVisible ? '330px' : '0' }">
+            <div v-if="!isMobileRef || !aiAndContentsBarVisible" class="article-main"
+                :style="{ 'margin-left': aiAndContentsBarVisible ? '330px' : '0' }">
                 <div class="article-header">
                     <div class="article-title-row">
                         <h1 class="article-title">{{ currentArticle.title }}</h1>
@@ -126,9 +126,8 @@
                     <template v-if="currentArticle.type === 1">
                         {{ currentArticle.content }}
                     </template>
-                    <div v-else-if="currentArticle.type === 2" 
-                         v-html="renderMarkdown(currentArticle.content)"
-                         ref="markdownContainer">
+                    <div v-else-if="currentArticle.type === 2" v-html="renderMarkdown(currentArticle.content)"
+                        ref="markdownContainer">
                     </div>
                 </div>
             </div>
@@ -186,7 +185,8 @@
                                 </div>
                                 <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
                                 <div class="article-menu-tags">
-                                    <a-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small" color="#b71de8">
+                                    <a-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
+                                        color="#b71de8">
                                         <template #icon>
                                             <icon-tag style="color: #fff;" />
                                         </template>
@@ -249,13 +249,15 @@
             <icon-search />
         </a-button>
     </a-tooltip>
-     <a-tooltip v-if="admin_id" :content="t('addArticle')" position="left">
+    <a-tooltip v-if="admin_id" :content="t('addArticle')" position="left">
         <a-button type="primary" shape="circle" class="floating-add-btn btn3" @click="handleAddArticle">
             <icon-plus />
         </a-button>
     </a-tooltip>
-    <a-tooltip v-else :content="aiAndContentsBarVisible ? t('backToArticle') : t('aiSummaryAndContents')" position="left">
-        <a-button type="primary" shape="circle" class="floating-add-btn btn3" @click="aiAndContentsBarVisible = !aiAndContentsBarVisible">
+    <a-tooltip v-else :content="aiAndContentsBarVisible ? t('backToArticle') : t('aiSummaryAndContents')"
+        position="left">
+        <a-button type="primary" shape="circle" class="floating-add-btn btn3"
+            @click="aiAndContentsBarVisible = !aiAndContentsBarVisible">
             <icon-mind-mapping v-if="!aiAndContentsBarVisible" />
             <icon-book v-else />
         </a-button>
@@ -308,8 +310,6 @@ onMounted(async () => {
     await routeArticle()
     // 添加键盘事件监听
     document.addEventListener('keydown', handleKeyDown)
-
-    console.log("啊啊啊啊啊啊：\n", formatMarkdownByPrettier)
 })
 
 const aiAndContentsBarVisible = ref(true)
@@ -318,7 +318,7 @@ if (isMobileRef.value) {
     aiAndContentsBarVisible.value = false
 }
 
-const { renderMarkdown, replaceImages, removeMarkdownSymbols, formatMarkdownByPrettier } = useMarkdown()
+const { renderMarkdown, replaceImages, removeMarkdownSymbols } = useMarkdown()
 const { useConfirmModal } = useModal()
 
 // Command(Ctrl)+F 查找
@@ -705,7 +705,7 @@ const getArticleContent = async () => {
         currentArticle.value = res.data.article;
         // 生成目录树
         treeData.value = generateToc(currentArticle.value.content, currentArticle.value.type);
-        
+
         // 在下一个 tick 中替换图片标签为 a-image 组件
         if (currentArticle.value.type === 2) {
             nextTick(() => {

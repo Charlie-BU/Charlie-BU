@@ -5,8 +5,9 @@ import "./index.css";
 import { createApp, h } from "vue";
 import ArcoVue from "@arco-design/web-vue";
 import { Image as AImage } from "@arco-design/web-vue";
-import prettier from "prettier/standalone"
-import markdownPlugin from "prettier/plugins/markdown"
+import prettier from "prettier/standalone";
+import markdownPlugin from "prettier/plugins/markdown";
+import pangu from "pangu";
 
 export const useMarkdown = () => {
     const markdownSign: Record<
@@ -130,7 +131,6 @@ Code
             icon: "⊞",
         },
     };
-
     const initMarkdownParser = () => {
         // 初始化 markdown 解析器
         const markdownParser = new MarkdownIt({
@@ -290,14 +290,10 @@ Code
             const formatted = await prettier.format(markdown, {
                 parser: "markdown",
                 plugins: [markdownPlugin],
-                printWidth: 80, // 每行最大宽度
-                proseWrap: "always", // 超过宽度自动换行
-                tabWidth: 2, // 缩进空格数
-                useTabs: false,
-                semi: false,
-                singleQuote: false,
             });
-            return formatted.trim();
+            // 用 pangu 在中英文之间插入空格
+            const spaced = pangu.spacingText(formatted);
+            return spaced.trim();
         } catch (error) {
             console.error("[formatByPrettier] 格式化失败:", error);
             return markdown; // 格式化失败则返回原内容
@@ -311,6 +307,6 @@ Code
         },
         replaceImages: replaceMarkdownImages,
         removeMarkdownSymbols,
-        formatMarkdownByPrettier
+        formatMarkdownByPrettier,
     };
 };

@@ -47,6 +47,9 @@ importers:
       markdown-it-container:
         specifier: ^4.0.0
         version: 4.0.0
+      pangu:
+        specifier: ^7.2.0
+        version: 7.2.0
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -1110,6 +1113,11 @@ packages:
   p-cancelable@2.1.1:
     resolution: {integrity: sha512-BZOr3nRQHOntUjTrH8+Lh54smKHoHyur8We1V8DSMVrl5A2malOOwuJRnKRDjSnkoeBh4at6BwEnb5I7Jl31wg==}
     engines: {node: '>=8'}
+
+  pangu@7.2.0:
+    resolution: {integrity: sha512-ak81fYnTD36UvRxp6yNmCyV8T/s9dtv/OS9LjTNwh3TMo5i1OhtLmFDxyw1rTZWAnfrj/00gtl883+RE2r+4tA==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
 
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
@@ -2326,6 +2334,8 @@ snapshots:
       wcwidth: 1.0.1
 
   p-cancelable@2.1.1: {}
+
+  pangu@7.2.0: {}
 
   parent-module@1.0.1:
     dependencies:

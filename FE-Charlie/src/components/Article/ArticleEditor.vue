@@ -164,10 +164,11 @@ onMounted(async () => {
     document.addEventListener('keydown', handleKeyDown)
 })
 
-const { markdownSign, renderMarkdown } = useMarkdown()
+const { markdownSign, renderMarkdown, formatMarkdownByPrettier } = useMarkdown()
 
 // Command(Ctrl)+S 保存
 const handleKeyDown = async (event) => {
+    // 保存
     if ((event.ctrlKey || event.metaKey) && event.key === 's') {
         // 阻止默认的保存行为
         event.preventDefault()
@@ -179,6 +180,10 @@ const handleKeyDown = async (event) => {
             }
 
             try {
+                // 格式化 Markdown 内容
+                articleForm.content = await formatMarkdownByPrettier(articleForm.content)
+                articleForm.content_ENG = await formatMarkdownByPrettier(articleForm.content_ENG)
+
                 const apiUrl = '/article/update_article'
                 const requestData = {
                     ...articleForm,
@@ -199,6 +204,15 @@ const handleKeyDown = async (event) => {
                 Message.error(t('saveFailed'))
             }
         })
+    }
+    // 格式化 Markdown 内容
+    if ((event.metaKey || event.ctrlKey) && event.altKey && articleForm.type === 2) {
+        event.preventDefault()
+        if (event.key === 'l' || event.key === '¬' || event.code === 'KeyL') {
+            articleForm.content = await formatMarkdownByPrettier(articleForm.content)
+            articleForm.content_ENG = await formatMarkdownByPrettier(articleForm.content_ENG)
+            Message.success(t('formatted'))
+        }
     }
 }
 
@@ -230,6 +244,7 @@ const translations = {
         saveFailed: '保存失败',
         confirmLeave: '您有未保存的更改，确定要离开吗？',
         unauthorized: '未授权，请先登录',
+        formatted: '格式化成功',
     },
     English: {
         addArticle: 'New Article',
@@ -251,6 +266,7 @@ const translations = {
         saveFailed: 'Save failed',
         confirmLeave: 'You have unsaved changes. Are you sure you want to leave?',
         unauthorized: 'Unauthorized, please login first',
+        formatted: 'Formatted successfully',
     }
 }
 
