@@ -642,11 +642,11 @@ const handlePaste = async (event) => {
     display: flex;
     flex-direction: column;
     gap: 30px;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* background: rgba(255, 255, 255, 0.08); */
+    /* backdrop-filter: blur(20px); */
+    /* border-radius: 16px; */
+    /* border: 1px solid rgba(255, 255, 255, 0.15); */
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
     padding: 30px;
 }
 
