@@ -1,3 +1,4 @@
+import { Message } from "@arco-design/web-vue";
 import axios from "axios";
 import type {
     AxiosInstance,
@@ -5,17 +6,16 @@ import type {
     AxiosResponse,
     InternalAxiosRequestConfig,
 } from "axios";
-import { ElMessage } from "element-plus";
 
-// 本地：为了防止打包后网站被认定不安全，打包前须注释
-const DEVELOP_URL = "http://localhost:1209";
-// 使用接口反向代理
+
+const isDev = import.meta.env.DEV;
 // @ts-ignore
-// const PRODUCTION_URL = "http://124.223.93.75:90";
+const DEVELOP_URL = "http://localhost:1209";
+// @ts-ignore
 const PRODUCTION_URL = "https://charliebu.cn/api";
 
 const service: AxiosInstance = axios.create({
-    baseURL: DEVELOP_URL,
+    baseURL: isDev ? DEVELOP_URL : PRODUCTION_URL,
     timeout: 50000,
     withCredentials: true, // 自动携带cookies
 });
@@ -35,13 +35,13 @@ service.interceptors.response.use(
         if (response.status === 200) {
             return response;
         } else {
-            ElMessage.error("请求失败：" + response.status);
+            Message.error("请求失败：" + response.status);
             return Promise.reject(response);
         }
     },
     (error: AxiosError) => {
         console.log(error);
-        ElMessage.error(error.message || "请求失败，请稍后重试");
+        Message.error(error.message || "请求失败，请稍后重试");
         return Promise.reject(error);
     }
 );

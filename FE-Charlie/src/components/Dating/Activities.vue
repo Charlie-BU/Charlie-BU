@@ -116,11 +116,11 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
-import { ElMessage } from 'element-plus';
 import { Unlock, Delete, Plus } from '@element-plus/icons-vue'
 import { request } from '../../api/request'
 import { checkSessionId, isMobile, formatDateRange, getDate } from '../../utils/utils';
 import Modal from '../Modal.vue';
+import { Message } from "@arco-design/web-vue";
 
 import aiIcon from '@/assets/ai.png';
 import activityIcon from '@/assets/activities.png';
@@ -317,7 +317,7 @@ const getAllActivities = async () => {
         })) || [];
     } catch (error) {
         console.error('Failed to fetch activities data:', error);
-        ElMessage.error('获取瞬间数据失败');
+        Message.error('获取瞬间数据失败');
     }
 };
 
@@ -354,7 +354,7 @@ const openAddModal = (activity) => {
 const beforeImageUpload = (file) => {
     const isImage = file.type.startsWith('image/')
     if (!isImage) {
-        ElMessage.error('只能上传图片文件！')
+        Message.error('只能上传图片文件！')
         return false
     }
     return true
@@ -371,7 +371,7 @@ const handleAddImageChange = (file) => {
 // 生成瞬间留言
 const generateActivityDescription = async () => {
     if (!selectedActivity.value) {
-        ElMessage.warning('请先选择瞬间')
+        Message.warning('请先选择瞬间')
         return
     }
     if (isGeneratingDescription.value) {
@@ -390,17 +390,17 @@ const generateActivityDescription = async () => {
         if (res.data.status === 200) {
             unlockForm.value.description = res.data.description || ''
             unlockForm.value.description_ENG = res.data.description_ENG || ''
-            ElMessage.success('AI留言生成成功')
+            Message.success('AI留言生成成功')
         } else {
             unlockForm.value.description = ""
             unlockForm.value.description_ENG = ""
-            ElMessage.error(res.data.message || 'AI留言生成失败')
+            Message.error(res.data.message || 'AI留言生成失败')
         }
     } catch (error) {
         unlockForm.value.description = ""
         unlockForm.value.description_ENG = ""
         console.error('生成留言失败:', error)
-        ElMessage.error('AI留言生成失败，请稍后重试')
+        Message.error('AI留言生成失败，请稍后重试')
     } finally {
         isGeneratingDescription.value = false
     }
@@ -408,7 +408,7 @@ const generateActivityDescription = async () => {
 
 const handleConfirm = async () => {
     if (!unlockForm.value.date || !unlockForm.value.description || !unlockForm.value.description_ENG || !unlockForm.value.imageFile) {
-        ElMessage.warning(t('pleaseCompleteForm'))
+        Message.warning(t('pleaseCompleteForm'))
         return
     }
     try {
@@ -426,14 +426,14 @@ const handleConfirm = async () => {
         })
 
         if (res.data.status === 200) {
-            ElMessage.success(t('unlockSuccess'))
+            Message.success(t('unlockSuccess'))
             getAllActivities()
         } else {
-            ElMessage.error(res.data.message || t('unlockFailed'))
+            Message.error(res.data.message || t('unlockFailed'))
         }
     } catch (error) {
         console.error('解锁失败:', error)
-        ElMessage.error(t('unlockFailed'))
+        Message.error(t('unlockFailed'))
     } finally {
         unlockForm.value = {
             date: '',
@@ -465,7 +465,7 @@ const openAddActivityModal = () => {
 // 添加瞬间
 const handleAddActivity = async () => {
     if (!addActivityForm.value.title || !addActivityForm.value.title_ENG) {
-        ElMessage.warning(t('pleaseCompleteForm'))
+        Message.warning(t('pleaseCompleteForm'))
         return
     }
     try {
@@ -475,14 +475,14 @@ const handleAddActivity = async () => {
         })
 
         if (res.data.status === 200) {
-            ElMessage.success(t('addSuccess'))
+            Message.success(t('addSuccess'))
             // 重新获取瞬间列表
             await getAllActivities()
         } else {
-            ElMessage.error(res.data.message || t('addFailed'))
+            Message.error(res.data.message || t('addFailed'))
         }
     } catch (error) {
-        ElMessage.error(t('addFailed'))
+        Message.error(t('addFailed'))
         console.error('添加瞬间失败:', error)
     } finally {
         addActivityForm.value = {
@@ -514,14 +514,14 @@ const confirmDelete = async () => {
         })
 
         if (res.data.status === 200) {
-            ElMessage.success(t('deleteSuccess'))
+            Message.success(t('deleteSuccess'))
             // 重新获取瞬间列表
             await getAllActivities()
         } else {
-            ElMessage.error(res.data.message || t('deleteFailed'))
+            Message.error(res.data.message || t('deleteFailed'))
         }
     } catch (error) {
-        ElMessage.error(t('deleteFailed'))
+        Message.error(t('deleteFailed'))
         console.error('删除瞬间失败:', error)
     } finally {
         currentDeleteActivityId.value = null

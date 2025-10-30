@@ -51,9 +51,9 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
+import { Message } from "@arco-design/web-vue";
 
 import { request } from '../api/request'
 
@@ -127,17 +127,17 @@ const handleLogin = async () => {
                     password: loginForm.password
                 })
                 if (res.data.status !== 200) {
-                    ElMessage.error(res.data.message);
+                    Message.error(res.data.message);
                     Cookies.set('sessionid', "");
                     Cookies.remove('sessionid');
                     return;
                 }
                 Cookies.set('sessionid', res.data.sessionid);
-                ElMessage.success(t('loginSuccess'))
+                Message.success(t('loginSuccess'))
                 router.push("/")
             } catch (error) {
                 console.error(error)
-                ElMessage.error(error.message || t('loginFailed'))
+                Message.error(error.message || t('loginFailed'))
             } finally {
                 loading.value = false
             }

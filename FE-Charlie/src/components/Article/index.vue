@@ -15,10 +15,9 @@
                         <div class="article-summary">
                             <div v-if="currentArticle">
                                 <div class="ai-summary-content-wrapper">
-                                    <div v-if="aiSummary || isGeneratingSummary || isTyping"
-                                        class="ai-summary-content" :class="{ 'streaming': isGeneratingSummary }">
-                                        <span v-if="isGeneratingSummary && !aiSummary"
-                                            class="generating-placeholder">
+                                    <div v-if="aiSummary || isGeneratingSummary || isTyping" class="ai-summary-content"
+                                        :class="{ 'streaming': isGeneratingSummary }">
+                                        <span v-if="isGeneratingSummary && !aiSummary" class="generating-placeholder">
                                             {{ t('isGeneratingSummary') }}
                                         </span>
                                         <span v-else v-html="formattedSummary" class="summary-text"></span>
@@ -75,7 +74,8 @@
             </div>
 
             <!-- 文章内容 -->
-            <div v-if="!isMobileRef || !aiAndContentsBarVisible" class="article-main" :style="{ 'margin-left': aiAndContentsBarVisible ? '330px' : '0' }">
+            <div v-if="!isMobileRef || !aiAndContentsBarVisible" class="article-main"
+                :style="{ 'margin-left': aiAndContentsBarVisible ? '330px' : '0' }">
                 <div class="article-header">
                     <div class="article-title-row">
                         <h1 class="article-title">{{ currentArticle.title }}</h1>
@@ -126,9 +126,8 @@
                     <template v-if="currentArticle.type === 1">
                         {{ currentArticle.content }}
                     </template>
-                    <div v-else-if="currentArticle.type === 2" 
-                         v-html="renderMarkdown(currentArticle.content)"
-                         ref="markdownContainer">
+                    <div v-else-if="currentArticle.type === 2" v-html="renderMarkdown(currentArticle.content)"
+                        ref="markdownContainer">
                     </div>
                 </div>
             </div>
@@ -186,7 +185,8 @@
                                 </div>
                                 <div class="article-menu-date">{{ formatTime(article.timeCreated) }}</div>
                                 <div class="article-menu-tags">
-                                    <a-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small" color="#b71de8">
+                                    <a-tag v-for="(tag, tagIndex) in article.tags" :key="tagIndex" size="small"
+                                        color="#b71de8">
                                         <template #icon>
                                             <icon-tag style="color: #fff;" />
                                         </template>
@@ -234,8 +234,8 @@
 
 
     <!-- 删除确认弹窗 -->
-    <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteArticle')" :content="t('deleteConfirm')"
-        @confirm="confirmDelete" @cancel="cancelDelete" />
+    <!-- <Modal v-model:visible="deleteDialogVisible" type="delete" :title="t('deleteArticle')" :content="t('deleteConfirm')"
+        @confirm="confirmDelete" @cancel="cancelDelete" /> -->
 
     <!-- 右侧悬浮按钮 -->
     <a-tooltip :content="t('articleList')" position="left">
@@ -249,13 +249,15 @@
             <icon-search />
         </a-button>
     </a-tooltip>
-     <a-tooltip v-if="admin_id" :content="t('addArticle')" position="left">
+    <a-tooltip v-if="admin_id" :content="t('addArticle')" position="left">
         <a-button type="primary" shape="circle" class="floating-add-btn btn3" @click="handleAddArticle">
             <icon-plus />
         </a-button>
     </a-tooltip>
-    <a-tooltip v-else :content="aiAndContentsBarVisible ? t('backToArticle') : t('aiSummaryAndContents')" position="left">
-        <a-button type="primary" shape="circle" class="floating-add-btn btn3" @click="aiAndContentsBarVisible = !aiAndContentsBarVisible">
+    <a-tooltip v-else :content="aiAndContentsBarVisible ? t('backToArticle') : t('aiSummaryAndContents')"
+        position="left">
+        <a-button type="primary" shape="circle" class="floating-add-btn btn3"
+            @click="aiAndContentsBarVisible = !aiAndContentsBarVisible">
             <icon-mind-mapping v-if="!aiAndContentsBarVisible" />
             <icon-book v-else />
         </a-button>
@@ -278,15 +280,17 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
-import { ElTree, ElMessage } from 'element-plus'
+import { ElTree } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
+import { Message } from "@arco-design/web-vue";
 
 import { useMarkdown } from '@/hooks/useMarkdown'
+import { useModal } from '@/hooks/useModal'
+
 import { request } from '@/api/request'
 import { checkSessionId, calcHashForArticleId, getArticleIdFromHash, isMobile, countContent } from '@/utils/utils'
 import Modal from '@/components/Modal.vue'
-import { removeMarkdownSymbols } from '@/utils/markdown'
 
 import aiIcon from '@/assets/ai.png';
 
@@ -314,7 +318,8 @@ if (isMobileRef.value) {
     aiAndContentsBarVisible.value = false
 }
 
-const { renderMarkdown, replaceImages } = useMarkdown()
+const { renderMarkdown, replaceImages, removeMarkdownSymbols } = useMarkdown()
+const { useConfirmModal } = useModal()
 
 // Command(Ctrl)+F 查找
 const handleKeyDown = async (event) => {
@@ -700,7 +705,7 @@ const getArticleContent = async () => {
         currentArticle.value = res.data.article;
         // 生成目录树
         treeData.value = generateToc(currentArticle.value.content, currentArticle.value.type);
-        
+
         // 在下一个 tick 中替换图片标签为 a-image 组件
         if (currentArticle.value.type === 2) {
             nextTick(() => {
@@ -709,7 +714,7 @@ const getArticleContent = async () => {
                 }
             });
         }
-        
+
         // 生成AI摘要
         if (isCancelled.value) {
             setTimeout(async () => {
@@ -724,7 +729,7 @@ const getArticleContent = async () => {
 }
 
 // 删除相关变量
-const deleteDialogVisible = ref(false)
+// const deleteDialogVisible = ref(false)
 const currentDeleteArticleId = ref(null)
 
 // 删除文章
@@ -732,7 +737,7 @@ const handleDeleteArticle = (articleId) => {
     if (!admin_id.value) return
     articleListDrawerVisible.value = false
     currentDeleteArticleId.value = articleId
-    deleteDialogVisible.value = true
+    useConfirmModal(() => confirmDelete(), t('deleteArticle'))
 }
 
 // 确认删除
@@ -745,14 +750,14 @@ const confirmDelete = async () => {
         })
 
         if (res.data.status === 200) {
-            ElMessage.success(t('deleteSuccess'))
+            Message.success(t('deleteSuccess'))
             // 重新获取文章列表
             await getArticles()
         } else {
-            ElMessage.error(res.data.message || t('deleteFailed'))
+            Message.error(res.data.message || t('deleteFailed'))
         }
     } catch (error) {
-        ElMessage.error(t('deleteFailed'))
+        Message.error(t('deleteFailed'))
         console.error('删除文章失败:', error)
     } finally {
         currentDeleteArticleId.value = null
@@ -792,14 +797,14 @@ const handleDraftOrReleased = async (articleId) => {
         if (res.data.status === 200) {
             // 更新成功，刷新文章列表
             currentArticle.value.isReleased = !currentArticle.value.isReleased
-            ElMessage.success(article.isReleased ? t('setAsDraft') + "成功" : t('publish') + "成功")
+            Message.success(article.isReleased ? t('setAsDraft') + "成功" : t('publish') + "成功")
             await getArticles()
         } else {
-            ElMessage.error(res.data.message || t('saveFailed'))
+            Message.error(res.data.message || t('saveFailed'))
         }
     } catch (error) {
         console.error('更新文章状态失败:', error)
-        ElMessage.error(t('saveFailed'))
+        Message.error(t('saveFailed'))
     }
 }
 
@@ -824,7 +829,7 @@ const formattedSummary = computed(() => {
 // 渲染AI总结
 const renderAISummary = async (AISUMMARY) => {
     if (!currentArticle.value.content) {
-        ElMessage.warning(t('noContent'))
+        Message.warning(t('noContent'))
         return
     }
     isTyping.value = true
@@ -842,7 +847,7 @@ const renderAISummary = async (AISUMMARY) => {
             return
         }
         console.error('生成AI总结失败:', error)
-        ElMessage.error(t('generateSummaryFailed'))
+        Message.error(t('generateSummaryFailed'))
     } finally {
         isTyping.value = false
     }
@@ -904,14 +909,14 @@ const regenerate_article_AISummary = async () => {
             id: currentArticle.value.id
         })
         if (res.data.status === 200 || res.data.status === 201) {
-            ElMessage.success(t('generateSuccess'))
+            Message.success(t('generateSuccess'))
             isGeneratingSummary.value = false
             await renderAISummary(res.data.aiSummary)
         } else {
-            ElMessage.error(res.data.message || t('generateFailed'))
+            Message.error(res.data.message || t('generateFailed'))
         }
     } catch (error) {
-        ElMessage.error(t('generateFailed'))
+        Message.error(t('generateFailed'))
         console.error('重新生成AI总结失败:', error)
     }
 }

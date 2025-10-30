@@ -129,8 +129,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { Plus, Delete } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import { Message } from "@arco-design/web-vue";
 
 // 状态管理
 const anniversaries = ref([
@@ -172,7 +171,7 @@ const newAnniversary = ref({
 // 添加新纪念日
 const addAnniversary = () => {
   if (!newAnniversary.value.title || !newAnniversary.value.date) {
-    ElMessage.warning('请填写纪念日名称和日期');
+    Message.warning('请填写纪念日名称和日期');
     return;
   }
   
@@ -182,7 +181,7 @@ const addAnniversary = () => {
   };
   
   anniversaries.value.push(anniversary);
-  ElMessage.success('添加成功!');
+  Message.success('添加成功!');
   
   // 重置表单
   newAnniversary.value = {
@@ -199,7 +198,7 @@ const deleteAnniversary = (id) => {
   const index = anniversaries.value.findIndex(item => item.id === id);
   if (index !== -1) {
     anniversaries.value.splice(index, 1);
-    ElMessage.success('删除成功!');
+    Message.success('删除成功!');
   }
 };
 

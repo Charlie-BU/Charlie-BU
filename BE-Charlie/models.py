@@ -1,6 +1,17 @@
 import re
 from datetime import datetime
-from sqlalchemy import create_engine, ForeignKey, Boolean, Column, Integer, Text, DateTime, Date, Float, JSON
+from sqlalchemy import (
+    create_engine,
+    ForeignKey,
+    Boolean,
+    Column,
+    Integer,
+    Text,
+    DateTime,
+    Date,
+    Float,
+    JSON,
+)
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from sqlalchemy.ext.mutable import MutableList
 from bcrypt import hashpw, gensalt, checkpw
@@ -14,16 +25,16 @@ engine = create_engine(
     pool_size=20,  # 默认连接池大小
     max_overflow=30,  # 最大溢出连接数
     pool_timeout=60,  # 连接超时时间
-    pool_recycle=3600  # 连接回收时间，防止连接被数据库关闭
+    pool_recycle=3600,  # 连接回收时间，防止连接被数据库关闭
 )
 # 数据库表基类
 Base = declarative_base()
-naming_convention = { 
-    "ix": 'ix_%(column_0_label)s',
+naming_convention = {
+    "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
     "ck": "ck_%(table_name)s_%(column_0_name)s",
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s"
+    "pk": "pk_%(table_name)s",
 }
 Base.metadata.naming_convention = naming_convention
 # 会话，用于通过ORM操作数据库
@@ -309,7 +320,6 @@ class Article(Base):
         return data
 
 
-
 class PlaceBeenTo(Base):
     __tablename__ = "place_been_to"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -347,7 +357,7 @@ class PlaceBeenTo(Base):
             "dateEnd": self.dateEnd,
         }
         return data
-        
+
 
 class TravelPhoto(Base):
     __tablename__ = "travel_photo"

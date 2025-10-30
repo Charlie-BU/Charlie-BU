@@ -70,8 +70,8 @@
                                         </el-button>
                                     </el-tooltip>
                                 </div>
-                                <el-input ref="contentInputRef" v-model="articleForm.content" type="textarea" :rows="33" @paste="handlePaste"
-                                    :placeholder="t('contentPlaceholder')"></el-input>
+                                <el-input ref="contentInputRef" v-model="articleForm.content" type="textarea" :rows="33"
+                                    @paste="handlePaste" :placeholder="t('contentPlaceholder')"></el-input>
                             </el-form-item>
                         </el-form>
                     </div>
@@ -101,8 +101,8 @@
                                 </el-tooltip>
                             </div>
                             <el-form-item prop="content_ENG">
-                                <el-input ref="contentENGInputRef" v-model="articleForm.content_ENG" type="textarea" @paste="handlePaste"
-                                    :rows="33" :placeholder="t('contentPlaceholder')"></el-input>
+                                <el-input ref="contentENGInputRef" v-model="articleForm.content_ENG" type="textarea"
+                                    @paste="handlePaste" :rows="33" :placeholder="t('contentPlaceholder')"></el-input>
                             </el-form-item>
                         </el-form>
                     </div>
@@ -139,12 +139,11 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { request } from '../../api/request'
 import { useMarkdown } from '../../hooks/useMarkdown'
 import Cookies from 'js-cookie'
-import { markdownSign } from '../../utils/markdown'
 import { checkSessionId } from '../../utils/utils'
+import { Message } from '@arco-design/web-vue'
 
 // 路由
 const route = useRoute()
@@ -165,21 +164,26 @@ onMounted(async () => {
     document.addEventListener('keydown', handleKeyDown)
 })
 
-const { renderMarkdown } = useMarkdown()
+const { markdownSign, renderMarkdown, formatMarkdownByPrettier } = useMarkdown()
 
 // Command(Ctrl)+S 保存
 const handleKeyDown = async (event) => {
+    // 保存
     if ((event.ctrlKey || event.metaKey) && event.key === 's') {
         // 阻止默认的保存行为
         event.preventDefault()
         await formRef.value.validate(async (valid) => {
             if (!valid) return
             if (articleForm.content === "" && articleForm.content_ENG === "") {
-                ElMessage.warning("请输入文章内容")
+                Message.warning("请输入文章内容")
                 return
             }
 
             try {
+                // 格式化 Markdown 内容
+                articleForm.content = await formatMarkdownByPrettier(articleForm.content)
+                articleForm.content_ENG = await formatMarkdownByPrettier(articleForm.content_ENG)
+
                 const apiUrl = '/article/update_article'
                 const requestData = {
                     ...articleForm,
@@ -189,17 +193,26 @@ const handleKeyDown = async (event) => {
                 const res = await request.post(apiUrl, requestData)
 
                 if (res.data.status === 200) {
-                    ElMessage.success(t('saveSuccess'))
+                    Message.success(t('saveSuccess'))
                 } else if (res.data.status === -1) {
-                    ElMessage.warning(res.data.message)
+                    Message.warning(res.data.message)
                 } else {
-                    ElMessage.error(res.data.message || t('saveFailed'))
+                    Message.error(res.data.message || t('saveFailed'))
                 }
             } catch (error) {
                 console.error('暂存失败:', error)
-                ElMessage.error(t('saveFailed'))
+                Message.error(t('saveFailed'))
             }
         })
+    }
+    // 格式化 Markdown 内容
+    if ((event.metaKey || event.ctrlKey) && event.altKey && articleForm.type === 2) {
+        event.preventDefault()
+        if (event.key === 'l' || event.key === '¬' || event.code === 'KeyL') {
+            articleForm.content = await formatMarkdownByPrettier(articleForm.content)
+            articleForm.content_ENG = await formatMarkdownByPrettier(articleForm.content_ENG)
+            Message.success(t('formatted'))
+        }
     }
 }
 
@@ -231,6 +244,7 @@ const translations = {
         saveFailed: '保存失败',
         confirmLeave: '您有未保存的更改，确定要离开吗？',
         unauthorized: '未授权，请先登录',
+        formatted: '格式化成功',
     },
     English: {
         addArticle: 'New Article',
@@ -252,6 +266,7 @@ const translations = {
         saveFailed: 'Save failed',
         confirmLeave: 'You have unsaved changes. Are you sure you want to leave?',
         unauthorized: 'Unauthorized, please login first',
+        formatted: 'Formatted successfully',
     }
 }
 
@@ -277,20 +292,20 @@ const insertAtCursor = (text, field = null) => {
             targetField = 'content'
         }
     }
-    
+
     const textareaRef = targetField === 'content_ENG' ? contentENGInputRef : contentInputRef
     const textarea = textareaRef.value?.$el?.querySelector('textarea') || textareaRef.value
-    
+
     if (!textarea) return
-    
+
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
     const currentValue = articleForm[targetField] || ''
-    
+
     // 在光标位置插入文本
     const newValue = currentValue.substring(0, start) + text + currentValue.substring(end)
     articleForm[targetField] = newValue
-    
+
     // 设置新的光标位置
     nextTick(() => {
         textarea.focus()
@@ -303,10 +318,10 @@ const insertMarkdown = (field, type) => {
     const textareaRef = field === 'content_ENG' ? contentENGInputRef : contentInputRef
     const textarea = textareaRef.value?.$el?.querySelector('textarea') || textareaRef.value
     if (!textarea) return
-    
+
     // 先聚焦到对应的文本框
     textarea.focus()
-    
+
     // 使用insertAtCursor函数插入Markdown标记
     nextTick(() => {
         const insertion = markdownSign[type].sign
@@ -384,7 +399,7 @@ const addTag = (event) => {
     if (value) {
         // 限制标签长度
         if (value.length > 20) {
-            ElMessage.warning('标签长度不能超过20个字符')
+            Message.warning('标签长度不能超过20个字符')
             inputTagValue.value = value.substring(0, 20)
             return
         }
@@ -392,7 +407,7 @@ const addTag = (event) => {
         if (!articleForm.tags.includes(value)) {
             // 限制标签数量
             if (articleForm.tags.length >= 4) {
-                ElMessage.warning('最多只能添加4个标签')
+                Message.warning('最多只能添加4个标签')
                 inputTagVisible.value = false
                 inputTagValue.value = ''
                 return
@@ -403,7 +418,7 @@ const addTag = (event) => {
             inputTagValue.value = ''
         } else {
             // 提示用户标签已存在
-            ElMessage.warning('标签已存在')
+            Message.warning('标签已存在')
             inputTagValue.value = ''
             nextTick(() => {
                 tagInputRef.value.focus()
@@ -426,7 +441,7 @@ const addTagENG = (event) => {
     if (value) {
         // 限制标签长度
         if (value.length > 20) {
-            ElMessage.warning('Tag length cannot exceed 20 characters')
+            Message.warning('Tag length cannot exceed 20 characters')
             inputTagENGValue.value = value.substring(0, 20)
             return
         }
@@ -434,7 +449,7 @@ const addTagENG = (event) => {
         if (!articleForm.tag_ENG.includes(value)) {
             // 限制标签数量
             if (articleForm.tag_ENG.length >= 4) {
-                ElMessage.warning('You can only add up to 4 tags')
+                Message.warning('You can only add up to 4 tags')
                 inputTagENGVisible.value = false
                 inputTagENGValue.value = ''
                 return
@@ -445,7 +460,7 @@ const addTagENG = (event) => {
             inputTagENGValue.value = ''
         } else {
             // 提示用户标签已存在
-            ElMessage.warning('Tag already exists')
+            Message.warning('Tag already exists')
             inputTagENGValue.value = ''
             nextTick(() => {
                 tagENGInputRef.value.focus()
@@ -479,7 +494,7 @@ const saveAsDraft = async () => {
     await formRef.value.validate(async (valid) => {
         if (!valid) return
         if (articleForm.content === "" && articleForm.content_ENG === "") {
-            ElMessage.warning("请输入文章内容")
+            Message.warning("请输入文章内容")
             return
         }
 
@@ -494,16 +509,16 @@ const saveAsDraft = async () => {
             const res = await request.post(apiUrl, requestData)
 
             if (res.data.status === 200) {
-                ElMessage.success(t('saveSuccess'))
+                Message.success(t('saveSuccess'))
                 router.push('/articles')
             } else if (res.data.status === -1) {
-                ElMessage.warning(res.data.message)
+                Message.warning(res.data.message)
             } else {
-                ElMessage.error(res.data.message || t('saveFailed'))
+                Message.error(res.data.message || t('saveFailed'))
             }
         } catch (error) {
             console.error('保存草稿失败:', error)
-            ElMessage.error(t('saveFailed'))
+            Message.error(t('saveFailed'))
         } finally {
             saving.value = false
         }
@@ -515,7 +530,7 @@ const publishArticle = async () => {
     await formRef.value.validate(async (valid) => {
         if (!valid) return
         if (articleForm.content === "" && articleForm.content_ENG === "") {
-            ElMessage.warning("请输入文章内容")
+            Message.warning("请输入文章内容")
             return
         }
 
@@ -530,16 +545,16 @@ const publishArticle = async () => {
             const res = await request.post(apiUrl, requestData)
 
             if (res.data.status === 200) {
-                ElMessage.success("发布成功")
+                Message.success("发布成功")
                 router.push('/articles')
             } else if (res.data.status === -1) {
-                ElMessage.warning(res.data.message)
+                Message.warning(res.data.message)
             } else {
-                ElMessage.error(res.data.message || "发布失败")
+                Message.error(res.data.message || "发布失败")
             }
         } catch (error) {
             console.error('发布文章失败:', error)
-            ElMessage.error("发布失败")
+            Message.error("发布失败")
         } finally {
             saving.value = false
         }
@@ -550,7 +565,7 @@ const publishArticle = async () => {
 const checkAdminPermission = async () => {
     const admin_id = await checkSessionId()
     if (!admin_id) {
-        ElMessage.error(t('unauthorized'))
+        Message.error(t('unauthorized'))
         router.push('/articles')
     }
 }
@@ -579,7 +594,7 @@ const getArticleDetail = async (id) => {
         }
     } catch (error) {
         console.error('获取文章详情失败:', error)
-        ElMessage.error(error.message || '获取文章详情失败')
+        Message.error(error.message || '获取文章详情失败')
     }
 }
 
@@ -627,11 +642,11 @@ const handlePaste = async (event) => {
     display: flex;
     flex-direction: column;
     gap: 30px;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* background: rgba(255, 255, 255, 0.08); */
+    /* backdrop-filter: blur(20px); */
+    /* border-radius: 16px; */
+    /* border: 1px solid rgba(255, 255, 255, 0.15); */
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
     padding: 30px;
 }
 

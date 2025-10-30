@@ -184,8 +184,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { Plus } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import { Message } from "@arco-design/web-vue";
 
 // 症状选项
 const symptoms = [
@@ -240,19 +239,19 @@ const newPeriod = ref({
 // 记录新周期
 const recordPeriod = () => {
   if (!newPeriod.value.startDate) {
-    ElMessage.warning('请选择开始日期');
+    Message.warning('请选择开始日期');
     return;
   }
   
   // 验证日期
   if (newPeriod.value.endDate && new Date(newPeriod.value.endDate) < new Date(newPeriod.value.startDate)) {
-    ElMessage.error('结束日期不能早于开始日期');
+    Message.error('结束日期不能早于开始日期');
     return;
   }
   
   const period = { ...newPeriod.value };
   cycleHistory.value.push(period);
-  ElMessage.success('记录成功!');
+  Message.success('记录成功!');
   
   // 重置表单
   newPeriod.value = {
@@ -267,7 +266,7 @@ const recordPeriod = () => {
 // 删除周期记录
 const deletePeriod = (index) => {
   cycleHistory.value.splice(index, 1);
-  ElMessage.success('删除成功!');
+  Message.success('删除成功!');
 };
 
 // 格式化日期

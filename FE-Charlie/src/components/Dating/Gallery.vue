@@ -164,8 +164,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { Plus, Delete, Search } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import { Message } from "@arco-design/web-vue";
 
 // 状态管理
 const photos = ref([
@@ -235,7 +234,7 @@ const photoDetailVisible = ref(false);
 const handlePhotoChange = (file) => {
   const isImage = file.raw.type.startsWith('image/');
   if (!isImage) {
-    ElMessage.error('只能上传图片文件!');
+    Message.error('只能上传图片文件!');
     return false;
   }
   
@@ -247,7 +246,7 @@ const handlePhotoChange = (file) => {
 // 添加新照片
 const addPhoto = () => {
   if (!newPhoto.value.title || !newPhoto.value.imageUrl) {
-    ElMessage.warning('请输入照片标题并上传照片');
+    Message.warning('请输入照片标题并上传照片');
     return;
   }
   
@@ -258,7 +257,7 @@ const addPhoto = () => {
   };
   
   photos.value.unshift(photo);
-  ElMessage.success('添加成功!');
+  Message.success('添加成功!');
   
   // 更新可用标签
   updateAvailableTags(photo.tags);
@@ -289,7 +288,7 @@ const deletePhoto = (id) => {
   const index = photos.value.findIndex(item => item.id === id);
   if (index !== -1) {
     photos.value.splice(index, 1);
-    ElMessage.success('删除成功!');
+    Message.success('删除成功!');
     photoDetailVisible.value = false;
   }
 };

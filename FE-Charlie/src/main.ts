@@ -28,4 +28,9 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component);
 }
 
+import { Message } from "@arco-design/web-vue";
+Message._context = app._context;
+
 app.mount("#app");
+// 在Vite中，使用import.meta.env来获取环境变量
+// console.log("环境变量:", import.meta.env);

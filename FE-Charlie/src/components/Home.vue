@@ -188,7 +188,7 @@
 
 <script setup>
 import { ref, onMounted, reactive, onBeforeUnmount } from 'vue'
-import { ElMessage } from 'element-plus';
+import { Message } from "@arco-design/web-vue";
 import Cookies from 'js-cookie';
 
 import { request } from '../api/request'
@@ -240,13 +240,13 @@ const get_charlie = async (lang) => {
             lang,
         });
         if (res.data.status !== 200) {
-            ElMessage(res.data.message)
+            Message.error(res.data.message)
             console.log(res.data.message)
             return;
         }
         charlie.value = res.data.charlie;
     } catch (error) {
-        ElMessage(error)
+        Message.error(error)
         console.log(error)
     }
 }
@@ -259,13 +259,13 @@ const get_talents = async (lang) => {
             lang
         });
         if (res.data.status !== 200) {
-            ElMessage(res.data.message)
+            Message.error(res.data.message)
             console.log(res.data.message)
             return;
         }
         talents.value = res.data.talents;
     } catch (error) {
-        ElMessage(error)
+        Message.error(error)
         console.log(error)
     }
 }
@@ -285,13 +285,13 @@ const get_achievements = async (lang) => {
             lang
         });
         if (res.data.status !== 200) {
-            ElMessage(res.data.message)
+            Message.error(res.data.message)
             console.log(res.data.message)
             return;
         }
         achievements.value = res.data.achievements;
     } catch (error) {
-        ElMessage(error)
+        Message.error(error)
         console.log(error)
     }
 }
@@ -304,13 +304,13 @@ const get_growthTimeline = async (lang) => {
             lang
         });
         if (res.data.status !== 200) {
-            ElMessage(res.data.message)
+            Message.error(res.data.message)
             console.log(res.data.message)
             return;
         }
         growthTimelines.value = res.data.growthTimelines;
     } catch (error) {
-        ElMessage(error)
+        Message.error(error)
         console.log(error)
     }
 }
@@ -323,20 +323,20 @@ const get_bubbles = async (lang) => {
             lang
         });
         if (res.data.status !== 200) {
-            ElMessage(res.data.message)
+            Message.error(res.data.message)
             console.log(res.data.message)
             return;
         }
         bubbles.value = res.data.bubbles;
     } catch (error) {
-        ElMessage(error)
+        Message.error(error)
         console.log(error)
     }
 }
 
 const download_cv = () => {
     if (!charlie?.value?.resume) {
-        ElMessage(t("CV_not_finished"))
+        Message.error(t("CV_not_finished"))
         return;
     }
     window.location.href = charlie.value.resume;
@@ -344,7 +344,7 @@ const download_cv = () => {
 
 const email_me = () => {
     if (!charlie?.value?.email) {
-        ElMessage("请稍后再试")
+        Message.error("请稍后再试")
         return;
     }
     window.location.href = `mailto:${charlie.value.email}`
@@ -418,11 +418,11 @@ const confirm_delete = async () => {
             id: currentItem.value.item.id
         });
         if (res.data.status !== 200) {
-            ElMessage(res.data.message)
+            Message.error(res.data.message)
             console.log(res.data.message)
             return;
         }
-        ElMessage.success("删除成功");
+        Message.success("删除成功");
 
         // 根据类型刷新对应的数据
         if (currentItem.value.type === 'talent') await get_talents(LANG);
@@ -432,7 +432,7 @@ const confirm_delete = async () => {
         else if (currentItem.value.type === 'motto') await get_charlie(LANG);
 
     } catch (error) {
-        ElMessage.error('删除失败: ' + error.message);
+        Message.error('删除失败: ' + error.message);
     }
 };
 
