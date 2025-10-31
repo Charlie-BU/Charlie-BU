@@ -52,3 +52,46 @@
     color: #004d40;
     position: relative;
 }
+
+/* Markdown 图片容器样式 */
+.markdown-image-wrapper {
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+    margin: 1em 0;
+    overflow: hidden;
+}
+
+.markdown-image-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 移动端图片优化 */
+@media (max-width: 768px) {
+    .markdown-image-wrapper {
+        margin: 0.8em 0;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+    
+    .markdown-image-wrapper img {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0.3em;
+    }
+}
+
+/* 小屏幕移动端进一步优化 */
+@media (max-width: 480px) {
+    .markdown-image-wrapper {
+        margin: 0.5em 0;
+        padding: 0 5px;
+    }
+    
+    .markdown-image-wrapper img {
+        border-radius: 0.2em;
+    }
+}

@@ -1,5 +1,5 @@
 <template>
-    <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
+    <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 20px' : '40px 20px' }">
         <div class="article-container">
             <!-- AI 总结与目录 -->
             <div class="article-sidebar-left" v-if="aiAndContentsBarVisible" style="padding-bottom: 100px;">

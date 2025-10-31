@@ -228,7 +228,6 @@ Code
                                 preview: true,
                                 fit: "contain",
                                 style: {
-                                    width: "70%",
                                     borderRadius: "0.5em",
                                     maxWidth: "100%",
                                     height: "auto",
