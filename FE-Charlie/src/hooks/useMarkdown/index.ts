@@ -190,6 +190,26 @@ Code
             </div>
         `;
         };
+
+        // 重写 table 渲染规则，包裹table-wrapper
+        const proxy = (tokens: any[], idx: number, options: any, _env: any, self: any) => 
+            self.renderToken(tokens, idx, options);
+        
+        const originalTableOpenRenderer = markdownParser.renderer.rules.table_open || proxy;
+        const originalTableCloseRenderer = markdownParser.renderer.rules.table_close || proxy;
+
+        // 重写 table_open 规则，添加包裹 div
+        markdownParser.renderer.rules.table_open = (tokens, idx, options, env, self) => {
+            return '<div class="markdown-table-wrapper">\n' + 
+                   originalTableOpenRenderer(tokens, idx, options, env, self);
+        };
+
+        // 重写 table_close 规则，关闭包裹 div
+        markdownParser.renderer.rules.table_close = (tokens, idx, options, env, self) => {
+            return originalTableCloseRenderer(tokens, idx, options, env, self) + 
+                   '\n</div>';
+        };
+        
         return markdownParser;
     };
 

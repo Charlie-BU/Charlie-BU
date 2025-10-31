@@ -95,3 +95,67 @@
         border-radius: 0.2em;
     }
 }
+
+/* Markdown 表格包裹器样式 */
+.markdown-table-wrapper {
+    width: 90%;
+    overflow-x: auto;
+    margin: 1em auto; /* 使用 auto 实现水平居中 */
+    border-radius: 0.5em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.markdown-table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 100%;
+}
+
+.markdown-table-wrapper th,
+.markdown-table-wrapper td {
+    padding: 12px 16px;
+}
+
+.markdown-table-wrapper th {
+    font-weight: 600;
+}
+
+.markdown-table-wrapper tr:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 移动端表格优化 */
+@media (max-width: 768px) {
+    .markdown-table-wrapper {
+        margin: 0.8em 0;
+        border-radius: 0.3em;
+    }
+    
+    .markdown-table-wrapper table {
+        min-width: 500px;
+    }
+    
+    .markdown-table-wrapper th,
+    .markdown-table-wrapper td {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}
+
+/* 小屏幕移动端表格优化 */
+@media (max-width: 480px) {
+    .markdown-table-wrapper {
+        margin: 0.5em 0;
+        border-radius: 0.2em;
+    }
+    
+    .markdown-table-wrapper table {
+        min-width: 400px;
+    }
+    
+    .markdown-table-wrapper th,
+    .markdown-table-wrapper td {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+}
