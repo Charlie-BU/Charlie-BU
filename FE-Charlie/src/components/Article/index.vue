@@ -1,5 +1,5 @@
 <template>
-    <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 40px' : '40px 20px' }">
+    <el-main class="article-content" :style="{ 'padding': isMobileRef ? '40px 20px' : '40px 20px' }">
         <div class="article-container">
             <!-- AI 总结与目录 -->
             <div class="article-sidebar-left" v-if="aiAndContentsBarVisible" style="padding-bottom: 100px;">
@@ -79,47 +79,55 @@
                 <div class="article-header">
                     <div class="article-title-row">
                         <h1 class="article-title">{{ currentArticle.title }}</h1>
-                        <div class="article-tags">
+                    </div>
+                    <div style="text-align: end;">
+                        <a-space>
                             <a-tag v-for="(tag, tagIndex) in currentArticle.tags" :key="tagIndex" color="#b71de8">
                                 <template #icon>
                                     <icon-tag style="color: #fff;" />
                                 </template>
                                 {{ tag }}
                             </a-tag>
-                        </div>
+                        </a-space>
                     </div>
-                    <div class="article-meta">
-                        <div class="meta-left">
+                    <a-row style="margin-top: 15px;">
+                        <a-col :xs="24" :sm="12">
                             <div class="time-item">
                                 <el-icon>
                                     <Calendar />
                                 </el-icon>
                                 <span>{{ t('created') }}: {{ formatTime(currentArticle.timeCreated) }}</span>
                             </div>
+                        </a-col>
+                        <a-col :xs="24" :sm="12">
+                            <div class="time-item time-item-right">
+                                <el-icon>
+                                    <Document />
+                                </el-icon>
+                                <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
+                                }}</span>
+                            </div>
+                        </a-col>
+                    </a-row>
+                    <a-row style="margin-top: 10px;">
+                        <a-col :xs="24" :sm="12">
                             <div class="time-item">
                                 <el-icon>
                                     <Clock />
                                 </el-icon>
                                 <span>{{ t('updated') }}: {{ formatTime(currentArticle.timeLastUpdated) }}</span>
                             </div>
-                        </div>
-                        <div class="meta-right">
-                            <div class="time-item">
-                                <el-icon>
-                                    <Document />
-                                </el-icon>
-                                <span>{{ t('wordCount') }}: {{ countContent(currentArticle.content).wordCount || 0
-                                    }}</span>
-                            </div>
-                            <div class="time-item">
+                        </a-col>
+                        <a-col :xs="24" :sm="12">
+                            <div class="time-item time-item-right">
                                 <el-icon>
                                     <Timer />
                                 </el-icon>
                                 <span>{{ t('readingTime') }}: {{ countContent(currentArticle.content).readingTime || 0
-                                    }} {{ t('minute') }}</span>
+                                }} {{ t('minute') }}</span>
                             </div>
-                        </div>
-                    </div>
+                        </a-col>
+                    </a-row>
                 </div>
                 <div class="article-content-body">
                     <!-- 根据文章类型渲染不同内容 -->

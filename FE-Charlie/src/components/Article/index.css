@@ -225,6 +225,18 @@
     flex: 0 0 auto;
 }
 
+.time-item-right {
+    justify-content: flex-end;
+}
+
+/* 移动端响应式样式 */
+@media (max-width: 575px) {
+    .time-item-right {
+        margin-top: 10px;
+        justify-content: flex-start;
+    }
+}
+
 .article-tags {
     display: flex;
     flex-wrap: wrap;
@@ -294,7 +306,7 @@
 }
 
 .article-content-body :deep(code) {
-    background: rgba(0, 0, 0, 0.2);
+    /* background: #00000033; */
     padding: 0.2em 0.4em;
     border-radius: 3px;
     font-family: monospace;
@@ -302,7 +314,7 @@
 }
 
 .article-content-body :deep(pre) {
-    background: rgba(0, 0, 0, 0.2);
+    /* background: rgba(0, 0, 0, 0.2); */
     padding: 1em;
     border-radius: 5px;
     overflow-x: auto;
@@ -646,4 +658,85 @@
 
 .arco-dropdown {
     width: 120px;
+}
+
+/* 移动端字体大小优化 */
+@media (max-width: 768px) {
+    /* 文章标题 - 从2.2rem减小到1.6rem */
+    .article-title {
+        font-size: 1.6rem;
+    }
+    
+    /* 文章内容 - 从1.1rem减小到1rem */
+    .article-content-body {
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+    
+    /* 侧边栏标题 - 从1.3rem减小到1.1rem */
+    .sidebar-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    /* 时间信息 - 从0.9rem减小到0.8rem */
+    .time-item {
+        font-size: 0.8rem;
+    }
+    
+    /* 文章菜单标题 */
+    .article-menu-title {
+        font-size: 0.9rem;
+    }
+    
+    /* 文章菜单日期 */
+    .article-menu-date {
+        font-size: 0.7rem;
+    }
+    
+    /* AI摘要内容 */
+    .ai-summary-content {
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+    
+    /* 搜索结果项 */
+    .search-item-title {
+        font-size: 0.9rem;
+    }
+    
+    .search-item-content {
+        font-size: 0.75rem;
+    }
+    
+    .search-item-meta {
+        font-size: 0.7rem;
+    }
+    
+    /* 自定义输入框 */
+    .custom-input {
+        font-size: 0.85rem;
+    }
+}
+
+/* 小屏幕移动端进一步优化 */
+@media (max-width: 480px) {
+    /* 文章标题进一步缩小 */
+    .article-title {
+        font-size: 1.4rem;
+    }
+    
+    /* 文章内容进一步缩小 */
+    .article-content-body {
+        font-size: 0.95rem;
+    }
+    
+    /* 侧边栏标题进一步缩小 */
+    .sidebar-header h3 {
+        font-size: 1rem;
+    }
+    
+    /* 时间信息进一步缩小 */
+    .time-item {
+        font-size: 0.75rem;
+    }
 }

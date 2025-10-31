@@ -15,16 +15,16 @@
                 </p>
                 <div class="hero-buttons">
                     <el-button type="primary" size="large" class="cta-button" @click="download_cv">
-                        <el-icon class="button-icon">
-                            <Star />
-                        </el-icon>
-                        {{ t('CV') }}
+                        <a-space>
+                            <icon-star />
+                            {{ t('CV') }}
+                        </a-space>
                     </el-button>
                     <el-button size="large" class="secondary-button" @click="email_me">
-                        <el-icon class="button-icon">
-                            <Message />
-                        </el-icon>
+                        <a-space>
+                            <icon-email />
                         {{ t('contactMe') }}
+                        </a-space>
                     </el-button>
                 </div>
             </div>
