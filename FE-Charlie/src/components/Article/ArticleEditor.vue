@@ -863,7 +863,7 @@ const handlePaste = async (event) => {
 }
 
 .preview-content :deep(code) {
-    /* background: rgba(0, 0, 0, 0.2); */
+    background: rgba(0, 0, 0, 0.2);
     padding: 0.2em 0.4em;
     border-radius: 3px;
     font-family: monospace;
