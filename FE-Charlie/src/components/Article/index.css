@@ -225,6 +225,18 @@
     flex: 0 0 auto;
 }
 
+.time-item-right {
+    justify-content: flex-end;
+}
+
+/* 移动端响应式样式 */
+@media (max-width: 575px) {
+    .time-item-right {
+        margin-top: 10px;
+        justify-content: flex-start;
+    }
+}
+
 .article-tags {
     display: flex;
     flex-wrap: wrap;
