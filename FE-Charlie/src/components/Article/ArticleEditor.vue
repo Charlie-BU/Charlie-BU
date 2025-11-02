@@ -81,7 +81,7 @@
                         <div class="preview-header">
                             <h3>{{ t('preview') }}</h3>
                         </div>
-                        <div class="preview-content" v-html="renderMarkdown(articleForm.content)"></div>
+                        <div class="preview-content" v-html="renderMarkdown(articleForm.content)" ref="previewContentRef"></div>
                     </div>
                 </div>
             </div>
@@ -112,7 +112,7 @@
                         <div class="preview-header">
                             <h3>{{ t('preview') }}</h3>
                         </div>
-                        <div class="preview-content" v-html="renderMarkdown(articleForm.content_ENG)"></div>
+                        <div class="preview-content" v-html="renderMarkdown(articleForm.content_ENG)" ref="previewContentENGRef"></div>
                     </div>
                 </div>
             </div>
@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, nextTick, useTemplateRef } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { request } from '../../api/request'
 import { useMarkdown } from '../../hooks/useMarkdown'
@@ -164,7 +164,7 @@ onMounted(async () => {
     document.addEventListener('keydown', handleKeyDown)
 })
 
-const { markdownSign, renderMarkdown, formatMarkdownByPrettier } = useMarkdown()
+const { markdownSign, renderMarkdown, formatMarkdownByPrettier, replaceImages } = useMarkdown()
 
 // Command(Ctrl)+S 保存
 const handleKeyDown = async (event) => {
@@ -279,6 +279,10 @@ const t = (key) => {
 const contentInputRef = useTemplateRef("contentInputRef")
 const contentENGInputRef = useTemplateRef("contentENGInputRef")
 
+// 预览区域引用
+const previewContentRef = useTemplateRef("previewContentRef")
+const previewContentENGRef = useTemplateRef("previewContentENGRef")
+
 // 在光标位置插入文本的通用函数
 const insertAtCursor = (text, field = null) => {
     // 如果没有指定field，则根据当前语言设置自动判断
@@ -359,6 +363,41 @@ const saving = ref(false)
 
 // 是否为编辑模式
 const isEdit = ref(false)
+
+// 监听内容变化，处理图片显示
+watch(() => articleForm.content, () => {
+    if (articleForm.type === 2) { // 只在Markdown模式下处理
+        nextTick(() => {
+            if (previewContentRef.value) {
+                replaceImages(previewContentRef.value)
+            }
+        })
+    }
+}, { flush: 'post' })
+
+watch(() => articleForm.content_ENG, () => {
+    if (articleForm.type === 2) { // 只在Markdown模式下处理
+        nextTick(() => {
+            if (previewContentENGRef.value) {
+                replaceImages(previewContentENGRef.value)
+            }
+        })
+    }
+}, { flush: 'post' })
+
+// 监听类型变化，处理图片显示
+watch(() => articleForm.type, () => {
+    if (articleForm.type === 2) { // 切换到Markdown模式时处理图片
+        nextTick(() => {
+            if (previewContentRef.value) {
+                replaceImages(previewContentRef.value)
+            }
+            if (previewContentENGRef.value) {
+                replaceImages(previewContentENGRef.value)
+            }
+        })
+    }
+}, { flush: 'post' })
 
 // 显示标签输入框
 const showTagInput = () => {
@@ -591,6 +630,18 @@ const getArticleDetail = async (id) => {
             language.value = 1
         } else if (articleForm.content_ENG) {
             language.value = 2
+        }
+        
+        // 处理图片显示
+        if (articleForm.type === 2) {
+            nextTick(() => {
+                if (previewContentRef.value) {
+                    replaceImages(previewContentRef.value)
+                }
+                if (previewContentENGRef.value) {
+                    replaceImages(previewContentENGRef.value)
+                }
+            })
         }
     } catch (error) {
         console.error('获取文章详情失败:', error)

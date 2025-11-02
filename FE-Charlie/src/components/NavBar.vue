@@ -8,8 +8,8 @@
                 <el-menu-item index="/">{{ t('home') }}</el-menu-item>
                 <el-menu-item index="/articles">{{ t('articles') }}</el-menu-item>
                 <el-menu-item index="/traveling">{{ t('traveling') }}</el-menu-item>
-                <el-menu-item index="/dating">{{ t('dating') }}</el-menu-item>
             </el-menu>
+            <!-- <el-menu-item index="/dating">{{ t('dating') }}</el-menu-item> -->
             <!-- 退出登录按钮 -->
             <el-button v-if="isLoggedIn && !isMobileRef" class="logout-button" type="danger" size="small"
                 @click="handleLogout">
