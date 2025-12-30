@@ -18,7 +18,7 @@
 -   🧠 Into AI, agent, web infra, and IoT as additional habits
 -   ✨ Love creating and innovation
 -   🌍 Collaborated with Jeron (NUS) and Justin (Germany) on chronic disease prediction models
--   🏓 Table tennis player, calligraphy learner — logic and rhythm both matter in life
+-   🏓 Table tennis player, calligraphy learner — pragmatism and romanticism both matter in life
 
 ---
 
