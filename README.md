@@ -12,24 +12,21 @@
 ### 👨‍💻 About Me
 
 -   💻 Full-stack developer & problem-solver passionate about bringing ideas to life through code
--   💼 Frontend Engineer Intern @ [ByteDance](https://www.bytedance.com/zh/) Data AML, Shanghai
--   🎓 Software Engineering @ [Tongji University](https://www.tongji.edu.cn/), Shanghai, China
--   🌱 Open-source contributor to [Robyn](https://github.com/sansyrox/robyn), improving Python CORS support
--   📦 Built and shipped 15+ full-featured projects with real-world deployment & usage
--   🧠 Into AI, IoT, and web infra — especially YOLO, XGBoost, and realtime control systems
--   ✨ I love turning abstract ideas into beautiful, functional reality
--   🌍 Collaborated internationally with Jeron (NUS) and Justin (Germany) on chronic disease prediction models
--   🏓 Table tennis coach, calligraphy learner — because logic and rhythm both matter in life
+-   🧑‍💻 Frontend Engineer Intern @ Data-Infra-Frontend Arch, [ByteDance](https://www.bytedance.com/zh/), Shanghai
+-   🎓 Software Engineering @ [School of Computer Science and Technology, Tongji University](https://cs.tongji.edu.cn/), Shanghai, China
+-   🌱 Open-source contributor to [Robyn](https://github.com/sansyrox/robyn), a super fast async Python web framework with a Rust runtime
+-   🧠 Into AI, agent, web infra, and IoT as additional habits
+-   ✨ Love creating and innovation
+-   🌍 Collaborated with Jeron (NUS) and Justin (Germany) on chronic disease prediction models
+-   🏓 Table tennis player, calligraphy learner — logic and rhythm both matter in life
 
 ---
 
-### 📌 Featured Projects
+### 📌 Tech Stacks
 
--   **Green Pioneer** – Smart self-powered irrigation system, submitted for two invention patents
--   **Chronic Disease Predictor** – Collaborative AI project (XGBoost + fullstack site) with researchers from NUS & Germany
--   **Asia-Pacific Yoga CRM** – Fully self-developed system with Robyn + Vue3 + TypeScript, ¥52,800 revenue
--   **SciGuard Research Platform** – One-stop IoT lab system for CO₂ utilization lab in Inner Mongolia
--   **TJTT Platform** – WeChat MiniApp for ping-pong tournaments, now with 300+ users and software copyright
+-   **Languages**: TypeScript, Python, Golang, Swift
+-   **Frameworks**: React, Vue3, EdenX, Robyn, Uniapp
+-   **Programming Styles**: Functional Programming, take functions as first-class citizens, and dislike Object-Oriented stuff.
 
 ---
 
@@ -48,7 +45,7 @@
 
 ### 🌐 Let's Connect
 
--   📫 Email: 15947513567@163.com
+-   📫 Email: 15947513567charlie@gmail.com
 -   🌐 Website: [https://charliebu.cn](https://charliebu.cn)
 -   🐙 GitHub: [@Charlie-BU](https://github.com/Charlie-BU)
 -   📝 CV: [Download PDF](https://charlie-assets.oss-rg-china-mainland.aliyuncs.com/CV-2025.7.pdf)
@@ -56,4 +53,4 @@
 ---
 
 > “From the ping-pong table to production-ready pipelines,  
-> I code not just to build — but to understand, connect, and create.”
+> I code not just to code — but to build, connect, and create.”
