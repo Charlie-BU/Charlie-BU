@@ -73,7 +73,7 @@
                             </el-icon>
                         </div>
                         <h3>{{ talent.title }}</h3>
-                        <p style="text-align: justify;">{{ talent.description }}</p>
+                        <p style="text-align: left;">{{ talent.description }}</p>
                         <div v-if="talent.gotoUrl" class="view-details"
                             :style="{ color: talent.showDetails ? '#ffffff' : '#A78BFA' }">
                             <span :class="{ 'show': talent.showDetails }">{{ t('detail') }}&nbsp;</span>

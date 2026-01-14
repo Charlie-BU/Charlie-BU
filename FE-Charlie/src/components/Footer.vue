@@ -1,32 +1,43 @@
 <template>
     <el-footer class="footer">
         <div class="footer-content">
-            <p>Copyright © 2025 - Present <span style="font-style: italic; font-weight: bold;">Charlie. BU</span>
-                <br v-if="isMobileRef" /> {{ t('footnote') }}
+            <p>
+                Copyright © 2025 - Present
+                <span style="font-style: italic; font-weight: bold"
+                    >Charlie. BU</span
+                >
+                <br v-if="isMobileRef" />
+                {{ t("footnote") }}
+                <!-- 随时删 -->
+                <!-- <a
+                    href="https://beian.miit.gov.cn/#/Integrated/index"
+                    target="_blank"
+                    >蒙ICP备2024013129号-4</a
+                > -->
             </p>
         </div>
     </el-footer>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { isMobile } from '../utils/utils';
+import { ref, reactive } from "vue";
+import { isMobile } from "../utils/utils";
 
 const isMobileRef = ref(isMobile());
 
 const LANG = localStorage.getItem("LANG") || "Chinese";
 const translations = reactive({
     Chinese: {
-        footnote: '用心创造每一个像素.'
+        footnote: "用心创造每一个像素.",
     },
     English: {
-        footnote: 'Create every pixel with heart.'
-    }
-})
+        footnote: "Create every pixel with heart.",
+    },
+});
 // 翻译函数
 const t = (key) => {
-    return translations[LANG][key] || key
-}
+    return translations[LANG][key] || key;
+};
 </script>
 
 <style scoped>
