@@ -104,7 +104,7 @@
             </el-row>
         </section>
 
-        <section style="margin-top: 120px;">
+        <!-- <section style="margin-top: 120px;">
             <div class="section-title section-title-container" @mouseenter="handle_mouse_enter('growthPath')"
                 @mouseleave="handle_mouse_leave('growthPath')">
                 <h2>{{ t('growthPath') }}</h2>
@@ -120,9 +120,9 @@
                     </div>
                 </el-timeline-item>
             </el-timeline>
-        </section>
+        </section> -->
 
-        <section style="margin-top: 120px;">
+        <!-- <section style="margin-top: 120px;">
             <div class="section-title section-title-container" @mouseenter="handle_mouse_enter('thoughts')"
                 @mouseleave="handle_mouse_leave('thoughts')">
                 <h2>{{ t('thoughts') }}</h2>
@@ -155,7 +155,7 @@
                     </div>
                 </el-card>
             </div>
-        </section>
+        </section> -->
 
         <section style="margin-top: 120px; text-align: center;">
             <div class="section-title section-title-container" @mouseenter="handle_mouse_enter('selfDefinition')"
