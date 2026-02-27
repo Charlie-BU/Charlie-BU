@@ -192,24 +192,47 @@ Code
         };
 
         // 重写 table 渲染规则，包裹table-wrapper
-        const proxy = (tokens: any[], idx: number, options: any, _env: any, self: any) => 
-            self.renderToken(tokens, idx, options);
-        
-        const originalTableOpenRenderer = markdownParser.renderer.rules.table_open || proxy;
-        const originalTableCloseRenderer = markdownParser.renderer.rules.table_close || proxy;
+        const proxy = (
+            tokens: any[],
+            idx: number,
+            options: any,
+            _env: any,
+            self: any,
+        ) => self.renderToken(tokens, idx, options);
+
+        const originalTableOpenRenderer =
+            markdownParser.renderer.rules.table_open || proxy;
+        const originalTableCloseRenderer =
+            markdownParser.renderer.rules.table_close || proxy;
 
         // 重写 table_open 规则，添加包裹 div
-        markdownParser.renderer.rules.table_open = (tokens, idx, options, env, self) => {
-            return '<div class="markdown-table-wrapper">\n' + 
-                   originalTableOpenRenderer(tokens, idx, options, env, self);
+        markdownParser.renderer.rules.table_open = (
+            tokens,
+            idx,
+            options,
+            env,
+            self,
+        ) => {
+            return (
+                '<div class="markdown-table-wrapper">\n' +
+                originalTableOpenRenderer(tokens, idx, options, env, self)
+            );
         };
 
         // 重写 table_close 规则，关闭包裹 div
-        markdownParser.renderer.rules.table_close = (tokens, idx, options, env, self) => {
-            return originalTableCloseRenderer(tokens, idx, options, env, self) + 
-                   '\n</div>';
+        markdownParser.renderer.rules.table_close = (
+            tokens,
+            idx,
+            options,
+            env,
+            self,
+        ) => {
+            return (
+                originalTableCloseRenderer(tokens, idx, options, env, self) +
+                "\n</div>"
+            );
         };
-        
+
         return markdownParser;
     };
 
@@ -218,7 +241,7 @@ Code
     const replaceMarkdownImages = (container: HTMLElement) => {
         // 查找所有的 arco-image-placeholder 标签
         const placeholders = container.querySelectorAll(
-            "arco-image-placeholder"
+            "arco-image-placeholder",
         );
 
         placeholders.forEach((placeholder) => {
@@ -271,10 +294,10 @@ Code
                                               fontSize: "14px",
                                           },
                                       },
-                                      alt
+                                      alt,
                                   )
                                 : null,
-                        ].filter(Boolean)
+                        ].filter(Boolean),
                     );
                 },
             });
@@ -303,7 +326,7 @@ Code
     };
 
     const formatMarkdownByPrettier = async (
-        markdown: string
+        markdown: string,
     ): Promise<string> => {
         try {
             const formatted = await prettier.format(markdown, {
@@ -312,7 +335,11 @@ Code
             });
             // 用 pangu 在中英文之间插入空格
             const spaced = pangu.spacingText(formatted);
-            return spaced.trim();
+            // 去掉 ** 和 ** 的空格
+            const final = spaced
+                .replace(/\*\*\s/g, "**")
+                .replace(/\s\*\*/g, "**");
+            return final.trim();
         } catch (error) {
             console.error("[formatByPrettier] 格式化失败:", error);
             return markdown; // 格式化失败则返回原内容
