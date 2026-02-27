@@ -335,10 +335,10 @@ Code
             });
             // 用 pangu 在中英文之间插入空格
             const spaced = pangu.spacingText(formatted);
-            // 去掉 ** 和 ** 的空格
+            // 去掉 ** 和 ** 的空格 (仅当只有一个空格时)
             const final = spaced
-                .replace(/\*\*\s/g, "**")
-                .replace(/\s\*\*/g, "**");
+                .replace(/(^|[^ ]) \*\*/g, "$1**")
+                .replace(/\*\* ([^ ])/g, "**$1");
             return final.trim();
         } catch (error) {
             console.error("[formatByPrettier] 格式化失败:", error);
