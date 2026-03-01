@@ -3,7 +3,7 @@
         <section class="map-section">
             <div class="section-title">
                 <h2>{{ t('worldMap') }}
-                    <span class="corner-count">{{ countriesCount }} {{ t('countrys') }}</span>
+                    <span class="corner-count">{{ countriesCount }} {{ t('countries') }}</span>
                 </h2>
             </div>
             <div class="map-container" ref="worldMapContainer"></div>
@@ -184,9 +184,9 @@ const t = (key) => {
             Chinese: "👣 足迹",
             English: "👣 Footprint On"
         },
-        countrys: {
+        countries: {
             Chinese: "个国家",
-            English: "Countrys"
+            English: "Countries"
         },
         cities: {
             Chinese: "个城市",
