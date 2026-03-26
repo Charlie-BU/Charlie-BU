@@ -1,8 +1,8 @@
 from volcenginesdkarkruntime import Ark
 import json
 
-from config import ARK_API_KEY
-from prompts import SUMMARY_ARTICLE, GENERATE_ACTIVITY_DESCRIPTION
+from config import ARK_API_KEY, SUMMARY_ARTICLE, GENERATE_ACTIVITY_DESCRIPTION
+from prompts import getPrompt
 
 
 client = Ark(
@@ -12,28 +12,24 @@ client = Ark(
 )
 
 
-def get_ark_summary(prompt_prefix, content):
+def get_article_summary(content):
+    prompt = getPrompt(SUMMARY_ARTICLE)
     completion = client.chat.completions.create(
         model="deepseek-v3-250324",
         messages=[
-            {
-                "role": "system",
-                "content": SUMMARY_ARTICLE
-            },
-            {"role": "user", "content": prompt_prefix + content},
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": content},
         ],
     )
     return completion.choices[0].message.content
 
 
 def get_activity_description(title):
+    prompt = getPrompt(GENERATE_ACTIVITY_DESCRIPTION)
     completion = client.chat.completions.create(
         model="deepseek-v3-250324",
         messages=[
-            {
-                "role": "system",
-                "content": GENERATE_ACTIVITY_DESCRIPTION
-            },
+            {"role": "system", "content": prompt},
             {"role": "user", "content": title},
         ],
     )

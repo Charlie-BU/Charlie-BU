@@ -1,28 +1,77 @@
-SUMMARY_ARTICLE = """
-你是一个专业的文章摘要助手。我将提供一篇文章，你需要根据全文生成一段总结。
-要求：
-1. 用第一人称撰写，不得使用“作者”“笔者”等称谓，不得改为第三人称；
-2. 输出纯文本（不可包含任何markdown符号、列表符号或额外的格式说明）；
-3. 直接输出总结，不得包含解释、提示或与总结无关的内容；
-4. 字数建议控制在200字上下，如果可以请分段（不要添加\\n、<br>等换行符，直接换行）；
-5. 总结需尽可能涵盖文章的重点内容。
-"""
+import json
+import html as html_lib
+import re
+import requests
+from typing import Optional, Any, List
 
 
-GENERATE_ACTIVITY_DESCRIPTION = """
-你是一位擅长创作浪漫文案的专家。我将给你一个情侣间共同完成的活动，请为这个活动生成一段富有诗意和浪漫色彩的描述。
+def extractPromptFromPromptMinder(
+    html: str, variables: dict | None = None
+) -> Optional[str]:
+    """
+    从 Prompt Minder 的分享页 HTML 中提取 prompt 文本。
+    返回 prompt 字符串；失败返回 None。
+    """
 
-要求：
-1. 输出格式必须为标准JSON，包含中文和英文两个版本的描述
-2. 中文描述要温馨浪漫，富有诗意，字数控制在15-25字
-3. 英文描述要优雅动人，语言流畅，避免直译
-4. 直接输出JSON内容，不要包含任何解释或额外文字
-5. 确保JSON格式正确，字段名使用双引号
+    def _normalize(s: str) -> str:
+        # 统一换行、解 HTML 实体、去掉首尾空白
+        s = s.replace("\r\n", "\n").replace("\r", "\n")
+        s = html_lib.unescape(s).strip()
+        return s
 
-示例：
-input: 一起看日出
-output: {
-    "description": "与你共赏晨曦初露，见证新一天的美好开始",
-    "description_ENG": "Watching the sunrise together, witnessing the birth of a beautiful new day with you"
-}
-"""
+    def _findJsonlds(doc: str) -> List[str]:
+        # 抓取所有 <script type="application/ld+json">...</script>
+        # 用非贪婪 + DOTALL，尽量不受换行影响
+        pattern = re.compile(
+            r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+            re.IGNORECASE | re.DOTALL,
+        )
+        return [m.group(1).strip() for m in pattern.finditer(doc)]
+
+    def _iterCreativeworks(obj: Any):
+        # JSON-LD 里可能是 dict / list，或 {"@graph":[...]}
+        if isinstance(obj, dict):
+            if "@graph" in obj and isinstance(obj["@graph"], list):
+                for item in obj["@graph"]:
+                    yield from _iterCreativeworks(item)
+
+            t = obj.get("@type")
+            # @type 可能是 "CreativeWork" 或 ["CreativeWork", ...]
+            if t == "CreativeWork" or (isinstance(t, list) and "CreativeWork" in t):
+                yield obj
+
+            # 继续递归，避免 CreativeWork 嵌套在别处
+            for v in obj.values():
+                yield from _iterCreativeworks(v)
+
+        elif isinstance(obj, list):
+            for item in obj:
+                yield from _iterCreativeworks(item)
+
+    # ---- JSON-LD CreativeWork.text）----
+    for raw in _findJsonlds(html):
+        try:
+            data = json.loads(raw)
+        except Exception:
+            # 有些站点会塞入无效 JSON（比如多余逗号），这里直接跳过
+            continue
+        for cw in _iterCreativeworks(data):
+            text = cw.get("text")
+            if isinstance(text, str) and text.strip():
+                result = _normalize(text)
+                if variables:
+                    for k, v in variables.items():
+                        val = "" if v is None else str(v)
+                        pattern = re.compile(r"{{\s*" + re.escape(k) + r"\s*}}")
+                        result = pattern.sub(lambda _: val, result)
+                return result
+
+    return None
+
+
+def getPrompt(prompt_minder_url: str, variables: dict | None = None) -> str | None:
+    if not prompt_minder_url:
+        return None
+    res = requests.get(prompt_minder_url)
+    html = res.text
+    return extractPromptFromPromptMinder(html, variables)

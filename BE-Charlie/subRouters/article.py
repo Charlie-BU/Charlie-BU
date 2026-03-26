@@ -3,7 +3,7 @@ from dateutil import parser
 import json
 
 from models import *
-from AI import get_ark_summary
+from AI import get_article_summary
 import utils
 
 articleRouter = SubRouter(__file__, prefix="/article")
@@ -267,7 +267,7 @@ async def add_article(request):
     article.isReleased = isReleased
 
     if isReleased:
-        aiSummary = get_ark_summary("文章内容如下：\n", content)
+        aiSummary = get_article_summary(content)
         article.aiSummary = aiSummary
 
     session.add(article)
@@ -343,7 +343,7 @@ async def update_article(request):
     article.isReleased = isReleased
 
     if isReleased:
-        aiSummary = get_ark_summary("文章内容如下：\n", article.content)
+        aiSummary = get_article_summary(article.content)
         article.aiSummary = aiSummary
 
     session.commit()
@@ -381,7 +381,7 @@ async def regenerate_article_AISummary(request):
             }
         )
 
-    aiSummary = get_ark_summary("文章内容如下：\n", article.content)
+    aiSummary = get_article_summary(article.content)
     if not cookie or not sessionid or not utils.check_sessionid(sessionid):
         session.close()
         return jsonify(
