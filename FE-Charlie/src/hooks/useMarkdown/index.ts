@@ -275,6 +275,8 @@ Code
                                     maxWidth: "100%",
                                     height: "auto",
                                 },
+                                referrerpolicy: "no-referrer",
+                                referrerPolicy: "no-referrer",  // 避免飞书图片校验 referer 导致加载失败
                                 previewProps: {
                                     closable: true,
                                     maskClosable: true,
