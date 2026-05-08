@@ -112,7 +112,7 @@ async def change_article_status(request):
     )
 
 
-@articleRouter.post("/get_article_detail/")
+@articleRouter.post("/get_article_detail")
 async def get_article_detail(request):
     session = Session()
     headers = request.headers
@@ -346,6 +346,48 @@ async def update_article(request):
         aiSummary = get_article_summary(article.content)
         article.aiSummary = aiSummary
 
+    session.commit()
+    session.close()
+    return jsonify(
+        {
+            "status": 200,
+            "message": "success",
+        }
+    )
+
+
+@articleRouter.post("/update_eng_content")
+async def update_eng_content(request):
+    session = Session()
+    headers = request.headers
+    cookie = utils.parse_cookie_string(headers.get("cookie"))
+    sessionid = cookie.get("sessionid")
+    if not cookie or not sessionid or not utils.check_sessionid(sessionid):
+        return jsonify(
+            {
+                "status": 403,
+                "message": "No permission",
+            }
+        )
+    data = request.json()
+    id = data.get("id")
+    article = session.get(Article, id)
+    if not article:
+        return jsonify(
+            {
+                "status": 404,
+                "message": "Article not found",
+            }
+        )
+    content_ENG = data.get("content_ENG")
+    if not content_ENG or content_ENG == "":
+        return jsonify(
+            {
+                "status": 400,
+                "message": "Article content_ENG is empty",
+            }
+        )
+    article.content_ENG = content_ENG
     session.commit()
     session.close()
     return jsonify(
