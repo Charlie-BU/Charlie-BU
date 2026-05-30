@@ -11,22 +11,22 @@
 
 ### 👨‍💻 About Me
 
--   💻 Full-stack developer & problem-solver passionate about bringing ideas to life through code
--   🧑‍💻 Frontend Engineer Intern @ Data-Infra-Frontend Arch, [ByteDance](https://www.bytedance.com/zh/), Shanghai
--   🎓 Software Engineering @ [School of Computer Science and Technology, Tongji University](https://cs.tongji.edu.cn/), Shanghai, China
--   🌱 Open-source contributor to [Robyn](https://github.com/sansyrox/robyn), a super fast async Python web framework with a Rust runtime
--   🧠 Into AI, agent, web infra, and IoT as additional habits
--   ✨ Love creating and innovation
--   🌍 Collaborated with Jeron (NUS) and Justin (Germany) on chronic disease prediction models
--   🏓 Table tennis player, calligraphy learner — pragmatism and romanticism both matter in life
+- 🧑‍💻 AI / Agent Engineering Intern @Meego Engineering - AI, [ByteDance](https://www.bytedance.com/zh/), Shanghai
+- 💻 Full-stack developer & problem-solver passionate about bringing ideas to life through code
+- 🎓 Software Engineering @ [School of Computer Science and Technology, Tongji University](https://cs.tongji.edu.cn/), Shanghai, China
+- 🌱 Open-source contributor to [Robyn](https://github.com/sansyrox/robyn), a super fast async Python web framework with a Rust runtime
+- 🧠 Into AI, agent, web infra, and IoT as additional habits
+- ✨ Love creating and innovation
+- 🌍 Collaborated with Jeron (NUS) and Justin (Germany) on chronic disease prediction models
+- 🏓 Table tennis player, calligraphy learner — pragmatism and romanticism both matter in life
 
 ---
 
 ### 📌 Tech Stacks
 
--   **Languages**: TypeScript, Python, Golang, Swift
--   **Frameworks**: React, Vue3, EdenX, Robyn, Uniapp
--   **Programming Styles**: Functional Programming, take functions as first-class citizens, and dislike Object-Oriented stuff.
+- **Languages**: TypeScript, Python, Golang, JavaScript, Node.js
+- **Frameworks**: LangChain, LangGraph, React, Vue3, EdenX, Robyn, Uniapp
+- **Programming Styles**: Functional Programming, take functions as first-class citizens, and dislike OOP.
 
 ---
 
@@ -45,10 +45,10 @@
 
 ### 🌐 Let's Connect
 
--   📫 Email: 15947513567charlie@gmail.com
--   🌐 Website: [https://charliebu.cn](https://charliebu.cn)
--   🐙 GitHub: [@Charlie-BU](https://github.com/Charlie-BU)
--   📝 CV: [Download PDF](https://charlie-assets.oss-rg-china-mainland.aliyuncs.com/CV-2025.7.pdf)
+- 📫 Email: 15947513567charlie@gmail.com
+- 🌐 Website: [https://charliebu.cn](https://charliebu.cn)
+- 🐙 GitHub: [@Charlie-BU](https://github.com/Charlie-BU)
+- 📝 CV: [Download PDF](https://charlie-assets.oss-rg-china-mainland.aliyuncs.com/CV-2026.05.pdf)
 
 ---
 
