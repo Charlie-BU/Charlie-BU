@@ -4,7 +4,7 @@
         <div class="dating-sidebar">
             <div class="dating-logo">
                 <img :src="inLoveIcon" alt="In Love Icon" class="in-love-icon" />
-                <h3 style="font-family: 'Times New Roman'; font-style: italic;">Charlie & Judy</h3>
+                <h3 style="font-family: 'Times New Roman'; font-style: italic;">小瑾 & Charlie</h3>
             </div>
             <div class="dating-tabs">
                 <div v-for="(tab, index) in tabs" :key="index" class="dating-tab-item"
