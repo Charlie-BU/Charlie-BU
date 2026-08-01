@@ -2,6 +2,8 @@ BE-Charlie/config.py
 BE-Charlie/charlie.db
 FE-Charlie/dist
 
+uv.lock
+
 **/__pycache__/
 **/.idea/
 **/.DS_Store
