@@ -11,7 +11,7 @@
 
 ### 👨‍💻 About Me
 
-- 🧑‍💻 AI / Agent Engineering Intern @Meego Engineering - AI, [ByteDance](https://www.bytedance.com/zh/), Shanghai
+- 🧑‍💻 Engineer @ [AirJelly](https://www.airjelly.ai/), Low Entropy AI, Beijing
 - 💻 Full-stack developer & problem-solver passionate about bringing ideas to life through code
 - 🎓 Software Engineering @ [School of Computer Science and Technology, Tongji University](https://cs.tongji.edu.cn/), Shanghai, China
 - 🌱 Open-source contributor to [Robyn](https://github.com/sansyrox/robyn), a super fast async Python web framework with a Rust runtime
@@ -24,9 +24,9 @@
 
 ### 📌 Tech Stacks
 
-- **Languages**: TypeScript, Python, Golang, JavaScript, Node.js
-- **Frameworks**: LangChain, LangGraph, React, Vue3, EdenX, Robyn, Uniapp
-- **Programming Styles**: Functional Programming, take functions as first-class citizens, and dislike OOP.
+- **Languages**: TypeScript, Golang, Python, JavaScript, Node.js
+- **Frameworks**: Eino, LangChain, LangGraph, React, Vue3, Robyn, Uniapp
+- **Programming Styles**: Functional Programming, take functions as first-class citizens.
 
 ---
 
