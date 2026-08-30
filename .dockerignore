@@ -1,0 +1,8 @@
+.git
+node_modules
+dist
+cloud-materials-common
+.env
+.env.*
+*.log
+.DS_Store
