@@ -7,21 +7,19 @@ import type {
     InternalAxiosRequestConfig,
 } from "axios";
 
-
-const isDev = import.meta.env.DEV;
-// @ts-ignore
-const DEVELOP_URL = "http://localhost:1209";
-// @ts-ignore
-const PRODUCTION_URL = "https://charliebu.cn/api";
+const PUBLIC_BASE_URL = import.meta.env.VITE_API_PUBLIC_BASE_URL || "/api";
 
 const service: AxiosInstance = axios.create({
-    baseURL: isDev ? DEVELOP_URL : PRODUCTION_URL,
+    baseURL: PUBLIC_BASE_URL,
     timeout: 50000,
     withCredentials: true, // 自动携带cookies
 });
 
 service.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
+        if (config.url?.startsWith("/api/")) {
+            config.url = config.url.slice("/api".length);
+        }
         return config;
     },
     (error: AxiosError) => {
